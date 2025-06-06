@@ -1,0 +1,6 @@
+@PromocionDocente.API_HostAddress = http://localhost:5231
+
+GET {{PromocionDocente.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
