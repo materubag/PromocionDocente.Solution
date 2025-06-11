@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
+
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
       <PrivateAssets>all</PrivateAssets>
@@ -17,10 +18,12 @@
   </ItemGroup>
 
   <ItemGroup>
+
     <ProjectReference Include="..\PromocionDocente.Application\PromocionDocente.Application.csproj" />
     <ProjectReference Include="..\PromocionDocente.Client\PromocionDocente.Client.csproj" />
     <ProjectReference Include="..\PromocionDoncete.Domain\PromocionDocente.Domain.csproj" />
     <ProjectReference Include="..\PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj" />
+
   </ItemGroup>
 
 </Project>
