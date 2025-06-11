@@ -13,6 +13,7 @@ namespace PromocionDocente.Infrastructure.Contexts
         public PromocionDocenteDbContext(DbContextOptions<PromocionDocenteDbContext> options) : base(options) { }
 
         public DbSet<Obra> Obras { get; set; }
+        public DbSet<Evaluacion> Evaluaciones { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -32,6 +33,21 @@ namespace PromocionDocente.Infrastructure.Contexts
                 entity.Property(e => e.Observaciones).HasColumnName("OBSERVACIONES");
                 entity.Property(e => e.PdfProduccion).HasColumnName("PDF_PRODUCCION");
             });
+
+        modelBuilder.Entity<Evaluacion>(entity =>
+{
+    entity.ToTable("EVALUACIONES");
+
+    entity.HasKey(e => e.IdEvaluacion);
+    entity.Property(e => e.IdEvaluacion).HasColumnName("NUM_EVA");
+        entity.Property(e => e.NumeroResolucion).HasColumnName("NUM_RES_EVA");
+        entity.Property(e => e.FechaEvaluacion).HasColumnName("FEC_EVA");
+        entity.Property(e => e.Calificacion).HasColumnName("CAL_EVA");
+        entity.Property(e => e.PdfEvaluacion).HasColumnName("ARC_EVA");
+        entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
+    });
+
+
         }
 
     }

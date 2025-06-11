@@ -3,7 +3,6 @@ using PromocionDocente.Domain.Entities;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using PromocionDocente.Infrastructure.Entities;
 
-
 namespace PromocionDocente.Infrastructure.Contexts
 {
     public class DACDbContext : DbContext
@@ -11,6 +10,8 @@ namespace PromocionDocente.Infrastructure.Contexts
         public DACDbContext(DbContextOptions<DACDbContext> options) : base(options) { }
 
         public DbSet<ObraDac> Obras { get; set; }
+        public DbSet<EvaluacionDac> Evaluaciones { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -29,7 +30,19 @@ namespace PromocionDocente.Infrastructure.Contexts
                 entity.Property(e => e.PdfProduccion).HasColumnName("PDF_PRODUCCION");
             });
 
+            modelBuilder.Entity<EvaluacionDac>(entity =>
+            {
+                entity.ToTable("EVALUACIONES");
 
+                entity.HasKey(e => e.IdEvaluacion);
+
+                entity.Property(e => e.IdEvaluacion).HasColumnName("NUM_EVA");
+                entity.Property(e => e.NumeroResolucion).HasColumnName("NUM_RES_EVA");
+                entity.Property(e => e.FechaEvaluacion).HasColumnName("FEC_EVA");
+                entity.Property(e => e.Calificacion).HasColumnName("CAL_EVA");
+                entity.Property(e => e.PdfEvaluacion).HasColumnName("ARC_EVA");
+                entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
+            });
         }
 
     }
