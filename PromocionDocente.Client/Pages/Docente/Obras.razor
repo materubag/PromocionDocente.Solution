@@ -1,0 +1,663 @@
+﻿@page "/docente/obras"
+@layout DocenteLayout
+@using Models
+@inject IJSRuntime JSRuntime
+
+<div class="obras-container">
+    <!-- Header -->
+    <div class="header-container">
+        <div class="header-content">
+            <h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+            <div class="docente-info">
+                <div class="info-text">
+                    <div class="nombre">@docenteInfo.Nombre</div>
+                    <div class="cargo">@docenteInfo.Cargo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="obras-content">
+        <!-- Barra de Herramientas -->
+        <div class="toolbar">
+            <div class="search-container">
+                <input type="text" @bind="searchTerm" @oninput="OnSearchChanged"
+                       placeholder="Buscar obras..." class="search-input" />
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="toolbar-buttons">
+                <button class="btn btn-primary" @onclick="AgregarObra">
+                    <span class="btn-icon">+</span>
+                    Agregar
+                </button>
+                <button class="btn btn-secondary" @onclick="ImportarObras">
+                    <span class="btn-icon">📄</span>
+                    Importar
+                </button>
+                <button class="btn btn-secondary" @onclick="EditarSeleccionado">
+                    <span class="btn-icon">✏️</span>
+                    Editar
+                </button>
+                <button class="btn btn-danger" @onclick="EliminarSeleccionado">
+                    <span class="btn-icon">🗑️</span>
+                    Eliminar
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de Obras -->
+        <div class="table-container">
+            <table class="obras-table">
+                <thead>
+                    <tr>
+                        <th class="checkbox-column">
+                            <input type="checkbox" @onchange="SeleccionarTodos" />
+                        </th>
+                        <th class="documento-column">Documento</th>
+                        <th class="autor-column">Autor</th>
+                        <th class="tipo-column">Tipo</th>
+                        <th class="fecha-column">Fecha</th>
+                        <th class="estado-column">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (obrasFiltradas != null && obrasFiltradas.Any())
+                    {
+                        @foreach (var obra in obrasFiltradas)
+                        {
+                            <tr class="@(obra.Seleccionado ? "selected" : "")">
+                                <td>
+                                    <input type="checkbox" @bind="obra.Seleccionado" />
+                                </td>
+                                <td class="documento-cell">
+                                    <div class="documento-info">
+                                        <span class="documento-icon">📄</span>
+                                        <span class="documento-nombre">@obra.Titulo</span>
+                                    </div>
+                                </td>
+                                <td>@obra.Autor</td>
+                                <td>
+                                    <span class="tipo-badge @GetTipoClass(obra.Tipo)">
+                                        @obra.Tipo
+                                    </span>
+                                </td>
+                                <td>@obra.FechaPublicacion.ToString("dd/MM/yyyy")</td>
+                                <td>
+                                    <span class="estado-badge @GetEstadoClass(obra.Estado)">
+                                        @obra.Estado
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="no-data">
+                                <div class="no-data-message">
+                                    <span class="no-data-icon">📚</span>
+                                    <p>No se encontraron obras</p>
+                                    <button class="btn btn-primary" @onclick="AgregarObra">
+                                        Agregar primera obra
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div class="progress-section">
+            <div class="progress-info">
+                <span class="progress-label">Progreso</span>
+                <span class="progress-text">@obras.Count de @metaObras obras completadas</span>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @GetProgresoWidth()%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Fecha Límite -->
+        <div class="deadline-alert">
+            <span class="alert-icon">⏰</span>
+            <span class="alert-text">Fecha límite: 15 julio, 2025 (41 días restantes)</span>
+        </div>
+    </div>
+</div>
+
+<style>
+    .obras-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .docente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #4A90E2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .info-text {
+        color: white;
+    }
+
+    .nombre {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cargo {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .obras-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        background: white;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 2.5rem 0.75rem 1rem;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        outline: none;
+        transition: border-color 0.2s;
+    }
+
+        .search-input:focus {
+            border-color: #4A90E2;
+        }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .toolbar-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-primary {
+        background: #4A90E2;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background: #357ABD;
+        }
+
+    .btn-secondary {
+        background: #f8f9fa;
+        color: #495057;
+        border: 1px solid #dee2e6;
+    }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-danger:hover {
+            background: #c82333;
+        }
+
+    .table-container {
+        background: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1.5rem;
+    }
+
+    .obras-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .obras-table th {
+            background: #f8f9fa;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #495057;
+            border-bottom: 2px solid #e9ecef;
+        }
+
+        .obras-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e9ecef;
+            vertical-align: middle;
+        }
+
+        .obras-table tr:hover {
+            background: #f8f9fa;
+        }
+
+    .obra-table tr.selected {
+        background: #e3f2fd;
+    }
+
+    .checkbox-column {
+        width: 50px;
+        text-align: center;
+    }
+
+    .documento-column {
+        width: 35%;
+    }
+
+    .autor-column {
+        width: 20%;
+    }
+
+    .tipo-column {
+        width: 15%;
+    }
+
+    .fecha-column {
+        width: 15%;
+    }
+
+    .estado-column {
+        width: 15%;
+    }
+
+    .documento-cell {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+    }
+
+    .documento-icon {
+        font-size: 1.2rem;
+    }
+
+    .documento-nombre {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .tipo-badge, .estado-badge {
+        display: inline-block;
+        padding: 0.25rem 0.75rem;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: 500;
+    }
+
+    .tipo-articulo {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .tipo-libro {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .tipo-capitulo {
+        background: #e8f5e8;
+        color: #388e3c;
+    }
+
+    .estado-publicado {
+        background: #e8f5e8;
+        color: #2e7d32;
+    }
+
+    .estado-revision {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .estado-borrador {
+        background: #fce4ec;
+        color: #c2185b;
+    }
+
+    .no-data {
+        padding: 3rem;
+        text-align: center;
+    }
+
+    .no-data-message {
+        color: #666;
+    }
+
+    .no-data-icon {
+        font-size: 3rem;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .progress-section {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        margin-bottom: 1rem;
+    }
+
+    .progress-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .progress-label {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .progress-text {
+        color: #666;
+        font-size: 0.9rem;
+    }
+
+    .progress-bar-container {
+        width: 100%;
+    }
+
+    .progress-bar {
+        width: 100%;
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4A90E2, #64B5F6);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    .deadline-alert {
+        background: #fff3cd;
+        color: #856404;
+        padding: 1rem 1.5rem;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        border-left: 4px solid #ffc107;
+    }
+
+    .alert-icon {
+        font-size: 1.2rem;
+    }
+
+    .alert-text {
+        font-weight: 500;
+    }
+
+    
+</style>
+
+@code {
+    private DocenteInfo docenteInfo;
+    private List<Obra> obras = new List<Obra>();
+    private List<Obra> obrasFiltradas = new List<Obra>();
+    private string searchTerm = "";
+    private int metaObras = 10;
+
+    protected override void OnInitialized()
+    {
+        // Inicializar datos del docente
+        docenteInfo = new DocenteInfo
+        {
+            Nombre = "Ing. Ismael Cuadrado",
+            Cargo = "Profesor Auxiliar - Ing. Sistemas",
+            Avatar = "https://via.placeholder.com/40x40/4A90E2/FFFFFF?text=IC"
+        };
+
+        // Datos de ejemplo
+        obras = new List<Obra>
+        {
+            new Obra
+            {
+                Id = 1,
+                Titulo = "Análisis de Algoritmos de Machine Learning",
+                Autor = "Ismael Cuadrado",
+                Tipo = "Artículo",
+                FechaPublicacion = new DateTime(2024, 3, 15),
+                Estado = "Publicado"
+            },
+            new Obra
+            {
+                Id = 2,
+                Titulo = "Sistemas Distribuidos en la Nube",
+                Autor = "Ismael Cuadrado, María González",
+                Tipo = "Libro",
+                FechaPublicacion = new DateTime(2024, 1, 10),
+                Estado = "En Revisión"
+            },
+            new Obra
+            {
+                Id = 3,
+                Titulo = "Inteligencia Artificial en la Educación",
+                Autor = "Ismael Cuadrado",
+                Tipo = "Capítulo",
+                FechaPublicacion = new DateTime(2023, 11, 25),
+                Estado = "Borrador"
+            }
+        };
+
+        obrasFiltradas = obras.ToList();
+    }
+
+    private void OnSearchChanged(ChangeEventArgs e)
+    {
+        searchTerm = e.Value?.ToString() ?? "";
+        FiltrarObras();
+    }
+
+    private void FiltrarObras()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            obrasFiltradas = obras.ToList();
+        }
+        else
+        {
+            obrasFiltradas = obras.Where(o =>
+                o.Titulo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                o.Autor.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                o.Tipo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
+            ).ToList();
+        }
+        StateHasChanged();
+    }
+
+    private void SeleccionarTodos(ChangeEventArgs e)
+    {
+        bool seleccionar = (bool)(e.Value ?? false);
+        foreach (var obra in obrasFiltradas)
+        {
+            obra.Seleccionado = seleccionar;
+        }
+    }
+
+    private async Task AgregarObra()
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Abrir modal para agregar nueva obra");
+    }
+
+    private async Task ImportarObras()
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Abrir modal para importar obras desde archivo");
+    }
+
+    private async Task EditarSeleccionado()
+    {
+        var seleccionados = obrasFiltradas.Where(o => o.Seleccionado).ToList();
+        if (seleccionados.Any())
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Editar {seleccionados.Count} obra(s) seleccionada(s)");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Seleccione al menos una obra para editar");
+        }
+    }
+
+    private async Task EliminarSeleccionado()
+    {
+        var seleccionados = obrasFiltradas.Where(o => o.Seleccionado).ToList();
+        if (seleccionados.Any())
+        {
+            bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+                $"¿Está seguro de eliminar {seleccionados.Count} obra(s) seleccionada(s)?");
+
+            if (confirmar)
+            {
+                foreach (var obra in seleccionados)
+                {
+                    obras.Remove(obra);
+                }
+                FiltrarObras();
+            }
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert", "Seleccione al menos una obra para eliminar");
+        }
+    }
+
+    private string GetTipoClass(string tipo)
+    {
+        return tipo.ToLower() switch
+        {
+            "artículo" => "tipo-articulo",
+            "libro" => "tipo-libro",
+            "capítulo" => "tipo-capitulo",
+            _ => "tipo-articulo"
+        };
+    }
+
+    private string GetEstadoClass(string estado)
+    {
+        return estado.ToLower() switch
+        {
+            "publicado" => "estado-publicado",
+            "en revisión" => "estado-revision",
+            "borrador" => "estado-borrador",
+            _ => "estado-borrador"
+        };
+    }
+
+    private double GetProgresoWidth()
+    {
+        if (metaObras == 0) return 0;
+        return Math.Min(100, (double)obras.Count / metaObras * 100);
+    }
+
+    public class Obra
+    {
+        public int Id { get; set; }
+        public string Titulo { get; set; } = "";
+        public string Autor { get; set; } = "";
+        public string Tipo { get; set; } = "";
+        public DateTime FechaPublicacion { get; set; }
+        public string Estado { get; set; } = "";
+        public bool Seleccionado { get; set; }
+    }
+
+    public class DocenteInfo
+    {
+        public string Nombre { get; set; } = "";
+        public string Cargo { get; set; } = "";
+    }
+}
