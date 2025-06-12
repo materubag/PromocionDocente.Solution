@@ -14,9 +14,7 @@ namespace PromocionDocente.Infrastructure.Contexts
 
         public DbSet<Obra> Obras { get; set; }
         public DbSet<Evaluacion> Evaluaciones { get; set; }
-        public DbSet<HistorialDocenteDac> HistorialDocente { get; set; }
-        public DbSet<Docente> Docentes { get; set; }
-
+        public DbSet<Curso> Cursos { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -50,41 +48,22 @@ namespace PromocionDocente.Infrastructure.Contexts
         entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
     });
 
-            modelBuilder.Entity<HistorialDocenteDac>(entity =>
+            modelBuilder.Entity<Curso>(entity =>
             {
-                entity.ToTable("HISTORIAL_DOCENTE");
+                entity.ToTable("CURSOS_CAPACITACION"); // tabla en PROMOCION_DOCENTE
 
-                entity.HasKey(e => e.IdHis);
-
-                entity.Property(e => e.IdHis).HasColumnName("ID_HIS");
-                entity.Property(e => e.CedDoc).HasColumnName("CED_DOC");
-                entity.Property(e => e.IdCat).HasColumnName("ID_CAT");
-                entity.Property(e => e.FecIni).HasColumnName("FEC_INI");
-                entity.Property(e => e.FecFin).HasColumnName("FEC_FIN");
+                entity.HasKey(e => e.IdCurso);
+                entity.Property(e => e.IdCurso).HasColumnName("ID_CURSO");
+                entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
+                entity.Property(e => e.NombreCurso).HasColumnName("NOMBRE_CURSO");
+                entity.Property(e => e.FechaCurso).HasColumnName("FECHA_CURSO");
+                entity.Property(e => e.Horas).HasColumnName("HORAS");
+                entity.Property(e => e.PdfCurso).HasColumnName("PDF_CURSO");
             });
-            modelBuilder.Entity<Docente>(entity =>
-            {
-                entity.ToTable("DOCENTES");
 
-                entity.HasKey(e => e.CedDoc);
 
-                entity.Property(e => e.CedDoc).HasColumnName("CED_DOC");
-                entity.Property(e => e.NomDoc).HasColumnName("NOM_DOC");
-                entity.Property(e => e.ApeDoc).HasColumnName("APE_DOC");
-                entity.Property(e => e.TelDoc).HasColumnName("TEL_DOC");
-                entity.Property(e => e.UrlCedDoc).HasColumnName("URL_CED_DOC");
-                entity.Property(e => e.FecIng).HasColumnName("FEC_ING");
-                entity.Property(e => e.FecNac).HasColumnName("FEC_NAC");
-                entity.Property(e => e.TitAcaMax).HasColumnName("TIT_ACA_MAX");
-                entity.Property(e => e.IdCar).HasColumnName("ID_CAR");
-            });
 
         }
-
-
-
-
-
 
     }
 

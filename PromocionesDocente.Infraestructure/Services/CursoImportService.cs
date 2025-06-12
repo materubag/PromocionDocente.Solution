@@ -3,6 +3,12 @@ using PromocionDocente.Application.Interfaces;
 using PromocionDocente.Domain.Entities;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Infrastructure.Entities;
+<<<<<<< HEAD
+=======
+using PromocionDocente.Infrastructure.Utils;
+// Asegúrate de que esta ruta sea correcta
+
+>>>>>>> a664cd67a2c825480245bae2c0b33750a661f8b9
 
 namespace PromocionDocente.Infrastructure.Services
 {
@@ -19,6 +25,10 @@ namespace PromocionDocente.Infrastructure.Services
 
         public async Task ImportarCursosDesdeDACAsync()
         {
+<<<<<<< HEAD
+=======
+            List<Curso> cursosAGuardarPdf = new();
+>>>>>>> a664cd67a2c825480245bae2c0b33750a661f8b9
             var cursosExternos = await _dacContext.Cursos.ToListAsync();
 
             foreach (var curso in cursosExternos)
@@ -37,10 +47,28 @@ namespace PromocionDocente.Infrastructure.Services
                     };
 
                     _localContext.Cursos.Add(nuevoCurso);
+<<<<<<< HEAD
+=======
+
+                    cursosAGuardarPdf.Add(nuevoCurso); // ⬅ Aquí se guarda en la lista para uso posterior
+
+>>>>>>> a664cd67a2c825480245bae2c0b33750a661f8b9
                 }
             }
 
             await _localContext.SaveChangesAsync();
+<<<<<<< HEAD
+=======
+            foreach (var curso in cursosAGuardarPdf)
+            {
+                if (curso.PdfCurso != null)
+                {
+                    var nombreArchivo = $"Curso_{curso.IdCurso}.pdf";
+                    PdfHelper.GuardarPdfDesdeBinario(curso.PdfCurso, nombreArchivo);
+                }
+            }
+
+>>>>>>> a664cd67a2c825480245bae2c0b33750a661f8b9
         }
     }
 }

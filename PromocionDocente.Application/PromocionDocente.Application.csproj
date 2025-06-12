@@ -8,6 +8,7 @@
 
   <ItemGroup>
 <<<<<<< HEAD
+<<<<<<< HEAD
     <ProjectReference Include="..\PromocionDocente.Domain\PromocionDocente.Domain.csproj" />
 =======
     <Folder Include="DTOs\" />
@@ -23,6 +24,10 @@
   <ItemGroup>
     <ProjectReference Include="..\PromocionDoncete.Domain\PromocionDocente.Domain.csproj" />
 >>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
+=======
+    <Folder Include="DTOs\" />
+    <Folder Include="Services\" />
+>>>>>>> a664cd67a2c825480245bae2c0b33750a661f8b9
   </ItemGroup>
 
 </Project>

@@ -11,7 +11,6 @@ namespace PromocionDocente.Infrastructure.Contexts
 
         public DbSet<ObraDac> Obras { get; set; }
         public DbSet<EvaluacionDac> Evaluaciones { get; set; }
-        public DbSet<HistorialDocenteDac> HistorialDocente { get; set; }
 
         public DbSet<CursoDac> Cursos { get; set; }
 
@@ -46,21 +45,21 @@ namespace PromocionDocente.Infrastructure.Contexts
                 entity.Property(e => e.PdfEvaluacion).HasColumnName("ARC_EVA");
                 entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
             });
-            modelBuilder.Entity<HistorialDocenteDac>(entity =>
+
+            modelBuilder.Entity<CursoDac>(entity =>
             {
-                entity.ToTable("HISTORIAL_DOCENTE");
+                entity.ToTable("CURSOS_CAPACITACION"); // tabla en DAC
 
-                entity.HasKey(e => e.IdHis);
-
-                entity.Property(e => e.IdHis).HasColumnName("ID_HIS");
-                entity.Property(e => e.CedDoc).HasColumnName("CED_DOC");
-                entity.Property(e => e.IdCat).HasColumnName("ID_CAT");
-                entity.Property(e => e.FecIni).HasColumnName("FEC_INI");
-                entity.Property(e => e.FecFin).HasColumnName("FEC_FIN");
+                entity.HasKey(e => e.IdCurso);
+                entity.Property(e => e.IdCurso).HasColumnName("ID_CURSO");
+                entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
+                entity.Property(e => e.NombreCurso).HasColumnName("NOMBRE_CURSO");
+                entity.Property(e => e.FechaCurso).HasColumnName("FECHA_CURSO");
+                entity.Property(e => e.Horas).HasColumnName("HORAS");
+                entity.Property(e => e.PdfCurso).HasColumnName("PDF_CURSO");
             });
 
         }
-
 
     }
 }

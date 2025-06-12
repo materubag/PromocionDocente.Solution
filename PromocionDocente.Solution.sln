@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.14.36202.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Infrastructure", "PromocionDocente.Infrastructure\PromocionDocente.Infrastructure.csproj", "{D29C827A-0C69-4AE7-9ADC-D51D5E741534}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.API", "PromocionDocente.API\PromocionDocente.API.csproj", "{BD6A6D49-462B-4DA5-8291-2924EFD8A1F5}"
 	ProjectSection(ProjectDependencies) = postProject
 		{FD896F10-89EC-48DA-BFD1-309CB7EFD780} = {FD896F10-89EC-48DA-BFD1-309CB7EFD780}
@@ -12,17 +10,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.API", "Pro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Client", "PromocionDocente.Client\PromocionDocente.Client.csproj", "{D9B7240F-390D-48EC-8CD4-D01276E9F49D}"
 EndProject
-#estaban en feature/programcss
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Infrastructure", "PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj", "{FD896F10-89EC-48DA-BFD1-309CB7EFD780}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Application", "PromocionDocente.Application\PromocionDocente.Application.csproj", "{E489202C-4CEB-4B48-BC03-404CEE18CB03}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Domain", "PromocionDoncete.Domain\PromocionDocente.Domain.csproj", "{EFB03D84-642B-4404-86D8-18002016C4A8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Application", "PromocionDocente.Application\PromocionDocente.Application.csproj", "{0FF7827C-1453-4F64-BF07-F0B8AF10EC9E}"
-#estaban en develop
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Models", "PromocionDocente.Models\PromocionDocente.Models.csproj", "{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Repository", "PromocionDocente.Repository\PromocionDocente.Repository.csproj", "{DB6CC5F9-130D-48D7-BEB7-8F88B7ABF7D4}"
-#
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +22,6 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D29C827A-0C69-4AE7-9ADC-D51D5E741534}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D29C827A-0C69-4AE7-9ADC-D51D5E741534}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D29C827A-0C69-4AE7-9ADC-D51D5E741534}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D29C827A-0C69-4AE7-9ADC-D51D5E741534}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BD6A6D49-462B-4DA5-8291-2924EFD8A1F5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{BD6A6D49-462B-4DA5-8291-2924EFD8A1F5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BD6A6D49-462B-4DA5-8291-2924EFD8A1F5}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -54,14 +42,6 @@ Global
 		{0FF7827C-1453-4F64-BF07-F0B8AF10EC9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0FF7827C-1453-4F64-BF07-F0B8AF10EC9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0FF7827C-1453-4F64-BF07-F0B8AF10EC9E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DB6CC5F9-130D-48D7-BEB7-8F88B7ABF7D4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DB6CC5F9-130D-48D7-BEB7-8F88B7ABF7D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DB6CC5F9-130D-48D7-BEB7-8F88B7ABF7D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DB6CC5F9-130D-48D7-BEB7-8F88B7ABF7D4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
