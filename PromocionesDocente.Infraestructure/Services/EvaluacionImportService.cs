@@ -30,12 +30,12 @@ namespace PromocionDocente.Infrastructure.Services
                 {
                     var nuevaEvaluacion = new Evaluacion
                     {
-                        // NO asignar IdEvaluacion porque es identity
                         CedulaDocente = evaluacion.CedulaDocente,
                         NumeroResolucion = evaluacion.NumeroResolucion,
                         FechaEvaluacion = evaluacion.FechaEvaluacion,
                         Calificacion = evaluacion.Calificacion,
                         PdfEvaluacion = evaluacion.PdfEvaluacion
+                        // Sin IdEvaluacion porque es autogenerado
                     };
 
                     _localContext.Evaluaciones.Add(nuevaEvaluacion);
