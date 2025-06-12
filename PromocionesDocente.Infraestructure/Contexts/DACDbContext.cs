@@ -48,11 +48,11 @@ namespace PromocionDocente.Infrastructure.Contexts
 
             modelBuilder.Entity<CursoDac>(entity =>
             {
-                entity.ToTable("CURSOS"); // tabla en DAC
+                entity.ToTable("CURSOS_CAPACITACION"); // tabla en DAC
 
                 entity.HasKey(e => e.IdCurso);
                 entity.Property(e => e.IdCurso).HasColumnName("ID_CURSO");
-                entity.Property(e => e.CedulaDocente).HasColumnName("CEDULA_DOCENTE");
+                entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
                 entity.Property(e => e.NombreCurso).HasColumnName("NOMBRE_CURSO");
                 entity.Property(e => e.FechaCurso).HasColumnName("FECHA_CURSO");
                 entity.Property(e => e.Horas).HasColumnName("HORAS");
