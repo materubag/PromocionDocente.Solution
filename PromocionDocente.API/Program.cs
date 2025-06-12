@@ -1,48 +1,56 @@
+
 using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Application.Services;
+using PromocionDocente.Domain.Interfaces;
+using PromocionDocente.Infrastructure.Data;
+using Repository;
 
-using PromocionDocente.Application.Interfaces;
-using PromocionDocente.Infrastructure.Contexts;
-using PromocionDocente.Infrastructure.Services;
-
-var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-builder.Services.AddControllers();
-
-
-//  Agrega soporte para Swagger (documentaci�n de API)
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-// Configura los DbContext
-builder.Services.AddDbContext<DACDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DAC")));
-
-builder.Services.AddDbContext<PromocionDocenteDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
-
-// Inyecta el servicio de importaci�n de las Obras
-builder.Services.AddScoped<IObraImportService, ObraImportService>();
-// Inyecta servicio de Importacion de las evaluaciones
-builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();
-// Inyecta servicio de Importacion de cursos
-builder.Services.AddScoped<ICursoImportService, CursoImportService>();
-var app = builder.Build();
-
-// Middleware para Swagger
-if (app.Environment.IsDevelopment())
+namespace WebApi
 {
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
-    //  Usa Swagger en modo desarrollo
-    app.UseSwagger();
-    app.UseSwaggerUI();
+            // Add services to the container.
+            builder.Services.AddDbContext<DiticContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
+            builder.Services.AddControllers();
+            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+            builder.Services.AddOpenApi();
+            //Se Aplica la inyeccion de dependencias con la interfaz y el usuario 
+            builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
+            builder.Services.AddScoped<AuthService>();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll", policy =>
+                {
+                    policy.AllowAnyOrigin()
+                          .AllowAnyHeader()
+                          .AllowAnyMethod();
+                });
+            });
+
+            var app = builder.Build();
+
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+            }
+            app.UseCors("AllowAll");
+            app.UseRouting();
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();
