@@ -14,6 +14,8 @@ namespace PromocionDocente.Infrastructure.Contexts
 
         public DbSet<Obra> Obras { get; set; }
         public DbSet<Evaluacion> Evaluaciones { get; set; }
+        public DbSet<HistorialDocenteDac> HistorialDocente { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,8 +49,24 @@ namespace PromocionDocente.Infrastructure.Contexts
         entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
     });
 
+            modelBuilder.Entity<HistorialDocenteDac>(entity =>
+            {
+                entity.ToTable("HISTORIAL_DOCENTE");
 
+                entity.HasKey(e => e.IdHis);
+
+                entity.Property(e => e.IdHis).HasColumnName("ID_HIS");
+                entity.Property(e => e.CedDoc).HasColumnName("CED_DOC");
+                entity.Property(e => e.IdCat).HasColumnName("ID_CAT");
+                entity.Property(e => e.FecIni).HasColumnName("FEC_INI");
+                entity.Property(e => e.FecFin).HasColumnName("FEC_FIN");
+            });
         }
+       
+       
+            
+        
+
 
     }
 
