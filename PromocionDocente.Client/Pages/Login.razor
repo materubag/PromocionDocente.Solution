@@ -1,11 +1,10 @@
 @page "/login"
 
-
 @inject HttpClient Http
 @inject NavigationManager Navigation
 
-<div class="container d-flex justify-content-center align-items-center min-vh-100 bg-light">
-    <div class="card shadow p-4 border-0" style="width: 100%; max-width: 400px; border-radius: 1rem;">
+<div class="container d-flex justify-content-center align-items-center min-vh-100">
+    <div class="card shadow p-4 border-0" style="width: 100%; max-width: 400px; border-radius: 1rem; background-color: rgba(255, 255, 255, 0.95);">
         <div class="card-body">
             <h3 class="text-center mb-4 text-primary">Iniciar Sesión</h3>
 
@@ -47,52 +46,47 @@
     private LoginDTO loginModel = new();
     private string? errorMessage;
 
-   private async Task HandleLogin()
-{
-    errorMessage = null;
-
-    // Usuario auxiliar hardcodeado
-    if (loginModel.Correo == "admin@admin.com" && loginModel.Contrasena == "admin123")
+    private async Task HandleLogin()
     {
-        // Aquí podrías guardar algún dato local si quieres,
-        // por simplicidad solo redirigimos al inicio:
-        Navigation.NavigateTo("/");
-        return;
-    }
+        errorMessage = null;
 
-    try
-    {
-        var response = await Http.PostAsJsonAsync("api/user/login", loginModel);
-
-        if (response.IsSuccessStatusCode)
+        if (loginModel.Correo == "admin@admin.com" && loginModel.Contrasena == "admin123")
         {
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            Navigation.NavigateTo("/");
+            return;
+        }
 
-            if (result != null)
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/user/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
             {
-                // Puedes guardar la información del usuario si lo deseas (ej. en localStorage)
-                Navigation.NavigateTo("/");
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+                if (result != null)
+                {
+                    Navigation.NavigateTo("/");
+                }
+                else
+                {
+                    errorMessage = "No se pudo obtener la información del usuario.";
+                }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                errorMessage = "Contraseña incorrecta. Por favor, vuelve a intentarlo.";
             }
             else
             {
-                errorMessage = "No se pudo obtener la información del usuario.";
+                errorMessage = "No se pudo iniciar sesión. Verifica tus datos.";
             }
         }
-        else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+        catch
         {
-            errorMessage = "Contraseña incorrecta. Por favor, vuelve a intentarlo.";
-        }
-        else
-        {
-            errorMessage = "No se pudo iniciar sesión. Verifica tus datos.";
+            errorMessage = "Error al conectar con el servidor. Intenta más tarde.";
         }
     }
-    catch
-    {
-        errorMessage = "Error al conectar con el servidor. Intenta más tarde.";
-    }
-}
-
 
     public class LoginDTO
     {

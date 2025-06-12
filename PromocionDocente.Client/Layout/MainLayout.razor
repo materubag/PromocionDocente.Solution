@@ -1,4 +1,5 @@
 ﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
 
 <div class="page">
     <!-- Sidebar de navegación -->
@@ -16,7 +17,9 @@
             </div>
             <div class="d-flex align-items-center">
                 <span class="me-3 text-muted">Usuario: <strong>Sebastian Cortez</strong></span>
-                <button class="btn btn-outline-danger btn-sm">Cerrar sesión</button>
+               <button class="btn btn-outline-danger btn-sm" @onclick='() => Navigation.NavigateTo("/login")'>
+               Cerrar sesión
+                </button>
             </div>
         </div>
 
