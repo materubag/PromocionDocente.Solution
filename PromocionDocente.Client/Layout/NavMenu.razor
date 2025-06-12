@@ -1,18 +1,29 @@
-﻿<div class="sidebar">
-    <div class="sidebar-title">
-        <i class="bi bi-arrow-left-circle-fill"></i>
-        <span>Docente</span>
+﻿<nav class="sidebar">
+    <div class="sidebar-header">
+        <div class="header-content">
+            <h3>Menú Principal</h3>
+        </div>
     </div>
-<ul class="nav flex-column">
-    <li class="nav-item">
-        <NavLink class="nav-link" href="/">
-            <i class="bi bi-house-door-fill"></i> Inicio
-        </NavLink>
-    </li>
-    <li class="nav-item">
-        <NavLink class="nav-link" href="/panel-docente">
-            <i class="bi bi-person-badge-fill"></i> Panel Docente
-        </NavLink>
-    </li>
-</ul>
-</div>
+
+    <ul class="nav-menu">
+        <li class="nav-item">
+            <NavLink href="/" class="nav-link" activeClass="active">
+                <span class="nav-icon bi bi-house-door-fill-nav-menu"></span>
+                Inicio
+            </NavLink>
+        </li>
+      
+        <li class="nav-item">
+            <NavLink href="docente/dashboard" class="nav-link" activeClass="active">
+                <span class="nav-icon bi bi-list-nested-nav-menu"></span>
+                Panel Docente
+            </NavLink>
+        </li>
+    </ul>
+
+    <div class="sidebar-footer">
+        <button class="btn-logout">
+            <span class="nav-icon">🔓</span> Cerrar sesión
+        </button>
+    </div>
+</nav>
