@@ -5,52 +5,58 @@ using PromocionDocente.Domain.Interfaces;
 using PromocionDocente.Infrastructure.Data;
 using Repository;
 
-namespace WebApi
+using PromocionDocente.Models.DAC_Models;
+using PromocionDocente.Models.DIDE_Models;
+using PromocionDocente.Models.DITIC_Models;
+using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.TTHH_Models;
+var builder = WebApplication.CreateBuilder(args);
+
+// Add services to the container.
+builder.Services.AddControllers();
+
+//  Agrega soporte para Swagger (documentaci�n de API)
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+// Configura los DbContext
+builder.Services.AddDbContext<DACDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DAC")));
+
+builder.Services.AddDbContext<PromocionDocenteDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
+
+// Inyecta el servicio de importaci�n de las Obras
+builder.Services.AddScoped<IObraImportService, ObraImportService>();
+// Inyecta servicio de Importacion de las evaluaciones
+builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();
+// Inyecta servicio de importaci�n de historial docente
+builder.Services.AddScoped<IHistorialDocenteImportService, HistorialDocenteImportService>();
+// ineccion paara el calculo del Tiempo del docente
+builder.Services.AddScoped<IDocenteTiempoService, DocenteTiempoService>();
+
+builder.Services.AddDbContext<PromocionDocenteContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
+builder.Services.AddDbContext<TthhContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("TTHH")));
+builder.Services.AddDbContext<DacContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DAC")));
+builder.Services.AddDbContext<DideContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DIDE")));
+builder.Services.AddDbContext<DiticContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DITIC")));
+
+// Swagger
+builder.Services.AddEndpointsApiExplorer(); // Habilita soporte a endpoint para Swagger
+builder.Services.AddSwaggerGen();           // Agrega Swagger
+
+var app = builder.Build();
+
+// Middleware para Swagger
+if (app.Environment.IsDevelopment())
 {
-    public class Program
-    {
-        public static void Main(string[] args)
-        {
-            var builder = WebApplication.CreateBuilder(args);
+    //  Usa Swagger en modo desarrollo
+    app.UseSwagger();
+    app.UseSwaggerUI();
 
-            // Add services to the container.
-            builder.Services.AddDbContext<DiticContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
-            builder.Services.AddControllers();
-            // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-            builder.Services.AddOpenApi();
-            //Se Aplica la inyeccion de dependencias con la interfaz y el usuario 
-            builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
-            builder.Services.AddScoped<AuthService>();
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("AllowAll", policy =>
-                {
-                    policy.AllowAnyOrigin()
-                          .AllowAnyHeader()
-                          .AllowAnyMethod();
-                });
-            });
-
-            var app = builder.Build();
-
-            // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.MapOpenApi();
-            }
-            app.UseCors("AllowAll");
-            app.UseRouting();
-
-            app.UseHttpsRedirection();
-
-            app.UseAuthorization();
-
-
-            app.MapControllers();
-
-            app.Run();
-        }
-    }
 }

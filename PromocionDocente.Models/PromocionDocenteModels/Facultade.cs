@@ -7,6 +7,7 @@ public partial class Facultade
 {
     public string IdFac { get; set; } = null!;
 
+<<<<<<< HEAD
     public string NomFac { get; set; } = null!;
 
     public string UbiPreFac { get; set; } = null!;
@@ -16,4 +17,11 @@ public partial class Facultade
     public virtual ICollection<Docente> Docentes { get; set; } = new List<Docente>();
 
     public virtual Universidade IdUniNavigation { get; set; } = null!;
+=======
+    public string? NomFac { get; set; }
+
+    public string UbiPreFac { get; set; } = null!;
+
+    public virtual ICollection<Docente> Docentes { get; set; } = new List<Docente>();
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
 }

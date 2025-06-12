@@ -6,8 +6,15 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+<<<<<<< HEAD
   <ItemGroup>
     <Folder Include="DAC_Models\" />
+=======
+
+  <ItemGroup>
+    <Folder Include="DAC_Models\" />
+    <Folder Include="DIDE_Models\" />
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
     <Folder Include="TTHH_Models\" />
     <Folder Include="PromocionDocenteModels\" />
   </ItemGroup>

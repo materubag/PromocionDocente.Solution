@@ -14,6 +14,7 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
+
     <PackageReference Include="Swashbuckle.AspNetCore" Version="8.1.4" />
   </ItemGroup>
 
@@ -24,13 +25,7 @@
     <ProjectReference Include="..\PromocionDoncete.Domain\PromocionDocente.Domain.csproj" />
     <ProjectReference Include="..\PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj" />
 
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\PromocionDocente.Application\PromocionDocente.Application.csproj" />
-    <ProjectReference Include="..\PromocionDocente.Domain\PromocionDocente.Domain.csproj" />
-    <ProjectReference Include="..\PromocionDocente.Infrastructure\PromocionDocente.Infrastructure.csproj" />
-    <ProjectReference Include="..\PromocionDocente.Repositorio\PromocionDocente.Repositorio.csproj" />
+    <ProjectReference Include="..\PromocionDocente.Models\PromocionDocente.Models.csproj" />
   </ItemGroup>
 
 </Project>

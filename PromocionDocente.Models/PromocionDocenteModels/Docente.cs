@@ -7,11 +7,15 @@ public partial class Docente
 {
     public string CedDoc { get; set; } = null!;
 
+<<<<<<< HEAD
     public string NomDoc { get; set; } = null!;
 
     public string ApeDoc { get; set; } = null!;
 
     public string TelDoc { get; set; } = null!;
+=======
+    public string? TelDoc { get; set; }
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
 
     public DateOnly FecIng { get; set; }
 
@@ -21,7 +25,11 @@ public partial class Docente
 
     public string? NivelDocente { get; set; }
 
+<<<<<<< HEAD
     public DateOnly FechaContratacion { get; set; }
+=======
+    public DateOnly? FechaContratacion { get; set; }
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
 
     public DateOnly? FechaUltimoAscenso { get; set; }
 
@@ -29,6 +37,17 @@ public partial class Docente
 
     public string? EstadoContrato { get; set; }
 
+<<<<<<< HEAD
+=======
+    public string Nom1Doc { get; set; } = null!;
+
+    public string Nom2Doc { get; set; } = null!;
+
+    public string Ape1Doc { get; set; } = null!;
+
+    public string Ape2Doc { get; set; } = null!;
+
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
     public virtual ICollection<CursosCapacitacion> CursosCapacitacions { get; set; } = new List<CursosCapacitacion>();
 
     public virtual ICollection<Evaluacione> Evaluaciones { get; set; } = new List<Evaluacione>();

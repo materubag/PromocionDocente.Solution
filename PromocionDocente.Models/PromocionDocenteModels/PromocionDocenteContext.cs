@@ -35,8 +35,11 @@ public partial class PromocionDocenteContext : DbContext
 
     public virtual DbSet<Postulacione> Postulaciones { get; set; }
 
+<<<<<<< HEAD
     public virtual DbSet<Universidade> Universidades { get; set; }
 
+=======
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
         => optionsBuilder.UseSqlServer("Server=PC-MATEO\\SQLEXPRESS;Database=PROMOCION_DOCENTE;Trusted_Connection=True;TrustServerCertificate=True;");
@@ -135,10 +138,21 @@ public partial class PromocionDocenteContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("CED_DOC");
+<<<<<<< HEAD
             entity.Property(e => e.ApeDoc)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("APE_DOC");
+=======
+            entity.Property(e => e.Ape1Doc)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("APE1_DOC");
+            entity.Property(e => e.Ape2Doc)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("APE2_DOC");
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
             entity.Property(e => e.EstadoContrato)
                 .HasMaxLength(20)
                 .IsUnicode(false)
@@ -156,10 +170,21 @@ public partial class PromocionDocenteContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("NIVEL_DOCENTE");
+<<<<<<< HEAD
             entity.Property(e => e.NomDoc)
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("NOM_DOC");
+=======
+            entity.Property(e => e.Nom1Doc)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("NOM1_DOC");
+            entity.Property(e => e.Nom2Doc)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("NOM2_DOC");
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
             entity.Property(e => e.PdfContrato).HasColumnName("PDF_CONTRATO");
             entity.Property(e => e.TelDoc)
                 .HasMaxLength(10)
@@ -217,23 +242,31 @@ public partial class PromocionDocenteContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("ID_FAC");
+<<<<<<< HEAD
             entity.Property(e => e.IdUni)
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("ID_UNI");
             entity.Property(e => e.NomFac)
                 .HasMaxLength(30)
+=======
+            entity.Property(e => e.NomFac)
+                .HasMaxLength(150)
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
                 .IsUnicode(false)
                 .HasColumnName("NOM_FAC");
             entity.Property(e => e.UbiPreFac)
                 .HasMaxLength(15)
                 .IsUnicode(false)
                 .HasColumnName("UBI_PRE_FAC");
+<<<<<<< HEAD
 
             entity.HasOne(d => d.IdUniNavigation).WithMany(p => p.Facultades)
                 .HasForeignKey(d => d.IdUni)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK__FACULTADE__ID_UN__398D8EEE");
+=======
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
         });
 
         modelBuilder.Entity<HistorialDocente>(entity =>
@@ -375,6 +408,7 @@ public partial class PromocionDocenteContext : DbContext
                 .HasConstraintName("FK__POSTULACI__ID_CA__440B1D61");
         });
 
+<<<<<<< HEAD
         modelBuilder.Entity<Universidade>(entity =>
         {
             entity.HasKey(e => e.IdUni).HasName("PK__UNIVERSI__2A8FBE7E37851CDA");
@@ -399,6 +433,8 @@ public partial class PromocionDocenteContext : DbContext
                 .HasColumnName("TEL_UNI");
         });
 
+=======
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
         OnModelCreatingPartial(modelBuilder);
     }
 
