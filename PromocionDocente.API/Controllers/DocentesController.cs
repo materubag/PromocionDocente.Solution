@@ -1,0 +1,125 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Models.PromocionDocenteModels;
+
+namespace PromocionDocente.API.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    public class DocentesController : ControllerBase
+    {
+        private readonly PromocionDocenteContext _context;
+
+        public DocentesController(PromocionDocenteContext context)
+        {
+            _context = context;
+        }
+
+        // GET: api/Docentes
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<Docente>>> GetDocentes()
+        {
+            return await _context.Docentes.ToListAsync();
+<<<<<<< HEAD
+
+=======
+>>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
+        }
+
+        // GET: api/Docentes/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<Docente>> GetDocente(string id)
+        {
+            var docente = await _context.Docentes.FindAsync(id);
+
+            if (docente == null)
+            {
+                return NotFound();
+            }
+
+            return docente;
+        }
+
+        // PUT: api/Docentes/5
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("{id}")]
+        public async Task<IActionResult> PutDocente(string id, Docente docente)
+        {
+            if (id != docente.CedDoc)
+            {
+                return BadRequest();
+            }
+
+            _context.Entry(docente).State = EntityState.Modified;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!DocenteExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+        // POST: api/Docentes
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost]
+        public async Task<ActionResult<Docente>> PostDocente(Docente docente)
+        {
+            _context.Docentes.Add(docente);
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                if (DocenteExists(docente.CedDoc))
+                {
+                    return Conflict();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return CreatedAtAction("GetDocente", new { id = docente.CedDoc }, docente);
+        }
+
+        // DELETE: api/Docentes/5
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteDocente(string id)
+        {
+            var docente = await _context.Docentes.FindAsync(id);
+            if (docente == null)
+            {
+                return NotFound();
+            }
+
+            _context.Docentes.Remove(docente);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
+        }
+
+        private bool DocenteExists(string id)
+        {
+            return _context.Docentes.Any(e => e.CedDoc == id);
+        }
+    }
+}

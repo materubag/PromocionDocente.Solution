@@ -1,4 +1,4 @@
-﻿namespace PromocionDocente.Repository
+﻿namespace PromocionDoncete.Domain
 {
     public class Class1
     {

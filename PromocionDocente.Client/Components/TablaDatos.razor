@@ -1,0 +1,40 @@
+﻿@typeparam TItem
+
+@if (Items == null || !Items.Any())
+{
+    <p>No hay datos disponibles.</p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                @foreach (var header in Headers)
+                {
+                    <th>@header</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Items)
+            {
+                <tr>
+                    @foreach (var prop in Properties)
+                    {
+                        <td>@(prop.GetValue(item))</td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    [Parameter]
+    public IEnumerable<TItem>? Items { get; set; }
+
+    private List<string> Headers => Properties.Select(p => p.Name).ToList();
+    private List<PropertyInfo> Properties => typeof(TItem)
+        .GetProperties(BindingFlags.Public | BindingFlags.Instance)
+        .ToList();
+}
