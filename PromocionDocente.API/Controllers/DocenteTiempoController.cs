@@ -21,5 +21,6 @@ namespace PromocionDocente.API.Controllers
             if (resultado == null) return NotFound("Docente no encontrado.");
             return Ok(resultado);
         }
+
     }
 }

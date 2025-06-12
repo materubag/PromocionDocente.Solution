@@ -18,9 +18,10 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configura los DbContext
+    //Conex�n a la base de datos de Externa (DAC)
 builder.Services.AddDbContext<DACDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DAC")));
-
+// Conexi�n a la base de datos local de Promoci�n Docente
 builder.Services.AddDbContext<PromocionDocenteDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
 
@@ -47,6 +48,16 @@ builder.Services.AddDbContext<DiticContext>(options =>
 // Swagger
 builder.Services.AddEndpointsApiExplorer(); // Habilita soporte a endpoint para Swagger
 builder.Services.AddSwaggerGen();           // Agrega Swagger
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowClientApp",
+        policy =>
+        {
+            policy.WithOrigins("https://localhost:7124") // o "http://localhost:7124" si no usas https
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+});
 
 var app = builder.Build();
 
@@ -60,6 +71,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseCors("AllowClientApp");
 
 app.UseAuthorization();
 
