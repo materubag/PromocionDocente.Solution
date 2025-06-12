@@ -44,11 +44,23 @@ builder.Services.AddDbContext<DideContext>(options =>
 builder.Services.AddDbContext<DiticContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DITIC")));
 
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin() // Permitir cualquier origen
+              .AllowAnyHeader() 
+              .AllowAnyMethod(); 
+    });
+});
+builder.Services.AddControllers();
+
 // Swagger
 builder.Services.AddEndpointsApiExplorer(); // Habilita soporte a endpoint para Swagger
 builder.Services.AddSwaggerGen();           // Agrega Swagger
 
 var app = builder.Build();
+app.UseCors("AllowAll");
 
 // Middleware para Swagger
 if (app.Environment.IsDevelopment())

@@ -1,6 +1,7 @@
 ﻿@page "/docente/obras"
+@using PromocionDocente.Client.Services
 @layout DocenteLayout
-@using Models
+@inject ObrasService ObrasService
 @inject IJSRuntime JSRuntime
 
 <div class="obras-container">
@@ -98,6 +99,7 @@
                                             <span class="no-documento">Sin documento</span>
                                         }
                                     </td>
+
                                     <td class="doi-cell">
                                         @if (!string.IsNullOrEmpty(obra.DoiUrl))
                                         {
@@ -554,71 +556,26 @@
             Cargo = "Profesor Auxiliar - Ing. Sistemas",
         };
 
-        CargarObras();
+        CargarObrasAsync();
     }
 
-    private void CargarObras()
+    private async Task CargarObrasAsync()
     {
-        // Datos de ejemplo que coinciden con la estructura de la base de datos
-        obras = new List<ObraInfo>
+        try
         {
-            new ObraInfo {
-                IdObra = 1,
-                TipoObra = "Artículo",
-                Titulo = "Análisis de Algoritmos de Machine Learning en Sistemas Educativos",
-                FechaPublicacion = new DateTime(2024, 3, 15),
-                DoiUrl = "https://doi.org/10.1234/ejemplo1",
-                AreaConocimiento = "Inteligencia Artificial",
-                Observaciones = "Artículo revisado por pares en revista indexada",
-                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 } // Simulación de datos PDF
-            },
-            new ObraInfo {
-                IdObra = 2,
-                TipoObra = "Libro",
-                Titulo = "Sistemas Distribuidos en la Nube: Fundamentos y Aplicaciones",
-                FechaPublicacion = new DateTime(2024, 1, 10),
-                DoiUrl = null, // Puede ser null según la BD
-                AreaConocimiento = "Sistemas Distribuidos",
-                Observaciones = "Editorial universitaria reconocida",
-                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 }
-            },
-            new ObraInfo {
-                IdObra = 3,
-                TipoObra = "Capítulo",
-                Titulo = "Inteligencia Artificial en la Educación Superior",
-                FechaPublicacion = new DateTime(2023, 11, 25),
-                DoiUrl = "https://doi.org/10.1234/ejemplo3",
-                AreaConocimiento = "Educación Tecnológica",
-                Observaciones = "Capítulo en libro colectivo",
-                PdfProduccion = null // Sin PDF
-            },
-            new ObraInfo {
-                IdObra = 4,
-                TipoObra = "Ponencia",
-                Titulo = "Implementación de Blockchain en Sistemas Académicos",
-                FechaPublicacion = new DateTime(2023, 9, 5),
-                DoiUrl = "",
-                AreaConocimiento = "Blockchain",
-                Observaciones = "Presentado en congreso internacional",
-                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 }
-            },
-            new ObraInfo {
-                IdObra = 5,
-                TipoObra = "Tesis",
-                Titulo = "Optimización de Consultas en Bases de Datos NoSQL",
-                FechaPublicacion = new DateTime(2023, 6, 20),
-                DoiUrl = "https://repositorio.ejemplo.edu/tesis/5",
-                AreaConocimiento = "Bases de Datos",
-                Observaciones = "Tesis doctoral, mención cum laude",
-                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 }
-            }
-        };
-
-        FiltrarObras();
+            obras = await ObrasService.ObtenerObrasAsync(); // Llamada al servicio
+            FiltrarObras();
+        }
+        catch (Exception ex)
+        {
+            // Manejar errores de la API
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al cargar las obras: {ex.Message}");
+        }
     }
 
     private void FiltrarObras()
     {
+        // Filtrado por texto
         obrasFiltradas = obras.Where(o =>
             string.IsNullOrEmpty(filtroTexto) ||
             o.Titulo.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
@@ -626,6 +583,7 @@
             (o.AreaConocimiento?.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ?? false)
         ).ToList();
 
+        // Actualizar la cantidad de elementos y páginas
         totalElementos = obrasFiltradas.Count;
         totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
 
@@ -635,7 +593,7 @@
             .Take(elementosPorPagina)
             .ToList();
 
-        StateHasChanged();
+        StateHasChanged(); // Actualiza el estado de la UI
     }
 
     private string GetClaseTipo(string tipo)
@@ -745,11 +703,21 @@
     {
         if (obra.TienePDF())
         {
-            await JSRuntime.InvokeVoidAsync("alert",
-                $"📄 Descargando Documento PDF\n\n" +
-                $"• Obra: {obra.Titulo}\n" +
-                $"• Tipo: {obra.TipoObra}\n" +
-                $"• La descarga comenzará automáticamente...");
+            // Convertir el PDF en base64 a un Blob y abrirlo
+            string base64String = Convert.ToBase64String(obra.PdfProduccion);
+            base64String = base64String.Replace("\n", "").Replace("\r", "");
+            await JSRuntime.InvokeVoidAsync("abrirPDF", base64String, obra.Titulo);
+        }
+    }
+    
+    private async Task MostrarPDF(ObraInfo obra)
+    {
+        if (obra.TienePDF())
+        {
+            string base64String = Convert.ToBase64String(obra.PdfProduccion);
+            base64String = base64String.Replace("\n", "").Replace("\r", "");
+
+            // Navegar a otra página y pasar el PDF como parámetro]
         }
     }
 
