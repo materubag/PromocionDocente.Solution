@@ -3,6 +3,9 @@ using PromocionDocente.Application.Interfaces;
 using PromocionDocente.Domain.Entities;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Infrastructure.Entities;
+using PromocionDocente.Infrastructure.Utils;
+// Asegúrate de que esta ruta sea correcta
+
 
 namespace PromocionDocente.Infrastructure.Services
 {
@@ -19,6 +22,7 @@ namespace PromocionDocente.Infrastructure.Services
 
         public async Task ImportarCursosDesdeDACAsync()
         {
+            List<Curso> cursosAGuardarPdf = new();
             var cursosExternos = await _dacContext.Cursos.ToListAsync();
 
             foreach (var curso in cursosExternos)
@@ -37,10 +41,22 @@ namespace PromocionDocente.Infrastructure.Services
                     };
 
                     _localContext.Cursos.Add(nuevoCurso);
+
+                    cursosAGuardarPdf.Add(nuevoCurso); // ⬅ Aquí se guarda en la lista para uso posterior
+
                 }
             }
 
             await _localContext.SaveChangesAsync();
+            foreach (var curso in cursosAGuardarPdf)
+            {
+                if (curso.PdfCurso != null)
+                {
+                    var nombreArchivo = $"Curso_{curso.IdCurso}.pdf";
+                    PdfHelper.GuardarPdfDesdeBinario(curso.PdfCurso, nombreArchivo);
+                }
+            }
+
         }
     }
 }
