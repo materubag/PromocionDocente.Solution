@@ -22,7 +22,7 @@ namespace PromocionDocente.API.Controllers
             var obras = await _context.Obras
                 .Where(o => o.CedulaDocente == cedula)
                 .ToListAsync();
-
+            
             return Ok(obras);
         }
     }

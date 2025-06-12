@@ -50,14 +50,15 @@ builder.Services.AddEndpointsApiExplorer(); // Habilita soporte a endpoint para 
 builder.Services.AddSwaggerGen();           // Agrega Swagger
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowClientApp",
+    options.AddPolicy("AllowBlazorClient",
         policy =>
         {
-            policy.WithOrigins("https://localhost:7124") // o "http://localhost:7124" si no usas https
+            policy.WithOrigins("https://localhost:7124") // También puedes probar con http:// si no estás usando https
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
 });
+
 
 var app = builder.Build();
 
@@ -71,7 +72,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowClientApp");
+app.UseCors("AllowBlazorClient");
 
 app.UseAuthorization();
 
