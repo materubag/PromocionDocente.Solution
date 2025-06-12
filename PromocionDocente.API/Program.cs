@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.Services;
 using PromocionDocente.Domain.Interfaces;
 using PromocionDocente.Infrastructure.Data;
+using PromocionDocente.Infrastructure.DataPrincipal;
+using PromocionDocente.Repositorio.Repository;
 using Repository;
 
 namespace WebApi
@@ -23,6 +25,10 @@ namespace WebApi
             //Se Aplica la inyeccion de dependencias con la interfaz y el usuario 
             builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
             builder.Services.AddScoped<AuthService>();
+
+            builder.Services.AddDbContext<PromociondocenteContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBprincipal")));
+            builder.Services.AddScoped<IDatoDocente, DatoDocenteRepositorio>();
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAll", policy =>

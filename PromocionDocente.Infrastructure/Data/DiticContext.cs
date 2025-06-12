@@ -96,6 +96,10 @@ public partial class DiticContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("rol");
+            entity.Property(e => e.Telefono)
+                .HasMaxLength(15)
+                .IsUnicode(false)
+                .HasColumnName("telefono");
         });
 
         OnModelCreatingPartial(modelBuilder);
