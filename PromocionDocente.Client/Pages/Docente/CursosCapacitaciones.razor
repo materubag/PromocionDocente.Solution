@@ -1,0 +1,858 @@
+﻿@page "/docente/capacitaciones"
+@layout DocenteLayout
+@using Models
+@inject IJSRuntime JSRuntime
+
+<div class="capacitaciones-container">
+
+    <div class="header-container">
+        <div class="header-content">
+            <h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+            <div class="docente-info">
+                <div class="info-text">
+                    <div class="nombre">@docenteInfo.Nombre</div>
+                    <div class="cargo">@docenteInfo.Cargo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="contenido-principal">
+        <div class="tabla-container">
+            <!-- Barra de herramientas -->
+            <div class="toolbar">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar cursos..." @bind="filtroTexto" @oninput="FiltrarCursos" />
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" @onclick="AgregarCurso">
+                        <span class="btn-icon">➕</span>
+                        Agregar
+                    </button>
+                    <button class="btn btn-secondary" @onclick="ImportarCursos" disabled="@isImporting">
+                        <span class="btn-icon">📁</span>
+                        @(isImporting ? "Importando..." : "Importar")
+                    </button>
+                    <button class="btn btn-secondary" @onclick="EditarSeleccionado">
+                        <span class="btn-icon">✏️</span>
+                        Editar
+                    </button>
+                    <button class="btn btn-secondary" @onclick="EnviarSeleccionado">
+                        <span class="btn-icon">📤</span>
+                        Enviar
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de cursos -->
+            <div class="tabla-cursos">
+                <table class="cursos-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox">
+                                <input type="checkbox" @onchange="SeleccionarTodos" />
+                            </th>
+                            <th class="col-nombre">Nombre del Curso</th>
+                            <th class="col-fecha">Fecha</th>
+                            <th class="col-horas">Horas</th>
+                            <th class="col-estado">Estado</th>
+                            <th class="col-documento">Documento</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (cursosFiltrados != null && cursosFiltrados.Any())
+                        {
+                            @foreach (var curso in cursosFiltrados)
+                            {
+                                <tr class="@(curso.Seleccionado ? "selected" : "")">
+                                    <td>
+                                        <input type="checkbox" @bind="curso.Seleccionado" />
+                                    </td>
+                                    <td class="nombre-curso">
+                                        <div class="curso-info">
+                                            <span class="curso-nombre">@curso.NombreCurso</span>
+                                            <span class="curso-tipo">Curso de Capacitación</span>
+                                        </div>
+                                    </td>
+                                    <td>@curso.FechaCurso.ToString("dd/MM/yyyy")</td>
+                                    <td class="horas">
+                                        <span class="badge-horas">
+                                            @curso.Horas h
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge-estado @GetClaseEstado(curso.Estado)">
+                                            @curso.Estado
+                                        </span>
+                                    </td>
+                                    <td class="documento">
+                                        @if (curso.TienePDF)
+                                        {
+                                            <button class="btn-documento" @onclick="() => DescargarPDF(curso)" title="Descargar PDF">
+                                                <span class="documento-icon">📄</span>
+                                                <span class="documento-text">PDF</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-documento">Sin documento</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="6" class="no-data">No se encontraron cursos de capacitación</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos cursos
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
+                    <span class="page-info">Página @paginaActual de @totalPaginas</span>
+                    <button class="btn-page" @onclick="PaginaSiguiente" disabled="@(paginaActual >= totalPaginas)">▶</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Progreso -->
+        <div class="progreso-section">
+            <div class="progreso-card">
+                <div class="progreso-header">
+                    <h3>Progreso de Capacitación</h3>
+                    <span class="progreso-porcentaje">@progresoActual%</span>
+                </div>
+                <div class="progreso-bar">
+                    <div class="progreso-fill" style="width: @(progresoActual)%"></div>
+                </div>
+                <div class="progreso-stats">
+                    <div class="stat-item">
+                        <span class="stat-numero">@totalHorasCompletadas</span>
+                        <span class="stat-label">Horas completadas</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-numero">@cursosCompletados</span>
+                        <span class="stat-label">Cursos completados</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .capacitaciones-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .docente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .info-text {
+        color: white;
+    }
+
+    .nombre {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cargo {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .contenido-principal {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    /* Toolbar */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .btn-icon {
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background: #0D47A1;
+        color: white;
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1565C0;
+        }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+    /* Tabla */
+    .tabla-cursos {
+        overflow-x: auto;
+    }
+
+    .cursos-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .cursos-table th,
+        .cursos-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .cursos-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .cursos-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .cursos-table tbody tr.selected {
+            background: #e3f2fd;
+        }
+
+    .col-checkbox {
+        width: 40px;
+    }
+
+    .col-nombre {
+        width: 300px;
+    }
+
+    .col-fecha {
+        width: 120px;
+    }
+
+    .col-horas {
+        width: 100px;
+    }
+
+    .col-estado {
+        width: 120px;
+    }
+
+    .col-documento {
+        width: 120px;
+    }
+
+    .nombre-curso {
+        padding: 0.5rem 0;
+    }
+
+    .curso-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .curso-nombre {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+
+    .curso-tipo {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    .horas {
+        text-align: center;
+    }
+
+    .badge-horas {
+        padding: 0.25rem 0.5rem;
+        background: #e3f2fd;
+        color: #1976d2;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-estado {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .estado-completado {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .estado-pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .estado-en-progreso {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .estado-validado {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .documento {
+        text-align: center;
+    }
+
+    .btn-documento {
+        background: #e8f5e8;
+        border: 1px solid #28a745;
+        color: #28a745;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+    }
+
+        .btn-documento:hover {
+            background: #28a745;
+            color: white;
+        }
+
+    .documento-icon {
+        font-size: 0.9rem;
+    }
+
+    .documento-text {
+        font-weight: 600;
+    }
+
+    .no-documento {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        padding: 2rem;
+    }
+
+    /* Paginación */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-page {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-page:hover:not([disabled]) {
+            background: #e9ecef;
+        }
+
+        .btn-page[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .page-info {
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    /* Sección de Progreso */
+    .progreso-section {
+        margin-top: 2rem;
+    }
+
+    .progreso-card {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .progreso-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+        .progreso-header h3 {
+            margin: 0;
+            color: #2c3e50;
+            font-size: 1.2rem;
+        }
+
+    .progreso-porcentaje {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #4CAF50;
+    }
+
+    .progreso-bar {
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .progreso-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #81C784);
+        border-radius: 5px;
+        transition: width 0.5s ease;
+    }
+
+    .progreso-stats {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-numero {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin-top: 0.25rem;
+    }
+</style>
+
+@code {
+    private DocenteInfo docenteInfo;
+    private List<CursoCapacitacionInfo> cursos = new List<CursoCapacitacionInfo>();
+    private List<CursoCapacitacionInfo> cursosFiltrados = new List<CursoCapacitacionInfo>();
+    private string filtroTexto = "";
+    private int paginaActual = 1;
+    private int elementosPorPagina = 10;
+    private int totalElementos = 0;
+    private int totalPaginas = 0;
+    private bool isImporting = false;
+    private int progresoActual = 75;
+    private int totalHorasCompletadas = 0;
+    private int cursosCompletados = 0;
+
+    protected override void OnInitialized()
+    {
+        // Inicializar datos del docente
+        docenteInfo = new DocenteInfo
+        {
+            Nombre = "Ing. Ismael Cuadrado",
+            Cargo = "Profesor Auxiliar - Ing. Sistemas",
+        };
+
+        CargarCursos();
+        CalcularEstadisticas();
+    }
+
+    private void CargarCursos()
+    {
+        // Reemplazar con llamada real a API
+        cursos = new List<CursoCapacitacionInfo>
+        {
+            new CursoCapacitacionInfo {
+                IdCurso = 1,
+                NombreCurso = "Metodologías Ágiles de Desarrollo de Software",
+                FechaCurso = new DateTime(2024, 3, 15),
+                Horas = 40,
+                TienePDF = true,
+                Estado = "Completado"
+            },
+            new CursoCapacitacionInfo {
+                IdCurso = 2,
+                NombreCurso = "Inteligencia Artificial en la Educación Superior",
+                FechaCurso = new DateTime(2024, 5, 20),
+                Horas = 32,
+                TienePDF = true,
+                Estado = "Completado"
+            },
+            new CursoCapacitacionInfo {
+                IdCurso = 3,
+                NombreCurso = "Herramientas de Evaluación Digital",
+                FechaCurso = new DateTime(2024, 7, 10),
+                Horas = 24,
+                TienePDF = false,
+                Estado = "En Progreso"
+            },
+            new CursoCapacitacionInfo {
+                IdCurso = 4,
+                NombreCurso = "Docencia Universitaria y Pedagogía",
+                FechaCurso = new DateTime(2024, 9, 5),
+                Horas = 60,
+                TienePDF = false,
+                Estado = "Pendiente"
+            },
+            new CursoCapacitacionInfo {
+                IdCurso = 5,
+                NombreCurso = "Tecnologías Emergentes en Ingeniería",
+                FechaCurso = new DateTime(2024, 11, 1),
+                Horas = 48,
+                TienePDF = true,
+                Estado = "Validado"
+            },
+            new CursoCapacitacionInfo {
+                IdCurso = 6,
+                NombreCurso = "Gestión de Proyectos Educativos",
+                FechaCurso = new DateTime(2024, 12, 15),
+                Horas = 36,
+                TienePDF = false,
+                Estado = "Pendiente"
+            }
+        };
+
+        FiltrarCursos();
+    }
+
+    private void CalcularEstadisticas()
+    {
+        cursosCompletados = cursos.Count(c => c.Estado == "Completado");
+        totalHorasCompletadas = cursos.Where(c => c.Estado == "Completado").Sum(c => c.Horas);
+
+        int totalHoras = cursos.Sum(c => c.Horas);
+        progresoActual = totalHoras > 0 ? (totalHorasCompletadas * 100) / totalHoras : 0;
+    }
+
+    private void FiltrarCursos()
+    {
+        cursosFiltrados = cursos.Where(c =>
+            string.IsNullOrEmpty(filtroTexto) ||
+            c.NombreCurso.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            c.Estado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
+        ).ToList();
+
+        totalElementos = cursosFiltrados.Count;
+        totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
+
+        // Aplicar paginación
+        cursosFiltrados = cursosFiltrados
+            .Skip((paginaActual - 1) * elementosPorPagina)
+            .Take(elementosPorPagina)
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    private string GetClaseEstado(string estado)
+    {
+        return estado.ToLower() switch
+        {
+            "completado" => "estado-completado",
+            "pendiente" => "estado-pendiente",
+            "en progreso" => "estado-en-progreso",
+            "validado" => "estado-validado",
+            _ => "estado-pendiente"
+        };
+    }
+
+    private void SeleccionarTodos(ChangeEventArgs e)
+    {
+        bool seleccionar = (bool)e.Value;
+        foreach (var curso in cursosFiltrados)
+        {
+            curso.Seleccionado = seleccionar;
+        }
+    }
+
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            FiltrarCursos();
+        }
+    }
+
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            FiltrarCursos();
+        }
+    }
+
+    // Métodos de acción
+    private async Task AgregarCurso()
+    {
+        await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nuevo Curso de Capacitación\n\n• Se abrirá el formulario para registrar un nuevo curso\n• Complete los datos: nombre, fecha, horas y documento PDF\n• Guarde los cambios para continuar");
+    }
+
+    private async Task ImportarCursos()
+    {
+        if (isImporting) return;
+
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+            "¿Desea importar cursos de capacitación desde un archivo?\n\n" +
+            "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
+            "• El archivo debe contener: Nombre, Fecha, Horas\n" +
+            "• Los cursos duplicados serán omitidos\n\n" +
+            "¿Continuar con la importación?");
+
+        if (confirmar)
+        {
+            isImporting = true;
+            StateHasChanged();
+
+            // Simular proceso de importación
+            await Task.Delay(3000);
+
+            isImporting = false;
+            StateHasChanged();
+
+            await JSRuntime.InvokeVoidAsync("alert",
+                "¡Importación completada exitosamente!\n\n" +
+                "• 8 cursos nuevos importados\n" +
+                "• 3 cursos duplicados omitidos\n" +
+                "• Los datos han sido validados y guardados");
+        }
+    }
+
+    private async Task EditarSeleccionado()
+    {
+        var seleccionado = cursosFiltrados.FirstOrDefault(c => c.Seleccionado);
+        if (seleccionado != null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"Editar Curso Seleccionado\n\n" +
+                $"• Curso: {seleccionado.NombreCurso}\n" +
+                $"• Fecha: {seleccionado.FechaCurso:dd/MM/yyyy}\n" +
+                $"• Horas: {seleccionado.Horas}\n" +
+                $"• Estado: {seleccionado.Estado}\n\n" +
+                $"Se abrirá el formulario de edición...");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                "⚠️ Atención\n\n" +
+                "No hay ningún curso seleccionado.\n" +
+                "Por favor, seleccione un curso de la lista para editarlo.");
+        }
+    }
+
+    private async Task EnviarSeleccionado()
+    {
+        var seleccionados = cursosFiltrados.Where(c => c.Seleccionado).ToList();
+
+        if (seleccionados.Any())
+        {
+            bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+                $"¿Enviar {seleccionados.Count} curso(s) seleccionado(s) para validación?\n\n" +
+                $"• Los cursos serán enviados para revisión\n" +
+                $"• No podrán ser editados después del envío\n" +
+                $"• Recibirá una confirmación por email\n\n" +
+                $"¿Continuar con el envío?");
+
+            if (confirmar)
+            {
+                await JSRuntime.InvokeVoidAsync("alert",
+                    $"✅ Envío exitoso\n\n" +
+                    $"• {seleccionados.Count} curso(s) enviado(s)\n" +
+                    $"• Estado cambiado a 'En Validación'\n" +
+                    $"• Confirmación enviada por email");
+
+                // Actualizar estado de los cursos seleccionados
+                foreach (var curso in seleccionados)
+                {
+                    curso.Estado = "En Validación";
+                    curso.Seleccionado = false;
+                }
+                StateHasChanged();
+            }
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                "⚠️ Atención\n\n" +
+                "No hay cursos seleccionados.\n" +
+                "Seleccione al menos un curso para enviar.");
+        }
+    }
+
+    private async Task DescargarPDF(CursoCapacitacionInfo curso)
+    {
+        if (curso.TienePDF)
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"📄 Descargando Certificado PDF\n\n" +
+                $"• Curso: {curso.NombreCurso}\n" +
+                $"• Fecha: {curso.FechaCurso:dd/MM/yyyy}\n" +
+                $"• Horas: {curso.Horas}\n\n" +
+                $"La descarga comenzará en breve...");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                "⚠️ Documento no disponible\n\n" +
+                "Este curso aún no tiene un certificado PDF generado.\n" +
+                "Complete el curso para obtener el certificado.");
+        }
+    }
+
+    // Clases de modelo
+    public class CursoCapacitacionInfo
+    {
+        public int IdCurso { get; set; }
+        public string NombreCurso { get; set; } = "";
+        public DateTime FechaCurso { get; set; }
+        public int Horas { get; set; }
+        public bool TienePDF { get; set; }
+        public string Estado { get; set; } = "Pendiente";
+        public bool Seleccionado { get; set; }
+    }
+
+    public class DocenteInfo
+    {
+        public string Nombre { get; set; } = "";
+        public string Cargo { get; set; } = "";
+    }
+}
