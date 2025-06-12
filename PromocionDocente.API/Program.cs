@@ -1,3 +1,4 @@
+
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.Services;
 using PromocionDocente.Domain.Interfaces;
@@ -6,7 +7,13 @@ using PromocionDocente.Infrastructure.DataPrincipal;
 using PromocionDocente.Repositorio.Repository;
 using Repository;
 
-var builder = WebApplication.CreateBuilder(args);
+namespace WebApi
+{
+    public class Program
+    {
+        public static void Main(string[] args)
+        {
+            var builder = WebApplication.CreateBuilder(args);
 
             // Add services to the container.
             builder.Services.AddDbContext<DiticContext>(options =>
@@ -32,26 +39,24 @@ var builder = WebApplication.CreateBuilder(args);
                 });
             });
 
-// Inyecta el servicio de importaci�n de las Obras
-builder.Services.AddScoped<IObraImportService, ObraImportService>();
-// Inyecta servicio de Importacion de las evaluaciones
-builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();
-// Inyecta servicio de Importacion de cursos
-builder.Services.AddScoped<ICursoImportService, CursoImportService>();
-var app = builder.Build();
+            var app = builder.Build();
 
-// Middleware para Swagger
-if (app.Environment.IsDevelopment())
-{
-    //  Usa Swagger en modo desarrollo
-    app.UseSwagger();
-    app.UseSwaggerUI();
+            // Configure the HTTP request pipeline.
+            if (app.Environment.IsDevelopment())
+            {
+                app.MapOpenApi();
+            }
+            app.UseCors("AllowAll");
+            app.UseRouting();
+
+            app.UseHttpsRedirection();
+
+            app.UseAuthorization();
+
+
+            app.MapControllers();
+
+            app.Run();
+        }
+    }
 }
-
-app.UseHttpsRedirection();
-
-app.UseAuthorization();
-
-app.MapControllers();
-
-app.Run();

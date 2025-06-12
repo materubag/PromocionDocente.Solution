@@ -1,30 +1,15 @@
 ﻿@inherits LayoutComponentBase
-@inject NavigationManager Navigation
-
 <div class="page">
-    <!-- Sidebar de navegación -->
-    <div class="sidebar shadow">
+    <div class="sidebar">
         <NavMenu />
     </div>
 
-    <!-- Contenido principal -->
     <main>
-        <!-- Barra superior con logo y usuario -->
-        <div class="top-row d-flex justify-content-between align-items-center px-4">
-            <div class="d-flex align-items-center">
-                <img src="https://img.icons8.com/color/48/000000/school.png" alt="Logo" style="width: 36px; height: 36px;" />
-                <span class="ms-2 fw-bold">Plataforma Docente</span>
-            </div>
-            <div class="d-flex align-items-center">
-                <span class="me-3 text-muted">Usuario: <strong>Sebastian Cortez</strong></span>
-               <button class="btn btn-outline-danger btn-sm" @onclick='() => Navigation.NavigateTo("/login")'>
-               Cerrar sesión
-                </button>
-            </div>
+        <div class="top-row px-4">
+            <a href="https://learn.microsoft.com/aspnet/core/" target="_blank">About</a>
         </div>
 
-        <!-- Área del contenido de la página -->
-        <article class="content p-4">
+        <article class="content px-4">
             @Body
         </article>
     </main>
