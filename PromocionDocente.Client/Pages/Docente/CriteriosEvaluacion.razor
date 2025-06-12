@@ -17,8 +17,6 @@
         </div>
     </div>
 
-   
-
     <div class="criterios-grid">
         <!-- Número de Obras -->
         <div class="criterio-card">
@@ -47,11 +45,9 @@
             <div class="criterio-header">
                 <h3>Promedio Evaluación</h3>
                 <span class="criterio-valor">
-                    @(datosEvaluacion != null ? datosEvaluacion.PromedioEvaluacion.ToString("0.00") : "0.00")
+                    @(datosEvaluacion != null ? datosEvaluacion.PromedioEvaluacion.ToString("0") : "0")
+                    <div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.PromedioEvaluacion ?? 0, RequisitosP1.PromedioEvaluacion))%"></div>
                 </span>
-            </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.PromedioEvaluacion ?? 0, RequisitosP1.PromedioEvaluacion))%"></div>
             </div>
         </div>
 
@@ -63,6 +59,17 @@
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.CursosCapacitacion ?? 0, RequisitosP1.CursosCapacitacion))%"></div>
+            </div>
+        </div>
+
+        <!-- Años de Docencia -->
+        <div class="criterio-card">
+            <div class="criterio-header">
+                <h3>Años de Docencia</h3>
+                <span class="criterio-valor">@(datosEvaluacion?.AniosDocencia ?? 0)/@RequisitosP1.AniosDocencia</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.AniosDocencia ?? 0, RequisitosP1.AniosDocencia))%"></div>
             </div>
         </div>
     </div>
@@ -92,8 +99,7 @@
 </div>
 
 <style>
-
-    .evaluacion-container{
+    .evaluacion-container {
         min-height: 100vh;
         background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
         ;
@@ -175,16 +181,16 @@
         margin-bottom: 3rem;
     }
 
-    .evaluacion-header h1 {
-        color: #2c3e50;
-        font-size: 2.2rem;
-        margin-bottom: 0.5rem;
-    }
+        .evaluacion-header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
 
-    .evaluacion-header p {
-        color: #7f8c8d;
-        font-size: 1.1rem;
-    }
+        .evaluacion-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
 
     .criterios-grid {
         display: grid;
@@ -207,11 +213,11 @@
         margin-bottom: 1rem;
     }
 
-    .criterio-header h3 {
-        color: #2c3e50;
-        font-size: 1.2rem;
-        margin: 0;
-    }
+        .criterio-header h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 0;
+        }
 
     .criterio-valor {
         color: #0D47A1;
@@ -239,11 +245,11 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    .progreso-container h3 {
-        color: #2c3e50;
-        text-align: center;
-        margin-bottom: 1.5rem;
-    }
+        .progreso-container h3 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
 
     .slider-container {
         max-width: 800px;
@@ -260,23 +266,23 @@
         margin-bottom: 0.5rem;
     }
 
-    .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
             background: #0D47A1;
-        cursor: pointer;
-    }
+            cursor: pointer;
+        }
 
-    .slider::-moz-range-thumb {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #4CAF50;
-        cursor: pointer;
-    }
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
 
     .slider-labels {
         display: flex;
@@ -303,64 +309,59 @@
     private string nivelObjetivo = "P2";
     private DocenteInfo docenteInfo;
 
-
-    // Requisitos para cada nivel (ejemplo para P1 a P2)
     private static class RequisitosP1
     {
         public static int NumeroObras = 5;
         public static int HorasInvestigacion = 96;
         public static decimal PromedioEvaluacion = 4.0m;
         public static int CursosCapacitacion = 3;
+        public static int AniosDocencia = 5;
     }
 
     protected override void OnInitialized()
     {
-        // Inicializar datos del docente
         docenteInfo = new DocenteInfo
-            {
-                Nombre = "Ing. Ismael Cuadrado",
-                Cargo = "Profesor Auxiliar - Ing. Sistemas",
-                Avatar = "https://via.placeholder.com/40x40/4A90E2/FFFFFF?text=IC"
-            };
-    }
+        {
+            Nombre = "Nombre del Docente",
+            Cargo = "Cargo del Docente"
+        };
 
-    protected override async Task OnInitializedAsync()
-    {
-        // Obtener datos del docente desde la API o servicio
-        datosEvaluacion = await ObtenerDatosEvaluacion();
-        
-        // Calcular progreso general
-        progresoGeneral = CalcularProgresoGeneral();
-    }
-
-    private async Task<DatosEvaluacion> ObtenerDatosEvaluacion()
-    {
-        // Simulación de datos - reemplazar con llamada real a API
-        return new DatosEvaluacion
+        datosEvaluacion = new DatosEvaluacion
         {
             NumeroObras = 3,
-            HorasInvestigacion = 72,
-            PromedioEvaluacion = 3.8m,
-            CursosCapacitacion = 2
+            HorasInvestigacion = 50,
+            PromedioEvaluacion = 8,
+            CursosCapacitacion = 2,
+            AniosDocencia = 4
         };
+
+        progresoGeneral = CalcularProgresoGeneral();
     }
 
     private int CalcularProgresoGeneral()
     {
-        // Calcular el progreso general como promedio de todos los criterios
-        int progresoObras = GetPorcentaje(datosEvaluacion.NumeroObras, RequisitosP1.NumeroObras);
-        int progresoInvestigacion = GetPorcentaje(datosEvaluacion.HorasInvestigacion, RequisitosP1.HorasInvestigacion);
-        int progresoPromedio = GetPorcentaje(datosEvaluacion.PromedioEvaluacion, RequisitosP1.PromedioEvaluacion);
-        int progresoCursos = GetPorcentaje(datosEvaluacion.CursosCapacitacion, RequisitosP1.CursosCapacitacion);
+        var porcentajes = new List<int>
+        {
+            GetPorcentaje(datosEvaluacion.NumeroObras, RequisitosP1.NumeroObras),
+            GetPorcentaje(datosEvaluacion.HorasInvestigacion, RequisitosP1.HorasInvestigacion),
+            GetPorcentajeDecimal(datosEvaluacion.PromedioEvaluacion, RequisitosP1.PromedioEvaluacion),
+            GetPorcentaje(datosEvaluacion.CursosCapacitacion, RequisitosP1.CursosCapacitacion),
+            GetPorcentaje(datosEvaluacion.AniosDocencia, RequisitosP1.AniosDocencia)
+        };
 
-        return (progresoObras + progresoInvestigacion + progresoPromedio + progresoCursos) / 4;
+        return (int)porcentajes.Average();
     }
 
-    private int GetPorcentaje(decimal actual, decimal requerido)
+    private int GetPorcentaje(int valorActual, int valorRequerido)
     {
-        if (requerido <= 0) return 0;
-        int porcentaje = (int)((actual / requerido) * 100);
-        return Math.Min(100, porcentaje); // No más del 100%
+        if (valorRequerido == 0) return 100;
+        return Math.Min(100, (valorActual * 100) / valorRequerido);
+    }
+
+    private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
+    {
+        if (valorRequerido == 0) return 100;
+        return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
     }
 
     private class DatosEvaluacion
@@ -369,5 +370,14 @@
         public int HorasInvestigacion { get; set; }
         public decimal PromedioEvaluacion { get; set; }
         public int CursosCapacitacion { get; set; }
+        public int AniosDocencia { get; set; }
+    }
+
+    private class DocenteInfo
+    {
+        public string Nombre { get; set; }
+        public string Cargo { get; set; }
     }
 }
+
+

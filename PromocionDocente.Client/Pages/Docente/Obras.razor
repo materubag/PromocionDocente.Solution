@@ -4,7 +4,7 @@
 @inject IJSRuntime JSRuntime
 
 <div class="obras-container">
-    <!-- Header -->
+
     <div class="header-container">
         <div class="header-content">
             <h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
@@ -18,115 +18,125 @@
     </div>
 
     <!-- Contenido Principal -->
-    <div class="obras-content">
-        <!-- Barra de Herramientas -->
-        <div class="toolbar">
-            <div class="search-container">
-                <input type="text" @bind="searchTerm" @oninput="OnSearchChanged"
-                       placeholder="Buscar obras..." class="search-input" />
-                <span class="search-icon">🔍</span>
+    <div class="contenido-principal">
+        <div class="tabla-container">
+            <!-- Barra de herramientas -->
+            <div class="toolbar">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar obras..." @bind="filtroTexto" @oninput="FiltrarObras" />
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-primary" @onclick="AgregarObra">
+                        <span class="btn-icon">➕</span>
+                        Agregar
+                    </button>
+                    <button class="btn btn-secondary" @onclick="ImportarObras" disabled="@isImporting">
+                        <span class="btn-icon">📁</span>
+                        @(isImporting ? "Importando..." : "Importar")
+                    </button>
+                    <button class="btn btn-secondary" @onclick="EditarSeleccionada">
+                        <span class="btn-icon">✏️</span>
+                        Editar
+                    </button>
+                </div>
             </div>
-            <div class="toolbar-buttons">
-                <button class="btn btn-primary" @onclick="AgregarObra">
-                    <span class="btn-icon">+</span>
-                    Agregar
-                </button>
-                <button class="btn btn-secondary" @onclick="ImportarObras">
-                    <span class="btn-icon">📄</span>
-                    Importar
-                </button>
-                <button class="btn btn-secondary" @onclick="EditarSeleccionado">
-                    <span class="btn-icon">✏️</span>
-                    Editar
-                </button>
-                <button class="btn btn-danger" @onclick="EliminarSeleccionado">
-                    <span class="btn-icon">🗑️</span>
-                    Eliminar
-                </button>
-            </div>
-        </div>
 
-        <!-- Tabla de Obras -->
-        <div class="table-container">
-            <table class="obras-table">
-                <thead>
-                    <tr>
-                        <th class="checkbox-column">
-                            <input type="checkbox" @onchange="SeleccionarTodos" />
-                        </th>
-                        <th class="documento-column">Documento</th>
-                        <th class="autor-column">Autor</th>
-                        <th class="tipo-column">Tipo</th>
-                        <th class="fecha-column">Fecha</th>
-                        <th class="estado-column">Estado</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @if (obrasFiltradas != null && obrasFiltradas.Any())
-                    {
-                        @foreach (var obra in obrasFiltradas)
+            <!-- Tabla de obras -->
+            <div class="tabla-obras">
+                <table class="obras-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox">
+                                <input type="checkbox" @onchange="SeleccionarTodas" />
+                            </th>
+                            <th class="col-tipo">Tipo Obra</th>
+                            <th class="col-titulo">Título</th>
+                            <th class="col-fecha">Fecha Publicación</th>
+                            <th class="col-area">Área Conocimiento</th>
+                            <th class="col-documento">Documento</th>
+                            <th class="col-doi">DOI/URL</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (obrasFiltradas != null && obrasFiltradas.Any())
                         {
-                            <tr class="@(obra.Seleccionado ? "selected" : "")">
-                                <td>
-                                    <input type="checkbox" @bind="obra.Seleccionado" />
-                                </td>
-                                <td class="documento-cell">
-                                    <div class="documento-info">
-                                        <span class="documento-icon">📄</span>
-                                        <span class="documento-nombre">@obra.Titulo</span>
-                                    </div>
-                                </td>
-                                <td>@obra.Autor</td>
-                                <td>
-                                    <span class="tipo-badge @GetTipoClass(obra.Tipo)">
-                                        @obra.Tipo
-                                    </span>
-                                </td>
-                                <td>@obra.FechaPublicacion.ToString("dd/MM/yyyy")</td>
-                                <td>
-                                    <span class="estado-badge @GetEstadoClass(obra.Estado)">
-                                        @obra.Estado
-                                    </span>
-                                </td>
+                            @foreach (var obra in obrasFiltradas)
+                            {
+                                <tr class="@(obra.Seleccionada ? "selected" : "")">
+                                    <td>
+                                        <input type="checkbox" @bind="obra.Seleccionada" />
+                                    </td>
+                                    <td>
+                                        <span class="badge-tipo @GetClaseTipo(obra.TipoObra)">
+                                            @obra.TipoObra
+                                        </span>
+                                    </td>
+                                    <td class="titulo-cell">
+                                        <div class="titulo-info">
+                                            <span class="titulo-texto">@obra.Titulo</span>
+                                            @if (!string.IsNullOrEmpty(obra.Observaciones))
+                                            {
+                                                <small class="observaciones">@obra.Observaciones</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@obra.FechaPublicacion.ToString("dd/MM/yyyy")</td>
+                                    <td>
+                                        <span class="area-badge">@(obra.AreaConocimiento ?? "Sin especificar")</span>
+                                    </td>
+                                    <td class="documento">
+                                        @if (obra.TienePDF())
+                                        {
+                                            <button class="btn-documento" @onclick="() => DescargarPDF(obra)" title="Descargar PDF">
+                                                <span class="documento-icon">📄</span>
+                                                <span class="documento-text">PDF</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-documento">Sin documento</span>
+                                        }
+                                    </td>
+                                    <td class="doi-cell">
+                                        @if (!string.IsNullOrEmpty(obra.DoiUrl))
+                                        {
+                                            <button class="btn-doi" @onclick="() => AbrirUrl(obra.DoiUrl)" title="Abrir enlace">
+                                                <span class="doi-icon">🔗</span>
+                                                <span class="doi-text">Ver</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-doi">Sin enlace</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="no-data">No se encontraron obras</td>
                             </tr>
                         }
-                    }
-                    else
-                    {
-                        <tr>
-                            <td colspan="6" class="no-data">
-                                <div class="no-data-message">
-                                    <span class="no-data-icon">📚</span>
-                                    <p>No se encontraron obras</p>
-                                    <button class="btn btn-primary" @onclick="AgregarObra">
-                                        Agregar primera obra
-                                    </button>
-                                </div>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
-
-        <!-- Barra de Progreso -->
-        <div class="progress-section">
-            <div class="progress-info">
-                <span class="progress-label">Progreso</span>
-                <span class="progress-text">@obras.Count de @metaObras obras completadas</span>
+                    </tbody>
+                </table>
             </div>
-            <div class="progress-bar-container">
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @GetProgresoWidth()%"></div>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos obras
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
+                    <span class="page-info">Página @paginaActual de @totalPaginas</span>
+                    <button class="btn-page" @onclick="PaginaSiguiente" disabled="@(paginaActual >= totalPaginas)">▶</button>
                 </div>
             </div>
         </div>
-
-        <!-- Fecha Límite -->
-        <div class="deadline-alert">
-            <span class="alert-icon">⏰</span>
-            <span class="alert-text">Fecha límite: 15 julio, 2025 (41 días restantes)</span>
-        </div>
+        
     </div>
 </div>
 
@@ -169,23 +179,6 @@
         backdrop-filter: blur(10px);
     }
 
-    .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        overflow: hidden;
-        background: #4A90E2;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-        .avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
     .info-text {
         color: white;
     }
@@ -200,21 +193,28 @@
         opacity: 0.8;
     }
 
-    .obras-content {
+    .contenido-principal {
         max-width: 1200px;
-        margin: 0 auto;
-        padding: 2rem;
+        margin: 2rem auto;
+        padding: 0 2rem;
     }
 
+    .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    /* Toolbar */
     .toolbar {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1.5rem;
-        background: white;
         padding: 1rem 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
     }
 
     .search-container {
@@ -225,17 +225,11 @@
 
     .search-input {
         width: 100%;
-        padding: 0.75rem 2.5rem 0.75rem 1rem;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
         font-size: 0.9rem;
-        outline: none;
-        transition: border-color 0.2s;
     }
-
-        .search-input:focus {
-            border-color: #4A90E2;
-        }
 
     .search-icon {
         position: absolute;
@@ -245,41 +239,48 @@
         color: #666;
     }
 
-    .toolbar-buttons {
+    .action-buttons {
         display: flex;
         gap: 0.5rem;
     }
 
     .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
         display: flex;
         align-items: center;
         gap: 0.5rem;
-        padding: 0.75rem 1rem;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.9rem;
-        font-weight: 500;
-        cursor: pointer;
-        transition: all 0.2s;
+    }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .btn-icon {
+        font-size: 0.8rem;
     }
 
     .btn-primary {
-        background: #4A90E2;
+        background: #0D47A1;
         color: white;
     }
 
-        .btn-primary:hover {
-            background: #357ABD;
+        .btn-primary:hover:not(:disabled) {
+            background: #1565C0;
         }
 
     .btn-secondary {
-        background: #f8f9fa;
-        color: #495057;
-        border: 1px solid #dee2e6;
+        background: #6c757d;
+        color: white;
     }
 
-        .btn-secondary:hover {
-            background: #e9ecef;
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
         }
 
     .btn-danger {
@@ -287,16 +288,13 @@
         color: white;
     }
 
-        .btn-danger:hover {
+        .btn-danger:hover:not(:disabled) {
             background: #c82333;
         }
 
-    .table-container {
-        background: white;
-        border-radius: 8px;
-        overflow: hidden;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1.5rem;
+    /* Tabla */
+    .tabla-obras {
+        overflow-x: auto;
     }
 
     .obras-table {
@@ -304,75 +302,61 @@
         border-collapse: collapse;
     }
 
+        .obras-table th,
+        .obras-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
         .obras-table th {
             background: #f8f9fa;
-            padding: 1rem;
-            text-align: left;
             font-weight: 600;
             color: #495057;
-            border-bottom: 2px solid #e9ecef;
+            font-size: 0.9rem;
         }
 
-        .obras-table td {
-            padding: 1rem;
-            border-bottom: 1px solid #e9ecef;
-            vertical-align: middle;
-        }
-
-        .obras-table tr:hover {
+        .obras-table tbody tr:hover {
             background: #f8f9fa;
         }
 
-    .obra-table tr.selected {
-        background: #e3f2fd;
+        .obras-table tbody tr.selected {
+            background: #e3f2fd;
+        }
+
+    .col-checkbox {
+        width: 40px;
     }
 
-    .checkbox-column {
-        width: 50px;
-        text-align: center;
+    .col-tipo {
+        width: 120px;
     }
 
-    .documento-column {
-        width: 35%;
+    .col-titulo {
+        width: 300px;
     }
 
-    .autor-column {
-        width: 20%;
+    .col-fecha {
+        width: 120px;
     }
 
-    .tipo-column {
-        width: 15%;
+    .col-area {
+        width: 150px;
     }
 
-    .fecha-column {
-        width: 15%;
+    .col-documento {
+        width: 100px;
     }
 
-    .estado-column {
-        width: 15%;
+    .col-doi {
+        width: 80px;
     }
 
-    .documento-cell {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-    }
-
-    .documento-icon {
-        font-size: 1.2rem;
-    }
-
-    .documento-nombre {
-        font-weight: 500;
-        color: #2c3e50;
-    }
-
-    .tipo-badge, .estado-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 15px;
+    .badge-tipo {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
         font-size: 0.8rem;
-        font-weight: 500;
+        font-weight: 600;
     }
 
     .tipo-articulo {
@@ -390,97 +374,160 @@
         color: #388e3c;
     }
 
-    .estado-publicado {
-        background: #e8f5e8;
-        color: #2e7d32;
-    }
-
-    .estado-revision {
+    .tipo-tesis {
         background: #fff3e0;
         color: #f57c00;
     }
 
-    .estado-borrador {
+    .tipo-ponencia {
         background: #fce4ec;
         color: #c2185b;
     }
 
-    .no-data {
-        padding: 3rem;
+    .titulo-cell {
+        max-width: 300px;
+    }
+
+    .titulo-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .titulo-texto {
+        font-weight: 500;
+        color: #2c3e50;
+        line-height: 1.3;
+    }
+
+    .observaciones {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .area-badge {
+        background: #f8f9fa;
+        color: #495057;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .documento {
         text-align: center;
     }
 
-    .no-data-message {
-        color: #666;
-    }
-
-    .no-data-icon {
-        font-size: 3rem;
-        display: block;
-        margin-bottom: 1rem;
-    }
-
-    .progress-section {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        margin-bottom: 1rem;
-    }
-
-    .progress-info {
+    .btn-documento {
+        background: #e8f5e8;
+        border: 1px solid #28a745;
+        color: #28a745;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
         display: flex;
-        justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        gap: 0.25rem;
+        transition: all 0.2s;
     }
 
-    .progress-label {
-        font-weight: 600;
-        color: #2c3e50;
-    }
+        .btn-documento:hover {
+            background: #28a745;
+            color: white;
+        }
 
-    .progress-text {
-        color: #666;
+    .documento-icon {
         font-size: 0.9rem;
     }
 
-    .progress-bar-container {
-        width: 100%;
+    .documento-text {
+        font-weight: 600;
     }
 
-    .progress-bar {
-        width: 100%;
-        height: 8px;
-        background: #e0e0e0;
+    .btn-doi {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        color: #2196f3;
+        padding: 0.25rem 0.5rem;
         border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4A90E2, #64B5F6);
-        border-radius: 4px;
-        transition: width 0.5s ease;
-    }
-
-    .deadline-alert {
-        background: #fff3cd;
-        color: #856404;
-        padding: 1rem 1.5rem;
-        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.8rem;
         display: flex;
         align-items: center;
-        gap: 0.75rem;
-        border-left: 4px solid #ffc107;
+        gap: 0.25rem;
+        transition: all 0.2s;
     }
 
-    .alert-icon {
-        font-size: 1.2rem;
+        .btn-doi:hover {
+            background: #2196f3;
+            color: white;
+        }
+
+    .doi-icon {
+        font-size: 0.9rem;
     }
 
-    .alert-text {
-        font-weight: 500;
+    .doi-text {
+        font-weight: 600;
+    }
+
+    .no-documento, .no-doi {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        padding: 2rem;
+    }
+
+    /* Paginación */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-page {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-page:hover:not([disabled]) {
+            background: #e9ecef;
+        }
+
+        .btn-page[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .page-info {
+        color: #495057;
+        font-size: 0.9rem;
     }
 
     
@@ -488,10 +535,15 @@
 
 @code {
     private DocenteInfo docenteInfo;
-    private List<Obra> obras = new List<Obra>();
-    private List<Obra> obrasFiltradas = new List<Obra>();
-    private string searchTerm = "";
-    private int metaObras = 10;
+    private List<ObraInfo> obras = new List<ObraInfo>();
+    private List<ObraInfo> obrasFiltradas = new List<ObraInfo>();
+    private string filtroTexto = "";
+    private int paginaActual = 1;
+    private int elementosPorPagina = 10;
+    private int totalElementos = 0;
+    private int totalPaginas = 0;
+    private bool isImporting = false;
+    private int metaObras = 15;
 
     protected override void OnInitialized()
     {
@@ -500,159 +552,234 @@
         {
             Nombre = "Ing. Ismael Cuadrado",
             Cargo = "Profesor Auxiliar - Ing. Sistemas",
-            Avatar = "https://via.placeholder.com/40x40/4A90E2/FFFFFF?text=IC"
         };
 
-        // Datos de ejemplo
-        obras = new List<Obra>
+        CargarObras();
+    }
+
+    private void CargarObras()
+    {
+        // Datos de ejemplo que coinciden con la estructura de la base de datos
+        obras = new List<ObraInfo>
         {
-            new Obra
-            {
-                Id = 1,
-                Titulo = "Análisis de Algoritmos de Machine Learning",
-                Autor = "Ismael Cuadrado",
-                Tipo = "Artículo",
+            new ObraInfo {
+                IdObra = 1,
+                TipoObra = "Artículo",
+                Titulo = "Análisis de Algoritmos de Machine Learning en Sistemas Educativos",
                 FechaPublicacion = new DateTime(2024, 3, 15),
-                Estado = "Publicado"
+                DoiUrl = "https://doi.org/10.1234/ejemplo1",
+                AreaConocimiento = "Inteligencia Artificial",
+                Observaciones = "Artículo revisado por pares en revista indexada",
+                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 } // Simulación de datos PDF
             },
-            new Obra
-            {
-                Id = 2,
-                Titulo = "Sistemas Distribuidos en la Nube",
-                Autor = "Ismael Cuadrado, María González",
-                Tipo = "Libro",
+            new ObraInfo {
+                IdObra = 2,
+                TipoObra = "Libro",
+                Titulo = "Sistemas Distribuidos en la Nube: Fundamentos y Aplicaciones",
                 FechaPublicacion = new DateTime(2024, 1, 10),
-                Estado = "En Revisión"
+                DoiUrl = null, // Puede ser null según la BD
+                AreaConocimiento = "Sistemas Distribuidos",
+                Observaciones = "Editorial universitaria reconocida",
+                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 }
             },
-            new Obra
-            {
-                Id = 3,
-                Titulo = "Inteligencia Artificial en la Educación",
-                Autor = "Ismael Cuadrado",
-                Tipo = "Capítulo",
+            new ObraInfo {
+                IdObra = 3,
+                TipoObra = "Capítulo",
+                Titulo = "Inteligencia Artificial en la Educación Superior",
                 FechaPublicacion = new DateTime(2023, 11, 25),
-                Estado = "Borrador"
+                DoiUrl = "https://doi.org/10.1234/ejemplo3",
+                AreaConocimiento = "Educación Tecnológica",
+                Observaciones = "Capítulo en libro colectivo",
+                PdfProduccion = null // Sin PDF
+            },
+            new ObraInfo {
+                IdObra = 4,
+                TipoObra = "Ponencia",
+                Titulo = "Implementación de Blockchain en Sistemas Académicos",
+                FechaPublicacion = new DateTime(2023, 9, 5),
+                DoiUrl = "",
+                AreaConocimiento = "Blockchain",
+                Observaciones = "Presentado en congreso internacional",
+                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 }
+            },
+            new ObraInfo {
+                IdObra = 5,
+                TipoObra = "Tesis",
+                Titulo = "Optimización de Consultas en Bases de Datos NoSQL",
+                FechaPublicacion = new DateTime(2023, 6, 20),
+                DoiUrl = "https://repositorio.ejemplo.edu/tesis/5",
+                AreaConocimiento = "Bases de Datos",
+                Observaciones = "Tesis doctoral, mención cum laude",
+                PdfProduccion = new byte[] { 0x25, 0x50, 0x44, 0x46 }
             }
         };
 
-        obrasFiltradas = obras.ToList();
-    }
-
-    private void OnSearchChanged(ChangeEventArgs e)
-    {
-        searchTerm = e.Value?.ToString() ?? "";
         FiltrarObras();
     }
 
     private void FiltrarObras()
     {
-        if (string.IsNullOrWhiteSpace(searchTerm))
-        {
-            obrasFiltradas = obras.ToList();
-        }
-        else
-        {
-            obrasFiltradas = obras.Where(o =>
-                o.Titulo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                o.Autor.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                o.Tipo.Contains(searchTerm, StringComparison.OrdinalIgnoreCase)
-            ).ToList();
-        }
+        obrasFiltradas = obras.Where(o =>
+            string.IsNullOrEmpty(filtroTexto) ||
+            o.Titulo.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            o.TipoObra.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            (o.AreaConocimiento?.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ?? false)
+        ).ToList();
+
+        totalElementos = obrasFiltradas.Count;
+        totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
+
+        // Aplicar paginación
+        obrasFiltradas = obrasFiltradas
+            .Skip((paginaActual - 1) * elementosPorPagina)
+            .Take(elementosPorPagina)
+            .ToList();
+
         StateHasChanged();
     }
 
-    private void SeleccionarTodos(ChangeEventArgs e)
-    {
-        bool seleccionar = (bool)(e.Value ?? false);
-        foreach (var obra in obrasFiltradas)
-        {
-            obra.Seleccionado = seleccionar;
-        }
-    }
-
-    private async Task AgregarObra()
-    {
-        await JSRuntime.InvokeVoidAsync("alert", "Abrir modal para agregar nueva obra");
-    }
-
-    private async Task ImportarObras()
-    {
-        await JSRuntime.InvokeVoidAsync("alert", "Abrir modal para importar obras desde archivo");
-    }
-
-    private async Task EditarSeleccionado()
-    {
-        var seleccionados = obrasFiltradas.Where(o => o.Seleccionado).ToList();
-        if (seleccionados.Any())
-        {
-            await JSRuntime.InvokeVoidAsync("alert", $"Editar {seleccionados.Count} obra(s) seleccionada(s)");
-        }
-        else
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Seleccione al menos una obra para editar");
-        }
-    }
-
-    private async Task EliminarSeleccionado()
-    {
-        var seleccionados = obrasFiltradas.Where(o => o.Seleccionado).ToList();
-        if (seleccionados.Any())
-        {
-            bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-                $"¿Está seguro de eliminar {seleccionados.Count} obra(s) seleccionada(s)?");
-
-            if (confirmar)
-            {
-                foreach (var obra in seleccionados)
-                {
-                    obras.Remove(obra);
-                }
-                FiltrarObras();
-            }
-        }
-        else
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Seleccione al menos una obra para eliminar");
-        }
-    }
-
-    private string GetTipoClass(string tipo)
+    private string GetClaseTipo(string tipo)
     {
         return tipo.ToLower() switch
         {
             "artículo" => "tipo-articulo",
             "libro" => "tipo-libro",
             "capítulo" => "tipo-capitulo",
+            "tesis" => "tipo-tesis",
+            "ponencia" => "tipo-ponencia",
             _ => "tipo-articulo"
         };
     }
 
-    private string GetEstadoClass(string estado)
+    private void SeleccionarTodas(ChangeEventArgs e)
     {
-        return estado.ToLower() switch
+        bool seleccionar = (bool)e.Value;
+        foreach (var obra in obrasFiltradas)
         {
-            "publicado" => "estado-publicado",
-            "en revisión" => "estado-revision",
-            "borrador" => "estado-borrador",
-            _ => "estado-borrador"
-        };
+            obra.Seleccionada = seleccionar;
+        }
     }
 
-    private double GetProgresoWidth()
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            FiltrarObras();
+        }
+    }
+
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            FiltrarObras();
+        }
+    }
+
+    private int GetPorcentajeProgreso()
     {
         if (metaObras == 0) return 0;
-        return Math.Min(100, (double)obras.Count / metaObras * 100);
+        return Math.Min(100, (obras.Count * 100) / metaObras);
     }
 
-    public class Obra
+    // Métodos de acción
+    private async Task AgregarObra()
     {
-        public int Id { get; set; }
+        await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Obra\n\n• Se abrirá el formulario para registrar una nueva obra\n• Complete todos los campos requeridos\n• Adjunte el documento PDF si está disponible\n• Guarde los cambios para continuar");
+    }
+
+    private async Task ImportarObras()
+    {
+        if (isImporting) return;
+
+        bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+            "¿Desea importar obras desde un archivo?\n\n" +
+            "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
+            "• El archivo debe contener las columnas: Tipo, Título, Fecha, DOI/URL, Área\n" +
+            "• Las obras duplicadas serán omitidas\n\n" +
+            "¿Continuar con la importación?");
+
+        if (confirmar)
+        {
+            isImporting = true;
+            StateHasChanged();
+
+            // proceso de importación
+            await Task.Delay(3000);
+
+            isImporting = false;
+            StateHasChanged();
+
+            await JSRuntime.InvokeVoidAsync("alert",
+                "¡Importación completada exitosamente!\n\n" +
+                "• 8 obras nuevas importadas\n" +
+                "• 3 obras duplicadas omitidas\n" +
+                "• Los datos han sido validados y guardados");
+        }
+    }
+
+    private async Task EditarSeleccionada()
+    {
+        var seleccionada = obrasFiltradas.FirstOrDefault(o => o.Seleccionada);
+        if (seleccionada != null)
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"Editar Obra Seleccionada\n\n" +
+                $"• Título: {seleccionada.Titulo}\n" +
+                $"• Tipo: {seleccionada.TipoObra}\n" +
+                $"• Área: {seleccionada.AreaConocimiento}\n\n" +
+                $"Se abrirá el formulario de edición...");
+        }
+        else
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                "⚠️ Atención\n\n" +
+                "No hay ninguna obra seleccionada.\n" +
+                "Por favor, seleccione una obra de la lista para editarla.");
+        }
+    }
+
+    private async Task DescargarPDF(ObraInfo obra)
+    {
+        if (obra.TienePDF())
+        {
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"📄 Descargando Documento PDF\n\n" +
+                $"• Obra: {obra.Titulo}\n" +
+                $"• Tipo: {obra.TipoObra}\n" +
+                $"• La descarga comenzará automáticamente...");
+        }
+    }
+
+    private async Task AbrirUrl(string url)
+    {
+        if (!string.IsNullOrEmpty(url))
+        {
+            await JSRuntime.InvokeVoidAsync("open", url, "_blank");
+        }
+    }
+
+   
+    public class ObraInfo
+    {
+        public int IdObra { get; set; }
+        public string TipoObra { get; set; } = "";
         public string Titulo { get; set; } = "";
-        public string Autor { get; set; } = "";
-        public string Tipo { get; set; } = "";
         public DateTime FechaPublicacion { get; set; }
-        public string Estado { get; set; } = "";
-        public bool Seleccionado { get; set; }
+        public string? DoiUrl { get; set; }
+        public string? AreaConocimiento { get; set; }
+        public string? Observaciones { get; set; }
+        public byte[]? PdfProduccion { get; set; }
+        
+        public bool Seleccionada { get; set; }
+        
+        // Método para verificar si tiene PDF
+        public bool TienePDF()
+        {
+            return PdfProduccion != null && PdfProduccion.Length > 0;
+        }
     }
 
     public class DocenteInfo
