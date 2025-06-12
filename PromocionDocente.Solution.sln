@@ -12,25 +12,17 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.API", "Pro
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Client", "PromocionDocente.Client\PromocionDocente.Client.csproj", "{D9B7240F-390D-48EC-8CD4-D01276E9F49D}"
 EndProject
-<<<<<<< HEAD
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Domain", "PromocionDocente.Domain\PromocionDocente.Domain.csproj", "{D7DE80D4-C910-4AF3-A085-D4A3A746A73E}"
-=======
 #estaban en feature/programcss
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Infrastructure", "PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj", "{FD896F10-89EC-48DA-BFD1-309CB7EFD780}"
->>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Application", "PromocionDocente.Application\PromocionDocente.Application.csproj", "{E489202C-4CEB-4B48-BC03-404CEE18CB03}"
 EndProject
-<<<<<<< HEAD
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Repositorio", "PromocionDocente.Repositorio\PromocionDocente.Repositorio.csproj", "{FF59D2E8-B57B-4F7A-B674-0815BE25F7A3}"
-=======
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Application", "PromocionDocente.Application\PromocionDocente.Application.csproj", "{0FF7827C-1453-4F64-BF07-F0B8AF10EC9E}"
 #estaban en develop
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Models", "PromocionDocente.Models\PromocionDocente.Models.csproj", "{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Repository", "PromocionDocente.Repository\PromocionDocente.Repository.csproj", "{DB6CC5F9-130D-48D7-BEB7-8F88B7ABF7D4}"
 #
->>>>>>> fcd84467b8d968067540d8a59f5a11007c1a5966
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
