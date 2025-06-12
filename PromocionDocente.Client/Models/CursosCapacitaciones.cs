@@ -27,7 +27,7 @@
         {
             public string Nombre { get; set; } = "";
             public string Cargo { get; set; } = "";
-            public string Avatar { get; set; } = "";
+         
         }
     
 }

@@ -1,9 +1,9 @@
-﻿@page "/docente/capacitaciones"
+﻿@page "/docente/evaluaciones"
 @layout DocenteLayout
 @using Models
 @inject IJSRuntime JSRuntime
 
-<div class="capacitaciones-container">
+<div class="evaluaciones-container">
 
     <div class="header-container">
         <div class="header-content">
@@ -23,74 +23,71 @@
             <!-- Barra de herramientas -->
             <div class="toolbar">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Buscar cursos..." @bind="filtroTexto" @oninput="FiltrarCursos" />
+                    <input type="text" class="search-input" placeholder="Buscar..." @bind="filtroTexto" @oninput="FiltrarEvaluaciones" />
                     <span class="search-icon">🔍</span>
                 </div>
                 <div class="action-buttons">
-                    <button class="btn btn-primary" @onclick="AgregarCurso">
+                    <button class="btn btn-primary" @onclick="AgregarEvaluacion">
                         <span class="btn-icon">➕</span>
                         Agregar
                     </button>
-                    <button class="btn btn-secondary" @onclick="ImportarCursos" disabled="@isImporting">
+                    <button class="btn btn-secondary" @onclick="ImportarEvaluaciones" disabled="@isImporting">
                         <span class="btn-icon">📁</span>
                         @(isImporting ? "Importando..." : "Importar")
                     </button>
-                    <button class="btn btn-secondary" @onclick="EditarSeleccionado">
+                    <button class="btn btn-secondary" @onclick="EditarSeleccionada">
                         <span class="btn-icon">✏️</span>
                         Editar
                     </button>
-                    <button class="btn btn-secondary" @onclick="EnviarSeleccionado">
+                    <button class="btn btn-secondary" @onclick="EnviarSeleccionada">
                         <span class="btn-icon">📤</span>
                         Enviar
                     </button>
                 </div>
             </div>
 
-            <!-- Tabla de cursos -->
-            <div class="tabla-cursos">
-                <table class="cursos-table">
+            <!-- Tabla-->
+            <div class="tabla-evaluaciones">
+                <table class="evaluaciones-table">
                     <thead>
                         <tr>
                             <th class="col-checkbox">
-                                <input type="checkbox" @onchange="SeleccionarTodos" />
+                                <input type="checkbox" @onchange="SeleccionarTodas" />
                             </th>
-                            <th class="col-nombre">Nombre del Curso</th>
+                            <th class="col-periodo">Periodo</th>
+                            <th class="col-tipo">Tipo Evaluación</th>
                             <th class="col-fecha">Fecha</th>
-                            <th class="col-horas">Horas</th>
+                            <th class="col-resultado">Resultado</th>
                             <th class="col-estado">Estado</th>
                             <th class="col-documento">Documento</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (cursosFiltrados != null && cursosFiltrados.Any())
+                        @if (evaluacionesFiltradas != null && evaluacionesFiltradas.Any())
                         {
-                            @foreach (var curso in cursosFiltrados)
+                            @foreach (var evaluacion in evaluacionesFiltradas)
                             {
-                                <tr class="@(curso.Seleccionado ? "selected" : "")">
+                                <tr class="@(evaluacion.Seleccionada ? "selected" : "")">
                                     <td>
-                                        <input type="checkbox" @bind="curso.Seleccionado" />
+                                        <input type="checkbox" @bind="evaluacion.Seleccionada" />
                                     </td>
-                                    <td class="nombre-curso">
-                                        <div class="curso-info">
-                                            <span class="curso-nombre">@curso.NombreCurso</span>
-                                            <span class="curso-tipo">Curso de Capacitación</span>
-                                        </div>
-                                    </td>
-                                    <td>@curso.FechaCurso.ToString("dd/MM/yyyy")</td>
-                                    <td class="horas">
-                                        <span class="badge-horas">
-                                            @curso.Horas h
+                                    <td>@evaluacion.PeriodoEvaluado</td>
+                                    <td>@evaluacion.TipoEvaluacion</td>
+                                    <td>@evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy")</td>
+                                    <td class="resultado">
+                                        <span class="badge-resultado @GetClaseResultado(evaluacion.Resultado)">
+                                            @evaluacion.Resultado.ToString("0.00")
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="badge-estado @GetClaseEstado(curso.Estado)">
-                                            @curso.Estado
+                                        <span class="badge-estado @GetClaseEstado(evaluacion.Estado)">
+                                            @evaluacion.Estado
                                         </span>
                                     </td>
                                     <td class="documento">
-                                        @if (curso.TienePDF)
+                                        @if (!string.IsNullOrEmpty(evaluacion.DocumentoPDF))
                                         {
-                                            <button class="btn-documento" @onclick="() => DescargarPDF(curso)" title="Descargar PDF">
+                                            <button class="btn-documento" @onclick="() => DescargarPDF(evaluacion)" title="Descargar PDF">
                                                 <span class="documento-icon">📄</span>
                                                 <span class="documento-text">PDF</span>
                                             </button>
@@ -106,7 +103,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="6" class="no-data">No se encontraron cursos de capacitación</td>
+                                <td colspan="7" class="no-data">No se encontraron evaluaciones</td>
                             </tr>
                         }
                     </tbody>
@@ -116,7 +113,7 @@
             <!-- Paginación -->
             <div class="pagination-container">
                 <div class="pagination-info">
-                    Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos cursos
+                    Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos evaluaciones
                 </div>
                 <div class="pagination-controls">
                     <button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
@@ -125,34 +122,11 @@
                 </div>
             </div>
         </div>
-
-        <!-- Sección de Progreso -->
-        <div class="progreso-section">
-            <div class="progreso-card">
-                <div class="progreso-header">
-                    <h3>Progreso de Capacitación</h3>
-                    <span class="progreso-porcentaje">@progresoActual%</span>
-                </div>
-                <div class="progreso-bar">
-                    <div class="progreso-fill" style="width: @(progresoActual)%"></div>
-                </div>
-                <div class="progreso-stats">
-                    <div class="stat-item">
-                        <span class="stat-numero">@totalHorasCompletadas</span>
-                        <span class="stat-label">Horas completadas</span>
-                    </div>
-                    <div class="stat-item">
-                        <span class="stat-numero">@cursosCompletados</span>
-                        <span class="stat-label">Cursos completados</span>
-                    </div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
 
 <style>
-    .capacitaciones-container {
+    .evaluaciones-container {
         min-height: 100vh;
         background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -190,6 +164,23 @@
         backdrop-filter: blur(10px);
     }
 
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #4A90E2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
     .info-text {
         color: white;
     }
@@ -215,7 +206,6 @@
         border-radius: 8px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         overflow: hidden;
-        margin-bottom: 2rem;
     }
 
     /* Toolbar */
@@ -295,34 +285,34 @@
         }
 
     /* Tabla */
-    .tabla-cursos {
+    .tabla-evaluaciones {
         overflow-x: auto;
     }
 
-    .cursos-table {
+    .evaluaciones-table {
         width: 100%;
         border-collapse: collapse;
     }
 
-        .cursos-table th,
-        .cursos-table td {
+        .evaluaciones-table th,
+        .evaluaciones-table td {
             padding: 0.75rem;
             text-align: left;
             border-bottom: 1px solid #dee2e6;
         }
 
-        .cursos-table th {
+        .evaluaciones-table th {
             background: #f8f9fa;
             font-weight: 600;
             color: #495057;
             font-size: 0.9rem;
         }
 
-        .cursos-table tbody tr:hover {
+        .evaluaciones-table tbody tr:hover {
             background: #f8f9fa;
         }
 
-        .cursos-table tbody tr.selected {
+        .evaluaciones-table tbody tr.selected {
             background: #e3f2fd;
         }
 
@@ -330,58 +320,55 @@
         width: 40px;
     }
 
-    .col-nombre {
-        width: 300px;
+    .col-periodo {
+        width: 120px;
+    }
+
+    .col-tipo {
+        width: 150px;
     }
 
     .col-fecha {
         width: 120px;
     }
 
-    .col-horas {
+    .col-resultado {
         width: 100px;
     }
 
     .col-estado {
-        width: 120px;
+        width: 100px;
     }
 
     .col-documento {
         width: 120px;
     }
 
-    .nombre-curso {
-        padding: 0.5rem 0;
-    }
-
-    .curso-info {
-        display: flex;
-        flex-direction: column;
-        gap: 0.25rem;
-    }
-
-    .curso-nombre {
-        font-weight: 600;
-        color: #2c3e50;
-        font-size: 0.9rem;
-    }
-
-    .curso-tipo {
-        font-size: 0.8rem;
-        color: #7f8c8d;
-    }
-
-    .horas {
-        text-align: center;
-    }
-
-    .badge-horas {
+    .badge-resultado {
         padding: 0.25rem 0.5rem;
-        background: #e3f2fd;
-        color: #1976d2;
         border-radius: 12px;
         font-size: 0.8rem;
         font-weight: 600;
+    }
+
+    .resultado-excelente {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .resultado-bueno {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .resultado-regular {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .resultado-malo {
+        background: #f8d7da;
+        color: #721c24;
     }
 
     .badge-estado {
@@ -401,12 +388,7 @@
         color: #856404;
     }
 
-    .estado-en-progreso {
-        background: #d1ecf1;
-        color: #0c5460;
-    }
-
-    .estado-validado {
+    .estado-borrador {
         background: #e2e3e5;
         color: #383d41;
     }
@@ -497,90 +479,18 @@
         color: #495057;
         font-size: 0.9rem;
     }
-
-    /* Sección de Progreso */
-    .progreso-section {
-        margin-top: 2rem;
-    }
-
-    .progreso-card {
-        background: white;
-        border-radius: 8px;
-        padding: 2rem;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    }
-
-    .progreso-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1rem;
-    }
-
-        .progreso-header h3 {
-            margin: 0;
-            color: #2c3e50;
-            font-size: 1.2rem;
-        }
-
-    .progreso-porcentaje {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #4CAF50;
-    }
-
-    .progreso-bar {
-        height: 10px;
-        background: #e0e0e0;
-        border-radius: 5px;
-        overflow: hidden;
-        margin-bottom: 1.5rem;
-    }
-
-    .progreso-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #4CAF50, #81C784);
-        border-radius: 5px;
-        transition: width 0.5s ease;
-    }
-
-    .progreso-stats {
-        display: flex;
-        gap: 2rem;
-    }
-
-    .stat-item {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-    }
-
-    .stat-numero {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #2c3e50;
-    }
-
-    .stat-label {
-        font-size: 0.9rem;
-        color: #7f8c8d;
-        margin-top: 0.25rem;
-    }
 </style>
 
 @code {
     private DocenteInfo docenteInfo;
-    private List<CursoCapacitacionInfo> cursos = new List<CursoCapacitacionInfo>();
-    private List<CursoCapacitacionInfo> cursosFiltrados = new List<CursoCapacitacionInfo>();
+    private List<EvaluacionInfo> evaluaciones = new List<EvaluacionInfo>();
+    private List<EvaluacionInfo> evaluacionesFiltradas = new List<EvaluacionInfo>();
     private string filtroTexto = "";
     private int paginaActual = 1;
     private int elementosPorPagina = 10;
     private int totalElementos = 0;
     private int totalPaginas = 0;
     private bool isImporting = false;
-    private int progresoActual = 75;
-    private int totalHorasCompletadas = 0;
-    private int cursosCompletados = 0;
 
     protected override void OnInitialized()
     {
@@ -591,95 +501,91 @@
             Cargo = "Profesor Auxiliar - Ing. Sistemas",
         };
 
-        CargarCursos();
-        CalcularEstadisticas();
+        CargarEvaluaciones();
     }
 
-    private void CargarCursos()
+    private void CargarEvaluaciones()
     {
-        // Reemplazar con llamada real a API
-        cursos = new List<CursoCapacitacionInfo>
+        //reemplazar con llamada real a API
+        evaluaciones = new List<EvaluacionInfo>
         {
-            new CursoCapacitacionInfo {
-                IdCurso = 1,
-                NombreCurso = "Metodologías Ágiles de Desarrollo de Software",
-                FechaCurso = new DateTime(2024, 3, 15),
-                Horas = 40,
-                TienePDF = true,
-                Estado = "Completado"
+            new EvaluacionInfo {
+                Id = 1,
+                PeriodoEvaluado = "2024-01",
+                TipoEvaluacion = "Evaluación Docente",
+                FechaEvaluacion = new DateTime(2024, 2, 15),
+                Resultado = 4.5m,
+                Estado = "Completado",
+                DocumentoPDF = "evaluacion_2024_01.pdf"
             },
-            new CursoCapacitacionInfo {
-                IdCurso = 2,
-                NombreCurso = "Inteligencia Artificial en la Educación Superior",
-                FechaCurso = new DateTime(2024, 5, 20),
-                Horas = 32,
-                TienePDF = true,
-                Estado = "Completado"
+            new EvaluacionInfo {
+                Id = 2,
+                PeriodoEvaluado = "2023-02",
+                TipoEvaluacion = "Autoevaluación",
+                FechaEvaluacion = new DateTime(2023, 8, 20),
+                Resultado = 4.2m,
+                Estado = "Completado",
+                DocumentoPDF = "autoevaluacion_2023_02.pdf"
             },
-            new CursoCapacitacionInfo {
-                IdCurso = 3,
-                NombreCurso = "Herramientas de Evaluación Digital",
-                FechaCurso = new DateTime(2024, 7, 10),
-                Horas = 24,
-                TienePDF = false,
-                Estado = "En Progreso"
+            new EvaluacionInfo {
+                Id = 3,
+                PeriodoEvaluado = "2023-01",
+                TipoEvaluacion = "Evaluación por Pares",
+                FechaEvaluacion = new DateTime(2023, 3, 10),
+                Resultado = 3.8m,
+                Estado = "Completado",
+                DocumentoPDF = "evaluacion_pares_2023_01.pdf"
             },
-            new CursoCapacitacionInfo {
-                IdCurso = 4,
-                NombreCurso = "Docencia Universitaria y Pedagogía",
-                FechaCurso = new DateTime(2024, 9, 5),
-                Horas = 60,
-                TienePDF = false,
-                Estado = "Pendiente"
+            new EvaluacionInfo {
+                Id = 4,
+                PeriodoEvaluado = "2024-02",
+                TipoEvaluacion = "Evaluación Docente",
+                FechaEvaluacion = new DateTime(2024, 9, 5),
+                Resultado = 4.7m,
+                Estado = "Pendiente",
+                DocumentoPDF = ""
             },
-            new CursoCapacitacionInfo {
-                IdCurso = 5,
-                NombreCurso = "Tecnologías Emergentes en Ingeniería",
-                FechaCurso = new DateTime(2024, 11, 1),
-                Horas = 48,
-                TienePDF = true,
-                Estado = "Validado"
-            },
-            new CursoCapacitacionInfo {
-                IdCurso = 6,
-                NombreCurso = "Gestión de Proyectos Educativos",
-                FechaCurso = new DateTime(2024, 12, 15),
-                Horas = 36,
-                TienePDF = false,
-                Estado = "Pendiente"
+            new EvaluacionInfo {
+                Id = 5,
+                PeriodoEvaluado = "2024-03",
+                TipoEvaluacion = "Autoevaluación",
+                FechaEvaluacion = new DateTime(2024, 12, 1),
+                Resultado = 0m,
+                Estado = "Borrador",
+                DocumentoPDF = ""
             }
         };
 
-        FiltrarCursos();
+        FiltrarEvaluaciones();
     }
 
-    private void CalcularEstadisticas()
+    private void FiltrarEvaluaciones()
     {
-        cursosCompletados = cursos.Count(c => c.Estado == "Completado");
-        totalHorasCompletadas = cursos.Where(c => c.Estado == "Completado").Sum(c => c.Horas);
-
-        int totalHoras = cursos.Sum(c => c.Horas);
-        progresoActual = totalHoras > 0 ? (totalHorasCompletadas * 100) / totalHoras : 0;
-    }
-
-    private void FiltrarCursos()
-    {
-        cursosFiltrados = cursos.Where(c =>
+        evaluacionesFiltradas = evaluaciones.Where(e =>
             string.IsNullOrEmpty(filtroTexto) ||
-            c.NombreCurso.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
-            c.Estado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
+            e.PeriodoEvaluado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            e.TipoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            e.Estado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
         ).ToList();
 
-        totalElementos = cursosFiltrados.Count;
+        totalElementos = evaluacionesFiltradas.Count;
         totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
 
         // Aplicar paginación
-        cursosFiltrados = cursosFiltrados
+        evaluacionesFiltradas = evaluacionesFiltradas
             .Skip((paginaActual - 1) * elementosPorPagina)
             .Take(elementosPorPagina)
             .ToList();
 
         StateHasChanged();
+    }
+
+    private string GetClaseResultado(decimal resultado)
+    {
+        if (resultado >= 4.5m) return "resultado-excelente";
+        if (resultado >= 4.0m) return "resultado-bueno";
+        if (resultado >= 3.0m) return "resultado-regular";
+        return "resultado-malo";
     }
 
     private string GetClaseEstado(string estado)
@@ -688,18 +594,17 @@
         {
             "completado" => "estado-completado",
             "pendiente" => "estado-pendiente",
-            "en progreso" => "estado-en-progreso",
-            "validado" => "estado-validado",
-            _ => "estado-pendiente"
+            "borrador" => "estado-borrador",
+            _ => "estado-borrador"
         };
     }
 
-    private void SeleccionarTodos(ChangeEventArgs e)
+    private void SeleccionarTodas(ChangeEventArgs e)
     {
         bool seleccionar = (bool)e.Value;
-        foreach (var curso in cursosFiltrados)
+        foreach (var evaluacion in evaluacionesFiltradas)
         {
-            curso.Seleccionado = seleccionar;
+            evaluacion.Seleccionada = seleccionar;
         }
     }
 
@@ -708,7 +613,7 @@
         if (paginaActual > 1)
         {
             paginaActual--;
-            FiltrarCursos();
+            FiltrarEvaluaciones();
         }
     }
 
@@ -717,25 +622,26 @@
         if (paginaActual < totalPaginas)
         {
             paginaActual++;
-            FiltrarCursos();
+            FiltrarEvaluaciones();
         }
     }
 
-    // Métodos de acción
-    private async Task AgregarCurso()
+ 
+    private async Task AgregarEvaluacion()
     {
-        await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nuevo Curso de Capacitación\n\n• Se abrirá el formulario para registrar un nuevo curso\n• Complete los datos: nombre, fecha, horas y documento PDF\n• Guarde los cambios para continuar");
+        await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Evaluación\n\n• Se abrirá el formulario para crear una nueva evaluación\n• Complete todos los campos requeridos\n• Guarde los cambios para continuar");
+        // Lógica para agregar nueva evaluación
     }
 
-    private async Task ImportarCursos()
+    private async Task ImportarEvaluaciones()
     {
         if (isImporting) return;
 
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            "¿Desea importar cursos de capacitación desde un archivo?\n\n" +
+            "¿Desea importar evaluaciones desde un archivo?\n\n" +
             "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
-            "• El archivo debe contener: Nombre, Fecha, Horas\n" +
-            "• Los cursos duplicados serán omitidos\n\n" +
+            "• El archivo debe contener las columnas requeridas\n" +
+            "• Las evaluaciones duplicadas serán omitidas\n\n" +
             "¿Continuar con la importación?");
 
         if (confirmar)
@@ -751,44 +657,45 @@
 
             await JSRuntime.InvokeVoidAsync("alert",
                 "¡Importación completada exitosamente!\n\n" +
-                "• 8 cursos nuevos importados\n" +
-                "• 3 cursos duplicados omitidos\n" +
+                "• 5 evaluaciones nuevas importadas\n" +
+                "• 2 evaluaciones duplicadas omitidas\n" +
                 "• Los datos han sido validados y guardados");
         }
     }
 
-    private async Task EditarSeleccionado()
+    private async Task EditarSeleccionada()
     {
-        var seleccionado = cursosFiltrados.FirstOrDefault(c => c.Seleccionado);
-        if (seleccionado != null)
+        var seleccionada = evaluacionesFiltradas.FirstOrDefault(e => e.Seleccionada);
+        if (seleccionada != null)
         {
             await JSRuntime.InvokeVoidAsync("alert",
-                $"Editar Curso Seleccionado\n\n" +
-                $"• Curso: {seleccionado.NombreCurso}\n" +
-                $"• Fecha: {seleccionado.FechaCurso:dd/MM/yyyy}\n" +
-                $"• Horas: {seleccionado.Horas}\n" +
-                $"• Estado: {seleccionado.Estado}\n\n" +
+                $"Editar Evaluación Seleccionada\n\n" +
+                $"• Periodo: {seleccionada.PeriodoEvaluado}\n" +
+                $"• Tipo: {seleccionada.TipoEvaluacion}\n" +
+                $"• Estado: {seleccionada.Estado}\n\n" +
                 $"Se abrirá el formulario de edición...");
+
+            EditarEvaluacion(seleccionada);
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("alert",
                 "⚠️ Atención\n\n" +
-                "No hay ningún curso seleccionado.\n" +
-                "Por favor, seleccione un curso de la lista para editarlo.");
+                "No hay ninguna evaluación seleccionada.\n" +
+                "Por favor, seleccione una evaluación de la lista para editarla.");
         }
     }
 
-    private async Task EnviarSeleccionado()
+    private async Task EnviarSeleccionada()
     {
-        var seleccionados = cursosFiltrados.Where(c => c.Seleccionado).ToList();
+        var seleccionadas = evaluacionesFiltradas.Where(e => e.Seleccionada).ToList();
 
-        if (seleccionados.Any())
+        if (seleccionadas.Any())
         {
             bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-                $"¿Enviar {seleccionados.Count} curso(s) seleccionado(s) para validación?\n\n" +
-                $"• Los cursos serán enviados para revisión\n" +
-                $"• No podrán ser editados después del envío\n" +
+                $"¿Enviar {seleccionadas.Count} evaluación(es) seleccionada(s)?\n\n" +
+                $"• Las evaluaciones serán enviadas para revisión\n" +
+                $"• No podrán ser editadas después del envío\n" +
                 $"• Recibirá una confirmación por email\n\n" +
                 $"¿Continuar con el envío?");
 
@@ -796,15 +703,15 @@
             {
                 await JSRuntime.InvokeVoidAsync("alert",
                     $"✅ Envío exitoso\n\n" +
-                    $"• {seleccionados.Count} curso(s) enviado(s)\n" +
-                    $"• Estado cambiado a 'En Validación'\n" +
+                    $"• {seleccionadas.Count} evaluación(es) enviada(s)\n" +
+                    $"• Estado cambiado a 'En Revisión'\n" +
                     $"• Confirmación enviada por email");
 
-                // Actualizar estado de los cursos seleccionados
-                foreach (var curso in seleccionados)
+                // Actualizar estado de las evaluaciones seleccionadas
+                foreach (var eval in seleccionadas)
                 {
-                    curso.Estado = "En Validación";
-                    curso.Seleccionado = false;
+                    eval.Estado = "En Revisión";
+                    eval.Seleccionada = false;
                 }
                 StateHasChanged();
             }
@@ -813,41 +720,56 @@
         {
             await JSRuntime.InvokeVoidAsync("alert",
                 "⚠️ Atención\n\n" +
-                "No hay cursos seleccionados.\n" +
-                "Seleccione al menos un curso para enviar.");
+                "No hay evaluaciones seleccionadas.\n" +
+                "Seleccione al menos una evaluación para enviar.");
         }
     }
 
-    private async Task DescargarPDF(CursoCapacitacionInfo curso)
+    private async Task EditarEvaluacion(EvaluacionInfo evaluacion)
     {
-        if (curso.TienePDF)
+        await JSRuntime.InvokeVoidAsync("alert",
+            $"Editando Evaluación\n\n" +
+            $"• ID: {evaluacion.Id}\n" +
+            $"• Periodo: {evaluacion.PeriodoEvaluado}\n" +
+            $"• Tipo: {evaluacion.TipoEvaluacion}\n" +
+            $"• Estado: {evaluacion.Estado}\n\n" +
+            $"Redirigiendo al formulario de edición...");
+        // Lógica para editar evaluación
+    }
+
+    private async Task DescargarPDF(EvaluacionInfo evaluacion)
+    {
+        if (!string.IsNullOrEmpty(evaluacion.DocumentoPDF))
         {
             await JSRuntime.InvokeVoidAsync("alert",
-                $"📄 Descargando Certificado PDF\n\n" +
-                $"• Curso: {curso.NombreCurso}\n" +
-                $"• Fecha: {curso.FechaCurso:dd/MM/yyyy}\n" +
-                $"• Horas: {curso.Horas}\n\n" +
+                $"📄 Descargando Documento PDF\n\n" +
+                $"• Archivo: {evaluacion.DocumentoPDF}\n" +
+                $"• Evaluación: {evaluacion.TipoEvaluacion}\n" +
+                $"• Periodo: {evaluacion.PeriodoEvaluado}\n\n" +
                 $"La descarga comenzará en breve...");
+
+            // Aquí iría la lógica real de descarga
+            // Por ejemplo: await JSRuntime.InvokeVoidAsync("downloadFile", evaluacion.DocumentoPDF);
         }
         else
         {
             await JSRuntime.InvokeVoidAsync("alert",
                 "⚠️ Documento no disponible\n\n" +
-                "Este curso aún no tiene un certificado PDF generado.\n" +
-                "Complete el curso para obtener el certificado.");
+                "Esta evaluación aún no tiene un documento PDF generado.\n" +
+                "Complete la evaluación para generar el documento.");
         }
     }
 
-    // Clases de modelo
-    public class CursoCapacitacionInfo
+    public class EvaluacionInfo
     {
-        public int IdCurso { get; set; }
-        public string NombreCurso { get; set; } = "";
-        public DateTime FechaCurso { get; set; }
-        public int Horas { get; set; }
-        public bool TienePDF { get; set; }
-        public string Estado { get; set; } = "Pendiente";
-        public bool Seleccionado { get; set; }
+        public int Id { get; set; }
+        public string PeriodoEvaluado { get; set; }
+        public string TipoEvaluacion { get; set; }
+        public DateTime FechaEvaluacion { get; set; }
+        public decimal Resultado { get; set; }
+        public string Estado { get; set; }
+        public bool Seleccionada { get; set; }
+        public string DocumentoPDF { get; set; } = "";
     }
 
     public class DocenteInfo
