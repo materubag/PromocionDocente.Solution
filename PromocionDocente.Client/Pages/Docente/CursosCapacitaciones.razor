@@ -1,0 +1,712 @@
+﻿@page "/docente/capacitaciones"
+@layout DocenteLayout
+@using Models
+@inject IJSRuntime JSRuntime
+
+<div class="capacitaciones-container">
+    <!-- Header -->
+    <div class="header-container">
+        <div class="header-content">
+            <h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+            <div class="docente-info">
+                <div class="info-text">
+                    <div class="nombre">@docenteInfo.Nombre</div>
+                    <div class="cargo">@docenteInfo.Cargo</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="capacitaciones-content">
+        <!-- Sección de Búsqueda y Botones -->
+        <div class="search-section">
+            <div class="search-container">
+                <input type="text"
+                       @bind="searchTerm"
+                       @bind:event="oninput"
+                       placeholder="Buscar capacitaciones..."
+                       class="search-input" />
+                <span class="search-icon">🔍</span>
+            </div>
+            <div class="action-buttons">
+                <button class="btn btn-primary" @onclick="AgregarCapacitacion">
+                    <span class="btn-icon">➕</span>
+                    Agregar
+                </button>
+                <button class="btn btn-secondary" @onclick="ImportarCapacitaciones" disabled="@isImporting">
+                    <span class="btn-icon">📁</span>
+                    @(isImporting ? "Importando..." : "Importar")
+                </button>
+                <button class="btn btn-secondary" @onclick="EditarSeleccionados" disabled="@(!tieneSeleccionados)">
+                    <span class="btn-icon">✏️</span>
+                    Editar
+                </button>
+                <button class="btn btn-danger" @onclick="EnviarSeleccionados" disabled="@(!tieneSeleccionados)">
+                    <span class="btn-icon">📤</span>
+                    Enviar
+                </button>
+            </div>
+        </div>
+
+        <!-- Tabla de Capacitaciones -->
+        <div class="table-container">
+            <div class="table-wrapper">
+                <div class="table-left">
+                    <table class="capacitaciones-table">
+                        <thead>
+                            <tr>
+                                <th class="checkbox-column">
+                                    <input type="checkbox"
+                                           @onchange="SeleccionarTodos"
+                                           checked="@todoSeleccionado" />
+                                </th>
+                                <th class="documento-column">Capacitación</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var capacitacion in capacitacionesFiltradas)
+                            {
+                                <tr class="@(capacitacion.Seleccionado ? "selected" : "")">
+                                    <td class="checkbox-cell">
+                                        <input type="checkbox"
+                                               @onchange="@((e) => ToggleSeleccion(capacitacion.Id, (bool)e.Value))"
+                                               checked="@capacitacion.Seleccionado" />
+                                    </td>
+                                    <td class="documento-cell">
+                                        <div class="documento-info">
+                                            <span class="documento-tipo">@capacitacion.TipoCapacitacion</span>
+                                            <span class="documento-nombre">@capacitacion.Nombre</span>
+                                            @if (!string.IsNullOrEmpty(capacitacion.Institucion))
+                                            {
+                                                <span class="documento-detalle">@capacitacion.Institucion</span>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-right">
+                    <table class="detalles-table">
+                        <thead>
+                            <tr>
+                                <th>Instructor</th>
+                                <th>Horas</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var capacitacion in capacitacionesFiltradas)
+                            {
+                                <tr class="@(capacitacion.Seleccionado ? "selected" : "")">
+                                    <td>@capacitacion.Instructor</td>
+                                    <td class="horas-cell">@capacitacion.Horas</td>
+                                    <td class="estado-cell">
+                                        <span class="estado-badge @GetEstadoClass(capacitacion.Estado)">
+                                            @GetEstadoIcon(capacitacion.Estado)
+                                        </span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Barra de Progreso -->
+        <div class="progress-section">
+            <div class="progress-info">
+                <span class="progress-label">Progreso</span>
+                <div class="progress-bar-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: @(progresoActual)%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Información de Fecha Límite -->
+        <div class="deadline-section">
+            <div class="deadline-alert">
+                <span class="deadline-icon">⏰</span>
+                <span class="deadline-text">Fecha límite: 15 julio, 2025 (41 días restantes)</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .capacitaciones-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .docente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        overflow: hidden;
+        background: #4A90E2;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .info-text {
+        color: white;
+    }
+
+    .nombre {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cargo {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .capacitaciones-content {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .search-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        gap: 2rem;
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 400px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.75rem 1rem 0.75rem 3rem;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        font-size: 1rem;
+        outline: none;
+        transition: border-color 0.3s ease;
+    }
+
+        .search-input:focus {
+            border-color: #4A90E2;
+        }
+
+    .search-icon {
+        position: absolute;
+        left: 1rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+        font-size: 1.2rem;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+    }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .btn-primary {
+        background: #4CAF50;
+        color: white;
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #45a049;
+            transform: translateY(-2px);
+        }
+
+    .btn-secondary {
+        background: #2196F3;
+        color: white;
+    }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #1976D2;
+            transform: translateY(-2px);
+        }
+
+    .btn-danger {
+        background: #f44336;
+        color: white;
+    }
+
+        .btn-danger:hover:not(:disabled) {
+            background: #d32f2f;
+            transform: translateY(-2px);
+        }
+
+    .btn-icon {
+        font-size: 1rem;
+    }
+
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+    }
+
+    .table-wrapper {
+        display: flex;
+        min-height: 400px;
+    }
+
+    .table-left {
+        flex: 1.5;
+        border-right: 1px solid #e0e0e0;
+    }
+
+    .table-right {
+        flex: 1;
+    }
+
+    .capacitaciones-table, .detalles-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .capacitaciones-table thead, .detalles-table thead {
+            background: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .capacitaciones-table th, .detalles-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #2c3e50;
+            font-size: 0.9rem;
+        }
+
+        .capacitaciones-table td, .detalles-table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid #f0f0f0;
+            vertical-align: top;
+        }
+
+        .capacitaciones-table tr:hover, .detalles-table tr:hover {
+            background: #f8f9fa;
+        }
+
+        .capacitaciones-table tr.selected, .detalles-table tr.selected {
+            background: #e3f2fd;
+        }
+
+    .checkbox-column {
+        width: 40px;
+    }
+
+    .documento-column {
+        width: auto;
+    }
+
+    .checkbox-cell {
+        text-align: center;
+    }
+
+    .documento-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .documento-tipo {
+        font-size: 0.8rem;
+        color: #666;
+        font-weight: 500;
+    }
+
+    .documento-nombre {
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .documento-detalle {
+        font-size: 0.85rem;
+        color: #7f8c8d;
+    }
+
+    .horas-cell {
+        text-align: center;
+        font-weight: 600;
+        color: #2c3e50;
+    }
+
+    .estado-cell {
+        text-align: center;
+    }
+
+    .estado-badge {
+        display: inline-block;
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        font-size: 0.8rem;
+        line-height: 24px;
+        text-align: center;
+    }
+
+    .estado-completado {
+        background: #4CAF50;
+        color: white;
+    }
+
+    .estado-en-progreso {
+        background: #FF9800;
+        color: white;
+    }
+
+    .estado-pendiente {
+        background: #f44336;
+        color: white;
+    }
+
+    .estado-validado {
+        background: #2196F3;
+        color: white;
+    }
+
+    .progress-section {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .progress-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .progress-label {
+        font-weight: 600;
+        color: #2c3e50;
+        min-width: 80px;
+    }
+
+    .progress-bar-container {
+        flex: 1;
+    }
+
+    .progress-bar {
+        height: 8px;
+        background: #e0e0e0;
+        border-radius: 4px;
+        overflow: hidden;
+    }
+
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #4CAF50, #81C784);
+        border-radius: 4px;
+        transition: width 0.5s ease;
+    }
+
+    .deadline-section {
+        background: #ffebee;
+        border: 1px solid #ffcdd2;
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    .deadline-alert {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        color: #c62828;
+    }
+
+    .deadline-icon {
+        font-size: 1.2rem;
+    }
+
+    .deadline-text {
+        font-weight: 500;
+    }
+
+  
+</style>
+
+@code {
+    private List<CapacitacionInfo> capacitaciones = new();
+    private List<CapacitacionInfo> capacitacionesFiltradas = new();
+    private string searchTerm = "";
+    private bool todoSeleccionado = false;
+    private bool tieneSeleccionados = false;
+    private bool isImporting = false;
+    private int progresoActual = 65;
+    private DocenteInfo docenteInfo;
+
+    protected override void OnInitialized()
+    {
+        // Inicializar datos del docente
+        docenteInfo = new DocenteInfo
+        {
+            Nombre = "Ing. Ismael Cuadrado",
+            Cargo = "Profesor Auxiliar - Ing. Sistemas",
+            Avatar = "https://via.placeholder.com/40x40/4A90E2/FFFFFF?text=IC"
+        };
+
+        // Inicializar capacitaciones de ejemplo
+        InicializarCapacitaciones();
+        FiltrarCapacitaciones();
+    }
+
+    private void InicializarCapacitaciones()
+    {
+        capacitaciones = new List<CapacitacionInfo>
+        {
+            new CapacitacionInfo
+            {
+                Id = 1,
+                TipoCapacitacion = "Curso",
+                Nombre = "Metodologías Ágiles de Desarrollo",
+                Institucion = "Universidad Técnica",
+                Instructor = "Dr. García",
+                Horas = 40,
+                Estado = EstadoCapacitacion.Completado
+            },
+            new CapacitacionInfo
+            {
+                Id = 2,
+                TipoCapacitacion = "Seminario",
+                Nombre = "Inteligencia Artificial en Educación",
+                Institucion = "ESPOL",
+                Instructor = "Mg. Rodriguez",
+                Horas = 20,
+                Estado = EstadoCapacitacion.EnProgreso
+            },
+            new CapacitacionInfo
+            {
+                Id = 3,
+                TipoCapacitacion = "Taller",
+                Nombre = "Herramientas de Evaluación Online",
+                Institucion = "UTPL",
+                Instructor = "Ing. Martinez",
+                Horas = 16,
+                Estado = EstadoCapacitacion.Validado
+            },
+            new CapacitacionInfo
+            {
+                Id = 4,
+                TipoCapacitacion = "Diplomado",
+                Nombre = "Docencia Universitaria",
+                Institucion = "UCE",
+                Instructor = "PhD. López",
+                Horas = 120,
+                Estado = EstadoCapacitacion.Pendiente
+            },
+            new CapacitacionInfo
+            {
+                Id = 5,
+                TipoCapacitacion = "Webinar",
+                Nombre = "Tendencias en Tecnología Educativa",
+                Institucion = "EPN",
+                Instructor = "Dr. Vargas",
+                Horas = 8,
+                Estado = EstadoCapacitacion.Completado
+            }
+        };
+    }
+
+    private void FiltrarCapacitaciones()
+    {
+        if (string.IsNullOrWhiteSpace(searchTerm))
+        {
+            capacitacionesFiltradas = capacitaciones.ToList();
+        }
+        else
+        {
+            capacitacionesFiltradas = capacitaciones
+                .Where(c => c.Nombre.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                           c.TipoCapacitacion.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                           c.Instructor.Contains(searchTerm, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        ActualizarEstadoSeleccion();
+        StateHasChanged();
+    }
+
+    private void SeleccionarTodos(ChangeEventArgs e)
+    {
+        bool seleccionar = (bool)e.Value;
+        foreach (var capacitacion in capacitacionesFiltradas)
+        {
+            capacitacion.Seleccionado = seleccionar;
+        }
+        ActualizarEstadoSeleccion();
+    }
+
+    private void ToggleSeleccion(int id, bool seleccionado)
+    {
+        var capacitacion = capacitaciones.FirstOrDefault(c => c.Id == id);
+        if (capacitacion != null)
+        {
+            capacitacion.Seleccionado = seleccionado;
+            ActualizarEstadoSeleccion();
+        }
+    }
+
+    private void ActualizarEstadoSeleccion()
+    {
+        tieneSeleccionados = capacitacionesFiltradas.Any(c => c.Seleccionado);
+        todoSeleccionado = capacitacionesFiltradas.Any() && capacitacionesFiltradas.All(c => c.Seleccionado);
+    }
+
+    private string GetEstadoClass(EstadoCapacitacion estado)
+    {
+        return estado switch
+        {
+            EstadoCapacitacion.Completado => "estado-completado",
+            EstadoCapacitacion.EnProgreso => "estado-en-progreso",
+            EstadoCapacitacion.Pendiente => "estado-pendiente",
+            EstadoCapacitacion.Validado => "estado-validado",
+            _ => "estado-pendiente"
+        };
+    }
+
+    private string GetEstadoIcon(EstadoCapacitacion estado)
+    {
+        return estado switch
+        {
+            EstadoCapacitacion.Completado => "✓",
+            EstadoCapacitacion.EnProgreso => "⏳",
+            EstadoCapacitacion.Pendiente => "○",
+            EstadoCapacitacion.Validado => "✓",
+            _ => "○"
+        };
+    }
+
+    private async Task AgregarCapacitacion()
+    {
+        // Implementar lógica para agregar nueva capacitación
+        await JSRuntime.InvokeVoidAsync("alert", "Funcionalidad de agregar capacitación");
+    }
+
+    private async Task ImportarCapacitaciones()
+    {
+        isImporting = true;
+        StateHasChanged();
+
+        // Simular importación
+        await Task.Delay(2000);
+
+        isImporting = false;
+        StateHasChanged();
+        await JSRuntime.InvokeVoidAsync("alert", "Capacitaciones importadas exitosamente");
+    }
+
+    private async Task EditarSeleccionados()
+    {
+        var seleccionados = capacitaciones.Where(c => c.Seleccionado).Count();
+        await JSRuntime.InvokeVoidAsync("alert", $"Editar {seleccionados} capacitaciones seleccionadas");
+    }
+
+    private async Task EnviarSeleccionados()
+    {
+        var seleccionados = capacitaciones.Where(c => c.Seleccionado).Count();
+        await JSRuntime.InvokeVoidAsync("alert", $"Enviar {seleccionados} capacitaciones para revisión");
+    }
+
+    // Clases de modelo
+    public class CapacitacionInfo
+    {
+        public int Id { get; set; }
+        public string TipoCapacitacion { get; set; } = "";
+        public string Nombre { get; set; } = "";
+        public string Institucion { get; set; } = "";
+        public string Instructor { get; set; } = "";
+        public int Horas { get; set; }
+        public EstadoCapacitacion Estado { get; set; }
+        public bool Seleccionado { get; set; }
+    }
+
+    public enum EstadoCapacitacion
+    {
+        Pendiente,
+        EnProgreso,
+        Completado,
+        Validado
+    }
+
+    public class DocenteInfo
+    {
+        public string Nombre { get; set; } = "";
+        public string Cargo { get; set; } = "";
+    
+    }
+}
