@@ -26,6 +26,8 @@ builder.Services.AddScoped<IObraImportService, ObraImportService>();
 builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();
 // Inyecta servicio de importación de historial docente
 builder.Services.AddScoped<IHistorialDocenteImportService, HistorialDocenteImportService>();
+// ineccion paara el calculo del Tiempo del docente
+builder.Services.AddScoped<IDocenteTiempoService, DocenteTiempoService>();
 
 var app = builder.Build();
 
