@@ -51,5 +51,20 @@ namespace PromocionDocente.API.Controllers
             return Ok(new { mensaje = "Curso subido correctamente", curso.IdCurso });
         }
 
+        [HttpGet("{id}/pdf")]
+        public async Task<IActionResult> DescargarPdf(int id)
+        {
+            var curso = await _localContext.Cursos.FindAsync(id);
+
+            if (curso == null)
+                return NotFound("Curso no encontrado.");
+
+            if (curso.PdfCurso == null)
+                return NotFound("El curso no tiene PDF asociado.");
+
+            return File(curso.PdfCurso, "application/pdf", $"Curso_{id}.pdf");
+        }
+
+
     }
 }
