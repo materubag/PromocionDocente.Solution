@@ -24,7 +24,8 @@ builder.Services.AddDbContext<PromocionDocenteDbContext>(options =>
 builder.Services.AddScoped<IObraImportService, ObraImportService>();
 // Inyecta servicio de Importacion de las evaluaciones
 builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();
-
+// Inyecta servicio de Importacion de cursos
+builder.Services.AddScoped<ICursoImportService, CursoImportService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

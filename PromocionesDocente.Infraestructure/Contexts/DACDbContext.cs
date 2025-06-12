@@ -12,6 +12,8 @@ namespace PromocionDocente.Infrastructure.Contexts
         public DbSet<ObraDac> Obras { get; set; }
         public DbSet<EvaluacionDac> Evaluaciones { get; set; }
 
+        public DbSet<CursoDac> Cursos { get; set; }
+
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -43,6 +45,20 @@ namespace PromocionDocente.Infrastructure.Contexts
                 entity.Property(e => e.PdfEvaluacion).HasColumnName("ARC_EVA");
                 entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
             });
+
+            modelBuilder.Entity<CursoDac>(entity =>
+            {
+                entity.ToTable("CURSOS"); // tabla en DAC
+
+                entity.HasKey(e => e.IdCurso);
+                entity.Property(e => e.IdCurso).HasColumnName("ID_CURSO");
+                entity.Property(e => e.CedulaDocente).HasColumnName("CEDULA_DOCENTE");
+                entity.Property(e => e.NombreCurso).HasColumnName("NOMBRE_CURSO");
+                entity.Property(e => e.FechaCurso).HasColumnName("FECHA_CURSO");
+                entity.Property(e => e.Horas).HasColumnName("HORAS");
+                entity.Property(e => e.PdfCurso).HasColumnName("PDF_CURSO");
+            });
+
         }
 
     }
