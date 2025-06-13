@@ -15,11 +15,11 @@ namespace PromocionDocente.API.Controllers
             _importService = importService;
         }
 
-        [HttpPost]
-        public async Task<IActionResult> Importar()
+        [HttpGet("Ced/{cedula}")]
+        public async Task<IActionResult> ImportarPorCedula(string cedula)
         {
-            await _importService.ImportarObrasDesdeDACAsync();
-            return Ok(new { mensaje = "Obras importadas correctamente" });
+            await _importService.ImportarObrasDesdeDACAsync(cedula);
+            return Ok(new { mensaje = $"Obras importadas correctamente" });
         }
     }
 }

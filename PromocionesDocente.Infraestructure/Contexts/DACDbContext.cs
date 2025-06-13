@@ -18,7 +18,7 @@ namespace PromocionDocente.Infrastructure.Contexts
         {
             modelBuilder.Entity<ObraDac>(entity =>
             {
-                entity.ToTable("OBRAS");
+                entity.ToTable("DAC_OBRAS");
                 entity.HasKey(e => e.IdObra);
                 entity.Property(e => e.IdObra).HasColumnName("ID_OBRA");
                 entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
@@ -33,11 +33,11 @@ namespace PromocionDocente.Infrastructure.Contexts
 
             modelBuilder.Entity<EvaluacionDac>(entity =>
             {
-                entity.ToTable("EVALUACIONES");
+                entity.ToTable("DAC_EVALUACION");
 
                 entity.HasKey(e => e.IdEvaluacion);
 
-                entity.Property(e => e.IdEvaluacion).HasColumnName("ID_EVA");
+                entity.Property(e => e.IdEvaluacion).HasColumnName("ID_EVALUACION");
                 entity.Property(e => e.FechaEvaluacion).HasColumnName("FECHA_EVALUACION");
                 entity.Property(e => e.Calificacion).HasColumnName("RESULTADO");
                 entity.Property(e => e.PdfEvaluacion).HasColumnName("PDF_EVALUACION");

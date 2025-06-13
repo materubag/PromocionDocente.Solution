@@ -672,31 +672,48 @@
     {
         if (isImporting) return;
 
+        string cedula = "0998877665"; // Puedes obtenerla dinámicamente si lo necesitas
+
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            "¿Desea importar cursos de capacitación desde un archivo?\n\n" +
-            "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
-            "• El archivo debe contener: Nombre, Fecha, Horas\n" +
-            "• Los cursos duplicados serán omitidos\n\n" +
-            "¿Continuar con la importación?");
+            "¿Desea importar cursos de capacitación desde la base externa?\n\n" +
+            "• Los cursos duplicados serán omitidos\n" +
+            "• Solo se importarán los cursos nuevos\n\n" +
+            "¿Desea continuar?");
 
         if (confirmar)
         {
             isImporting = true;
             StateHasChanged();
 
-            // Simular proceso de importación
-            await Task.Delay(3000);
+            try
+            {
+                var response = await Http.GetFromJsonAsync<ImportacionResultado>(
+                    $"/api/ImportacionCursos/cedula/0998877665");
+
+                if (response != null)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert",
+                        $"¡Importación completada exitosamente!\n\n" +
+                        $"• {response.nuevos} cursos nuevos importados\n" +
+                        $"• {response.duplicados} cursos duplicados omitidos\n" +
+                        $"• Total procesados: {response.total}");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "No se recibió una respuesta válida del servidor.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                await JSRuntime.InvokeVoidAsync("alert", "Error al importar cursos: " + ex.Message);
+            }
 
             isImporting = false;
             StateHasChanged();
-
-            await JSRuntime.InvokeVoidAsync("alert",
-                "¡Importación completada exitosamente!\n\n" +
-                "• 8 cursos nuevos importados\n" +
-                "• 3 cursos duplicados omitidos\n" +
-                "• Los datos han sido validados y guardados");
         }
     }
+
 
     private async Task EditarSeleccionado()
     {
@@ -778,6 +795,14 @@
         public bool TienePDF { get; set; }
         public string pdfCurso { get; set; } = "";
         public bool Seleccionado { get; set; }
+    }
+
+    public class ImportacionResultado
+    {
+        public string mensaje { get; set; }
+        public int nuevos { get; set; }
+        public int duplicados { get; set; }
+        public int total { get; set; }
     }
 
     public class DocenteInfo

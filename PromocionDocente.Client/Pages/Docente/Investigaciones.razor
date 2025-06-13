@@ -631,30 +631,48 @@
     {
         if (isImporting) return;
 
+        string cedula = "0998877665"; // Puedes reemplazar esto dinámicamente
+
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            "¿Desea importar investigaciones desde un archivo?\n\n" +
-            "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
-            "• El archivo debe contener las columnas requeridas\n" +
-            "• Las investigaciones duplicadas serán omitidas\n\n" +
-            "¿Continuar con la importación?");
+            "¿Desea importar investigaciones desde la base externa?\n\n" +
+            "• Las investigaciones duplicadas serán omitidas\n" +
+            "• Solo se importarán las nuevas\n\n" +
+            "¿Desea continuar?");
 
         if (confirmar)
         {
             isImporting = true;
             StateHasChanged();
 
-            await Task.Delay(3000);
+            try
+            {
+                var response = await Http.GetFromJsonAsync<ImportacionResultado>(
+                    $"/api/ImportarInvestigaciones/ced/{cedula}");
+
+                if (response != null)
+                {
+                    await JSRuntime.InvokeVoidAsync("alert",
+                        $"¡Importación completada exitosamente!\n\n" +
+                        $"• {response.nuevos} investigaciones nuevas importadas\n" +
+                        $"• {response.duplicados} investigaciones duplicadas omitidas\n" +
+                        $"• Total procesadas: {response.total}");
+                }
+                else
+                {
+                    await JSRuntime.InvokeVoidAsync("alert", "No se recibió una respuesta válida del servidor.");
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                await JSRuntime.InvokeVoidAsync("alert", "Error al importar investigaciones: " + ex.Message);
+            }
 
             isImporting = false;
             StateHasChanged();
-
-            await JSRuntime.InvokeVoidAsync("alert",
-                "¡Importación completada exitosamente!\n\n" +
-                "• 3 investigaciones nuevas importadas\n" +
-                "• 1 investigación duplicada omitida\n" +
-                "• Los datos han sido validados y guardados");
         }
     }
+
 
     private async Task EditarSeleccionada()
     {
@@ -747,6 +765,13 @@
         public string Estado { get; set; } = "";
         public bool Seleccionada { get; set; }
         public bool TieneArchivoPDF { get; set; }
+    }
+    public class ImportacionResultado
+    {
+        public string mensaje { get; set; }
+        public int nuevos { get; set; }
+        public int duplicados { get; set; }
+        public int total { get; set; }
     }
 
     public class DocenteInfo

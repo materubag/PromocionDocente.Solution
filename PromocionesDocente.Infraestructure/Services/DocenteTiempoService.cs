@@ -18,7 +18,7 @@ namespace PromocionDocente.Infrastructure.Services
         {
             var fechaHasta = fechaCorte ?? DateTime.Now;
 
-            var docente = await _context.Docentes.FirstOrDefaultAsync(d => d.CedDoc == cedula);  // ✅
+            var docente = await _context.Docentes.FirstOrDefaultAsync(d => d.CedDoc == cedula);  
             if (docente == null) return null;
 
             TimeSpan total = fechaHasta - docente.FecIng;  

@@ -18,13 +18,15 @@ namespace PromocionDocente.Infrastructure.Services
             _localContext = localContext;
         }
 
-        public async Task ImportarObrasDesdeDACAsync()
+        public async Task ImportarObrasDesdeDACAsync(string cedula)
         {
-            var obrasExternas = await _dacContext.Obras.ToListAsync();
+            var obrasExternas = await _dacContext.Obras
+                .Where(o => o.CedulaDocente == cedula)
+                .ToListAsync();
 
             foreach (var obra in obrasExternas)
             {
-                bool existe = await _localContext.Obras.AnyAsync(o => o.IdObra == obra.IdObra);
+                bool existe = await _localContext.Obras.AnyAsync(o => o.DoiUrl == obra.DoiUrl);
 
                 if (!existe)
                 {
@@ -45,8 +47,7 @@ namespace PromocionDocente.Infrastructure.Services
             }
 
             await _localContext.SaveChangesAsync();
-
         }
     }
 
-    }
+}

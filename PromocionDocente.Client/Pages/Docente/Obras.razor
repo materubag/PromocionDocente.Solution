@@ -657,9 +657,7 @@
         if (isImporting) return;
 
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            "¿Desea importar obras desde un archivo?\n\n" +
-            "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
-            "• El archivo debe contener las columnas: Tipo, Título, Fecha, DOI/URL, Área\n" +
+            "¿Desea importar obras desde DAC?\n\n" +
             "• Las obras duplicadas serán omitidas\n\n" +
             "¿Continuar con la importación?");
 
@@ -668,17 +666,35 @@
             isImporting = true;
             StateHasChanged();
 
-            // proceso de importación
-            await Task.Delay(3000);
+            try
+            {
+                // Llamar al endpoint de importación
+                var response = await Http.GetAsync($"/api/ImportacionObras/Ced/0998877665");
 
-            isImporting = false;
-            StateHasChanged();
+                if (response.IsSuccessStatusCode)
+                {
+                    // Recargar las obras después de importar
+                    await ConsultarObras();
 
-            await JSRuntime.InvokeVoidAsync("alert",
-                "¡Importación completada exitosamente!\n\n" +
-                "• 8 obras nuevas importadas\n" +
-                "• 3 obras duplicadas omitidas\n" +
-                "• Los datos han sido validados y guardados");
+                    await JSRuntime.InvokeVoidAsync("alert",
+                        "¡Importación completada exitosamente!\n\n" +
+                        "• Obras nuevas importadas desde DAC\n" +
+                        "• Obras duplicadas omitidas");
+                }
+                else
+                {
+                    mensajeError = "Error al importar obras: " + response.ReasonPhrase;
+                }
+            }
+            catch (Exception ex)
+            {
+                mensajeError = "Error al importar obras: " + ex.Message;
+            }
+            finally
+            {
+                isImporting = false;
+                StateHasChanged();
+            }
         }
     }
 

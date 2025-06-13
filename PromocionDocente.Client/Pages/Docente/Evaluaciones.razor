@@ -81,7 +81,7 @@
                                         </span>
                                     </td>
                                     <td class="documento">
-                                        @if (!string.IsNullOrEmpty(evaluacion.DocumentoPDF))
+                                        @if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
                                         {
                                             <button class="btn-documento" @onclick="() => DescargarPDF(evaluacion)" title="Descargar PDF">
                                                 <span class="documento-icon">📄</span>
@@ -597,28 +597,42 @@
         if (isImporting) return;
 
         bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-            "¿Desea importar evaluaciones desde un archivo?\n\n" +
-            "• Formatos soportados: Excel (.xlsx), CSV (.csv)\n" +
-            "• El archivo debe contener las columnas requeridas\n" +
-            "• Las evaluaciones duplicadas serán omitidas\n\n" +
-            "¿Continuar con la importación?");
+            "¿Desea importar evaluaciones desde DAC para este docente?\n\n" +
+            "• Evaluaciones duplicadas serán omitidas\n\n" +
+            "¿Continuar?");
 
         if (confirmar)
         {
             isImporting = true;
             StateHasChanged();
 
-            // Simular proceso de importación
-            await Task.Delay(3000);
+            try
+            {
+                var response = await Http.GetAsync($"/api/ImportacionEvaluaciones/Ced/0998877665");
 
-            isImporting = false;
-            StateHasChanged();
+                if (response.IsSuccessStatusCode)
+                {
+                    await CargarEvaluaciones(); 
 
-            await JSRuntime.InvokeVoidAsync("alert",
-                "¡Importación completada exitosamente!\n\n" +
-                "• 5 evaluaciones nuevas importadas\n" +
-                "• 2 evaluaciones duplicadas omitidas\n" +
-                "• Los datos han sido validados y guardados");
+                    await JSRuntime.InvokeVoidAsync("alert",
+                        "¡Evaluaciones importadas exitosamente!\n\n" +
+                        "• Evaluaciones nuevas agregadas\n" +
+                        "• Duplicadas omitidas");
+                }
+                else
+                {
+                    mensajeError = "Error al importar evaluaciones: " + response.ReasonPhrase;
+                }
+            }
+            catch (Exception ex)
+            {
+                mensajeError = "Error al importar evaluaciones: " + ex.Message;
+            }
+            finally
+            {
+                isImporting = false;
+                StateHasChanged();
+            }
         }
     }
 
@@ -695,11 +709,11 @@
 
     private async Task DescargarPDF(EvaluacionInfo evaluacion)
     {
-        if (!string.IsNullOrEmpty(evaluacion.DocumentoPDF))
+        if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
         {
             {
                 // Convertir el PDF en base64 a un Blob y abrirlo
-                string base64String = evaluacion.DocumentoPDF;
+                string base64String = evaluacion.PdfEvaluacion;
                 base64String = base64String.Replace("\n", "").Replace("\r", "");
                 await JSRuntime.InvokeVoidAsync("abrirPDF", base64String, evaluacion.CedulaDocente);
             }
@@ -715,7 +729,6 @@
         public string PeriodoEvaluacion { get; set; }
         public string CedulaDocente { get; set; } 
         public string TipoEvaluacion { get; set; } 
-        public string DocumentoPDF { get; set; } = "";
         public bool Seleccionada { get; set; }
     }
 
