@@ -1,12 +1,20 @@
-﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿﻿<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        @if (routeData.PageType == typeof(PromocionDocente.Client.Pages.Login))  // <-- Ajusta el namespace si es distinto
+        {
+            <RouteView RouteData="@routeData" />
+        }
+        else
+        {
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
+        }
+
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
         <PageTitle>Not found</PageTitle>
         <LayoutView Layout="@typeof(MainLayout)">
-            <p role="alert">Sorry, there's nothing at this address.</p>
+            <p role="alert">Lo sentimos, no se encontró la página.</p>
         </LayoutView>
     </NotFound>
 </Router>

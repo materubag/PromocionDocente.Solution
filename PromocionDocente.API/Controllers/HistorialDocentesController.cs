@@ -13,9 +13,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class HistorialDocentesController : ControllerBase
     {
-        private readonly PromocionDocenteContext _context;
+        private readonly PromociondocenteContext _context;
 
-        public HistorialDocentesController(PromocionDocenteContext context)
+        public HistorialDocentesController(PromociondocenteContext context)
         {
             _context = context;
         }

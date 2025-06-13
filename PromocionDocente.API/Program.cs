@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.Interfaces;
+using PromocionDocente.Application.Services;
+using PromocionDocente.Domain.Interfaces;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Infrastructure.Services;
 
@@ -8,6 +10,7 @@ using PromocionDocente.Models.DIDE_Models;
 using PromocionDocente.Models.DITIC_Models;
 using PromocionDocente.Models.PromocionDocenteModels;
 using PromocionDocente.Models.TTHH_Models;
+using PromocionDocente.Repositories.Repositorios;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -33,8 +36,12 @@ builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();
 builder.Services.AddScoped<IHistorialDocenteImportService, HistorialDocenteImportService>();
 // ineccion paara el calculo del Tiempo del docente
 builder.Services.AddScoped<IDocenteTiempoService, DocenteTiempoService>();
+builder.Services.AddScoped<IDatoDocente, DatoDocenteRepositorio>();
+builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
+builder.Services.AddScoped<AuthService>();
 
-builder.Services.AddDbContext<PromocionDocenteContext>(options =>
+
+builder.Services.AddDbContext<PromociondocenteContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
 builder.Services.AddDbContext<TthhContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TTHH")));

@@ -1,4 +1,4 @@
-﻿@* Components/Layout/DocenteLayout.razor *@
+﻿﻿@* Components/Layout/DocenteLayout.razor *@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 
@@ -12,7 +12,7 @@
                 <h3>Panel Docente</h3>
             </div>
         </div>
-        
+
         <ul class="nav-menu">
             @*<li class="nav-item">
                 <a href="/docente/dashboard" class="nav-link @GetActiveClass("/docente/dashboard")">
@@ -50,11 +50,11 @@
                     Investigaciones
                 </a>
             </li>
-            
+
         </ul>
-        
+
     </nav>
-    
+
     <main class="main-content">
         @Body
     </main>
@@ -75,7 +75,7 @@
 
     private void GoToHome()
     {
-        Navigation.NavigateTo("/");
+        Navigation.NavigateTo("/home");
     }
 
 }

@@ -13,9 +13,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class CategoriasController : ControllerBase
     {
-        private readonly PromocionDocenteContext _context;
+        private readonly PromociondocenteContext _context;
 
-        public CategoriasController(PromocionDocenteContext context)
+        public CategoriasController(PromociondocenteContext context)
         {
             _context = context;
         }

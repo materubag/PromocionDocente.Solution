@@ -25,6 +25,7 @@
   <ItemGroup>
     <ProjectReference Include="..\PromocionDocente.Application\PromocionDocente.Application.csproj" />
     <ProjectReference Include="..\PromocionDocente.Client\PromocionDocente.Client.csproj" />
+    <ProjectReference Include="..\PromocionDocente.Repositories\PromocionDocente.Repositories.csproj" />
     <ProjectReference Include="..\PromocionDoncete.Domain\PromocionDocente.Domain.csproj" />
     <ProjectReference Include="..\PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj" />
 
