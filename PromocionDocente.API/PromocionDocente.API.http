@@ -4,7 +4,7 @@ GET {{PromocionDocente.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
-### Obtener tiempo de enseñanza por cédula
+### Obtener tiempo de enseï¿½anza por cï¿½dula
 GET {{PromocionDocente.API_HostAddress}}/api/docentes/tiempo/1100000001
 Accept: application/json
 

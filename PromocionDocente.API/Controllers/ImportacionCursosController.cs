@@ -10,9 +10,9 @@ namespace PromocionDocente.API.Controllers
     public class ImportacionCursosController : ControllerBase
     {
         private readonly DiticContext _diticContext;
-        private readonly PromocionDocenteContext _localContext;
+        private readonly PromociondocenteContext _localContext;
 
-        public ImportacionCursosController(DiticContext diticContext, PromocionDocenteContext localContext)
+        public ImportacionCursosController(DiticContext diticContext, PromociondocenteContext localContext)
         {
             _diticContext = diticContext;
             _localContext = localContext;

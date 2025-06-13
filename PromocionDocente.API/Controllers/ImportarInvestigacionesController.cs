@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Models.DIDE_Models;
-using PromocionDocente.Models.DITIC_Models;
 using PromocionDocente.Models.PromocionDocenteModels;
 
 namespace PromocionDocente.API.Controllers
@@ -11,9 +10,9 @@ namespace PromocionDocente.API.Controllers
     public class ImportarInvestigacionesController : ControllerBase
     {
         private readonly DideContext _dideContext;
-        private readonly PromocionDocenteContext _localContext;
+        private readonly PromociondocenteContext _localContext;
 
-        public ImportarInvestigacionesController(DideContext dideContext, PromocionDocenteContext localContext)
+        public ImportarInvestigacionesController(DideContext dideContext, PromociondocenteContext localContext)
         {
             _dideContext = dideContext;
             _localContext = localContext;
@@ -71,5 +70,6 @@ namespace PromocionDocente.API.Controllers
                 total = nuevos + duplicados
             });
         }
+
     }
 }
