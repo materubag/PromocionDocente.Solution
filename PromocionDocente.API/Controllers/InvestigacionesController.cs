@@ -13,9 +13,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class InvestigacionesController : ControllerBase
     {
-        private readonly PromocionDocenteContext _context;
+        private readonly PromociondocenteContext _context;
 
-        public InvestigacionesController(PromocionDocenteContext context)
+        public InvestigacionesController(PromociondocenteContext context)
         {
             _context = context;
         }

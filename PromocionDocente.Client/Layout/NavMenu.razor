@@ -1,56 +1,23 @@
-﻿<div class="top-row ps-3 navbar navbar-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="">PromocionDocente.Client</a>
-        <button title="Navigation menu" class="navbar-toggler" @onclick="ToggleNavMenu">
-            <span class="navbar-toggler-icon"></span>
-        </button>
+﻿﻿<nav class="sidebar bg-white shadow-sm p-3 rounded">
+    <div class="sidebar-header mb-4">
+        <div class="header-content text-center">
+            <h4 class="fw-bold text-primary">Menú Principal</h4>
+        </div>
     </div>
-</div>
 
-<div class="@NavMenuCssClass nav-scrollable" @onclick="ToggleNavMenu">
-    <nav class="nav flex-column">
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
-                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+    <ul class="nav flex-column nav-pills gap-2">
+        <li class="nav-item">
+            <NavLink href="/" class="nav-link d-flex align-items-center gap-2" activeClass="active">
+                <i class="bi bi-house-door-fill"></i>
+                <span>Inicio</span>
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="counter">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+        </li>
+
+        <li class="nav-item">
+            <NavLink href="docente/dashboard" class="nav-link d-flex align-items-center gap-2" activeClass="active">
+                <i class="bi bi-list-nested"></i>
+                <span>Panel Docente</span>
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="weather">
-                <span class="bi bi-list-nested-nav-menu" aria-hidden="true"></span> Weather
-            </NavLink>
-        </div>
-
-        <div>
-            <NavLink href="/docente-tiempo">Tiempo Docente</NavLink>
-
-        </div>
-        <div>
-            <NavLink href="/obras-docente">Obras Docente</NavLink>
-        </div>
-        <div>
-            <NavLink href="/evaluaciones-docente">Evaluaciones Docente</NavLink>
-        </div>
-        <div class="nav-item px-3">
-            <NavLink class="nav-link" href="docente/dashboard">
-                <span class="bi bi-person-fill-nav-menu" aria-hidden="true"></span> Panel Docente
-            </NavLink>
-
-        </div>
-    </nav>
-</div>
-
-@code {
-    private bool collapseNavMenu = true;
-
-    private string? NavMenuCssClass => collapseNavMenu ? "collapse" : null;
-
-    private void ToggleNavMenu()
-    {
-        collapseNavMenu = !collapseNavMenu;
-    }
-}
+        </li>
+    </ul>
+</nav>

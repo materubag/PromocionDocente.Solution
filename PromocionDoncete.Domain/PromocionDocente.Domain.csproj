@@ -10,4 +10,8 @@
     <Folder Include="Repositories\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PromocionDocente.Models\PromocionDocente.Models.csproj" />
+  </ItemGroup>
+
 </Project>

@@ -7,11 +7,19 @@ public partial class Docente
 {
     public string CedDoc { get; set; } = null!;
 
-    public string? TelDoc { get; set; }
+    public string Nom1Doc { get; set; } = null!;
 
-    public DateOnly FecIng { get; set; }
+    public string Nom2Doc { get; set; } = null!;
 
-    public DateOnly FecNac { get; set; }
+    public string Ape1Doc { get; set; } = null!;
+
+    public string Ape2Doc { get; set; } = null!;
+
+    public string TelDoc { get; set; } = null!;
+
+    public DateOnly? FecIng { get; set; }
+
+    public DateOnly? FecNac { get; set; }
 
     public string IdFac { get; set; } = null!;
 
@@ -24,14 +32,6 @@ public partial class Docente
     public byte[]? PdfContrato { get; set; }
 
     public string? EstadoContrato { get; set; }
-
-    public string Nom1Doc { get; set; } = null!;
-
-    public string Nom2Doc { get; set; } = null!;
-
-    public string Ape1Doc { get; set; } = null!;
-
-    public string Ape2Doc { get; set; } = null!;
 
     public virtual ICollection<CursosCapacitacion> CursosCapacitacions { get; set; } = new List<CursosCapacitacion>();
 

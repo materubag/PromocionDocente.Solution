@@ -4,9 +4,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 VisualStudioVersion = 17.14.36202.13
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.API", "PromocionDocente.API\PromocionDocente.API.csproj", "{BD6A6D49-462B-4DA5-8291-2924EFD8A1F5}"
-	ProjectSection(ProjectDependencies) = postProject
-		{FD896F10-89EC-48DA-BFD1-309CB7EFD780} = {FD896F10-89EC-48DA-BFD1-309CB7EFD780}
-	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Client", "PromocionDocente.Client\PromocionDocente.Client.csproj", "{D9B7240F-390D-48EC-8CD4-D01276E9F49D}"
 EndProject
@@ -17,6 +14,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Application", "PromocionDocente.Application\PromocionDocente.Application.csproj", "{0FF7827C-1453-4F64-BF07-F0B8AF10EC9E}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Models", "PromocionDocente.Models\PromocionDocente.Models.csproj", "{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PromocionDocente.Repositories", "PromocionDocente.Repositories\PromocionDocente.Repositories.csproj", "{DE1534FB-A217-4EC1-852D-99BCF924C276}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -48,6 +47,10 @@ Global
 		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{10A79B4F-B06A-4270-8A4B-0BD69C9C33D4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DE1534FB-A217-4EC1-852D-99BCF924C276}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DE1534FB-A217-4EC1-852D-99BCF924C276}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DE1534FB-A217-4EC1-852D-99BCF924C276}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DE1534FB-A217-4EC1-852D-99BCF924C276}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
