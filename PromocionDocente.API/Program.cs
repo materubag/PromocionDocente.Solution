@@ -26,6 +26,8 @@ namespace WebApi
             builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
             builder.Services.AddScoped<AuthService>();
 
+            //Se aplica la inyeccion de dependencia para lo que es la base principal
+            //Especialmente a la tabla de docentes 
             builder.Services.AddDbContext<PromociondocenteContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBprincipal")));
             builder.Services.AddScoped<IDatoDocente, DatoDocenteRepositorio>();

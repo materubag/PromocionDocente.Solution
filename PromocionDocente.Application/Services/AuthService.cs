@@ -24,7 +24,7 @@ namespace PromocionDocente.Application.Services
             var docenteExiste = await _dato.ExisteDocenteAsync(usuario.Cedula);
             if (!docenteExiste)
             {
-                // Map Datos_Docente to Docente
+                
                 var log = new Docente
                 {
                     CedDoc = usuario.Cedula,
