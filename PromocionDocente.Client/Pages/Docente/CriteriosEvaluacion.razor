@@ -2,6 +2,7 @@
 @layout PromocionDocente.Client.Layout.DocenteLayout
 @using PromocionDocente.Client.Models
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
 
 <div class="evaluacion-container">
     <!-- Header -->
@@ -16,8 +17,6 @@
             </div>
         </div>
     </div>
-
-   
 
     <div class="criterios-grid">
         <!-- Número de Obras -->
@@ -65,6 +64,17 @@
                 <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.CursosCapacitacion ?? 0, RequisitosP1.CursosCapacitacion))%"></div>
             </div>
         </div>
+
+        <!-- Años de Docencia -->
+        <div class="criterio-card">
+            <div class="criterio-header">
+                <h3>Años de Docencia</h3>
+                <span class="criterio-valor">@(docenteInfo?.AniosDocencia ?? 0)/@RequisitosP1.AniosDocencia</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" style="width: @(GetPorcentaje(docenteInfo?.AniosDocencia ?? 0, RequisitosP1.AniosDocencia))%"></div>
+            </div>
+        </div>
     </div>
 
     <!-- Slider de Progreso General -->
@@ -92,11 +102,9 @@
 </div>
 
 <style>
-
-    .evaluacion-container{
+    .evaluacion-container {
         min-height: 100vh;
         background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
-        ;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
@@ -158,11 +166,10 @@
         font-size: 0.9rem;
     }
 
-    .cargo {
+    .cargo, .experiencia {
         font-size: 0.8rem;
         opacity: 0.8;
     }
-
 
     .evaluacion-container {
         max-width: 1000px;
@@ -175,16 +182,16 @@
         margin-bottom: 3rem;
     }
 
-    .evaluacion-header h1 {
-        color: #2c3e50;
-        font-size: 2.2rem;
-        margin-bottom: 0.5rem;
-    }
+        .evaluacion-header h1 {
+            color: #2c3e50;
+            font-size: 2.2rem;
+            margin-bottom: 0.5rem;
+        }
 
-    .evaluacion-header p {
-        color: #7f8c8d;
-        font-size: 1.1rem;
-    }
+        .evaluacion-header p {
+            color: #7f8c8d;
+            font-size: 1.1rem;
+        }
 
     .criterios-grid {
         display: grid;
@@ -207,11 +214,11 @@
         margin-bottom: 1rem;
     }
 
-    .criterio-header h3 {
-        color: #2c3e50;
-        font-size: 1.2rem;
-        margin: 0;
-    }
+        .criterio-header h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 0;
+        }
 
     .criterio-valor {
         color: #0D47A1;
@@ -239,11 +246,11 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
     }
 
-    .progreso-container h3 {
-        color: #2c3e50;
-        text-align: center;
-        margin-bottom: 1.5rem;
-    }
+        .progreso-container h3 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
 
     .slider-container {
         max-width: 800px;
@@ -260,23 +267,23 @@
         margin-bottom: 0.5rem;
     }
 
-    .slider::-webkit-slider-thumb {
-        -webkit-appearance: none;
-        appearance: none;
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
             background: #0D47A1;
-        cursor: pointer;
-    }
+            cursor: pointer;
+        }
 
-    .slider::-moz-range-thumb {
-        width: 25px;
-        height: 25px;
-        border-radius: 50%;
-        background: #4CAF50;
-        cursor: pointer;
-    }
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
 
     .slider-labels {
         display: flex;
@@ -303,39 +310,58 @@
     private string nivelObjetivo = "P2";
     private DocenteInfo docenteInfo;
 
-
     // Requisitos para cada nivel (ejemplo para P1 a P2)
     private static class RequisitosP1
     {
         public static int NumeroObras = 5;
-        public static int HorasInvestigacion = 96;
+        public static int HorasInvestigacion = 0;
         public static decimal PromedioEvaluacion = 4.0m;
         public static int CursosCapacitacion = 3;
+        public static int AniosDocencia = 4; 
     }
 
     protected override void OnInitialized()
     {
         // Inicializar datos del docente
         docenteInfo = new DocenteInfo
-            {
-                Nombre = "Ing. Ismael Cuadrado",
-                Cargo = "Profesor Auxiliar - Ing. Sistemas",
-                Avatar = "https://via.placeholder.com/40x40/4A90E2/FFFFFF?text=IC"
-            };
+        {
+            Nombre = "Ing. Ismael Cuadrado",
+            Cargo = "DT2 - Ing. Sistemas"
+            
+        };
     }
 
     protected override async Task OnInitializedAsync()
     {
-        // Obtener datos del docente desde la API o servicio
-        datosEvaluacion = await ObtenerDatosEvaluacion();
-        
-        // Calcular progreso general
-        progresoGeneral = CalcularProgresoGeneral();
+        try
+        {
+            // Obtener datos del docente desde la API (descomentar cuando el backend esté listo)
+            // datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>("api/evaluacion");
+            // docenteInfo = await Http.GetFromJsonAsync<DocenteInfo>("api/docente");
+
+            // Datos de prueba mientras no hay conexión al backend
+            if (datosEvaluacion == null)
+            {
+                datosEvaluacion = await ObtenerDatosEvaluacion();
+            }
+
+            // Calcular progreso general
+            progresoGeneral = CalcularProgresoGeneral();
+        }
+        catch (Exception ex)
+        {
+            // Manejar errores de conexión (puedes mostrar un mensaje al usuario si lo deseas)
+            Console.WriteLine($"Error al cargar datos: {ex.Message}");
+
+            // Usar datos por defecto si hay error
+            datosEvaluacion = await ObtenerDatosEvaluacion();
+            progresoGeneral = CalcularProgresoGeneral();
+        }
     }
 
     private async Task<DatosEvaluacion> ObtenerDatosEvaluacion()
     {
-        // Simulación de datos - reemplazar con llamada real a API
+        // reemplazar con llamada  al API
         return new DatosEvaluacion
         {
             NumeroObras = 3,
@@ -352,15 +378,16 @@
         int progresoInvestigacion = GetPorcentaje(datosEvaluacion.HorasInvestigacion, RequisitosP1.HorasInvestigacion);
         int progresoPromedio = GetPorcentaje(datosEvaluacion.PromedioEvaluacion, RequisitosP1.PromedioEvaluacion);
         int progresoCursos = GetPorcentaje(datosEvaluacion.CursosCapacitacion, RequisitosP1.CursosCapacitacion);
+        int progresoAniosDocencia = GetPorcentaje(docenteInfo.AniosDocencia, RequisitosP1.AniosDocencia);
 
-        return (progresoObras + progresoInvestigacion + progresoPromedio + progresoCursos) / 4;
+        return (progresoObras + progresoInvestigacion + progresoPromedio + progresoCursos + progresoAniosDocencia) / 5;
     }
 
     private int GetPorcentaje(decimal actual, decimal requerido)
     {
         if (requerido <= 0) return 0;
         int porcentaje = (int)((actual / requerido) * 100);
-        return Math.Min(100, porcentaje); // No más del 100%
+        return Math.Min(100, porcentaje); 
     }
 
     private class DatosEvaluacion
@@ -369,5 +396,13 @@
         public int HorasInvestigacion { get; set; }
         public decimal PromedioEvaluacion { get; set; }
         public int CursosCapacitacion { get; set; }
+    }
+
+    private class DocenteInfo
+    {
+        public string Nombre { get; set; }
+        public string Cargo { get; set; }
+        public string Avatar { get; set; }
+        public int AniosDocencia { get; set; } 
     }
 }
