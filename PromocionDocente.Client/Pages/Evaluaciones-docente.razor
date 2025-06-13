@@ -13,7 +13,7 @@
     <table class="table-auto border border-gray-300">
         <thead>
             <tr>
-                <th class="px-4">Resolución</th>
+                <th class="px-4">Evaluación</th>
                 <th class="px-4">Fecha</th>
                 <th class="px-4">Calificación</th>
             </tr>
@@ -22,7 +22,7 @@
             @foreach (var ev in evaluaciones)
             {
                 <tr>
-                    <td class="px-4">@ev.NumeroResolucion</td>
+                    <td class="px-4">@ev.TipoEvaluacion</td>
                     <td class="px-4">@ev.FechaEvaluacion.ToShortDateString()</td>
                     <td class="px-4">@ev.Calificacion</td>
                 </tr>
@@ -55,7 +55,7 @@
 
     public class Evaluacion
     {
-        public string NumeroResolucion { get; set; } = string.Empty;
+        public string TipoEvaluacion { get; set; } = string.Empty;
         public DateTime FechaEvaluacion { get; set; }
         public decimal Calificacion { get; set; }
     }

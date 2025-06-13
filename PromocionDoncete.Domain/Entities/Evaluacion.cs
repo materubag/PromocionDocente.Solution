@@ -9,10 +9,10 @@ namespace PromocionDocente.Domain.Entities
     public class Evaluacion
     {
         public int IdEvaluacion { get; set; }
-        public string NumeroResolucion { get; set; } = string.Empty;
         public DateTime FechaEvaluacion { get; set; }
         public decimal Calificacion { get; set; }
         public byte[]? PdfEvaluacion { get; set; }
         public string CedulaDocente { get; set; } = string.Empty;
+        public string TipoEvaluacion { get; set; } = string.Empty;
     }
 }

@@ -21,7 +21,7 @@ namespace PromocionDocente.Infrastructure.Services
             var docente = await _context.Docentes.FirstOrDefaultAsync(d => d.CedDoc == cedula);  // ✅
             if (docente == null) return null;
 
-            TimeSpan total = fechaHasta - docente.FecIng;  // ✅ parte actual
+            TimeSpan total = fechaHasta - docente.FecIng;  
 
             var historial = await _context.HistorialDocente
                 .Where(h => h.CedDoc == cedula)

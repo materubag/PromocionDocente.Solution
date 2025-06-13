@@ -31,7 +31,6 @@ namespace PromocionDocente.Infrastructure.Services
                     var nuevaEvaluacion = new Evaluacion
                     {
                         CedulaDocente = evaluacion.CedulaDocente,
-                        NumeroResolucion = evaluacion.NumeroResolucion,
                         FechaEvaluacion = evaluacion.FechaEvaluacion,
                         Calificacion = evaluacion.Calificacion,
                         PdfEvaluacion = evaluacion.PdfEvaluacion
