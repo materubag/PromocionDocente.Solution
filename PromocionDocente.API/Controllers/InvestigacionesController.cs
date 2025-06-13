@@ -41,6 +41,22 @@ namespace PromocionDocente.API.Controllers
             return investigacione;
         }
 
+        // GET: api/Investigaciones/cedula/{cedula}
+        [HttpGet("cedula/{cedula}")]
+        public async Task<ActionResult<IEnumerable<Investigacione>>> GetInvestigacionesPorCedula(string cedula)
+        {
+            var investigaciones = await _context.Investigaciones
+                                                .Where(i => i.CedDoc == cedula)
+                                                .ToListAsync();
+
+            if (investigaciones == null || !investigaciones.Any())
+            {
+                return NotFound();
+            }
+
+            return investigaciones;
+        }
+
         // PUT: api/Investigaciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

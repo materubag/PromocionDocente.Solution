@@ -33,7 +33,9 @@ namespace PromocionDocente.Infrastructure.Services
                         CedulaDocente = evaluacion.CedulaDocente,
                         FechaEvaluacion = evaluacion.FechaEvaluacion,
                         Calificacion = evaluacion.Calificacion,
-                        PdfEvaluacion = evaluacion.PdfEvaluacion
+                        PdfEvaluacion = evaluacion.PdfEvaluacion,
+                        PeriodoEvaluacion = evaluacion.PeriodoEvaluacion,
+                        TipoEvaluacion = evaluacion.TipoEvaluacion
                         // Sin IdEvaluacion porque es autogenerado
                     };
 

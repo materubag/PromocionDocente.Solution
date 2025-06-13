@@ -37,12 +37,13 @@ namespace PromocionDocente.Infrastructure.Contexts
 
                 entity.HasKey(e => e.IdEvaluacion);
 
-                entity.Property(e => e.IdEvaluacion).HasColumnName("NUM_EVA");
-                entity.Property(e => e.NumeroResolucion).HasColumnName("NUM_RES_EVA");
-                entity.Property(e => e.FechaEvaluacion).HasColumnName("FEC_EVA");
-                entity.Property(e => e.Calificacion).HasColumnName("CAL_EVA");
-                entity.Property(e => e.PdfEvaluacion).HasColumnName("ARC_EVA");
+                entity.Property(e => e.IdEvaluacion).HasColumnName("ID_EVA");
+                entity.Property(e => e.FechaEvaluacion).HasColumnName("FECHA_EVALUACION");
+                entity.Property(e => e.Calificacion).HasColumnName("RESULTADO");
+                entity.Property(e => e.PdfEvaluacion).HasColumnName("PDF_EVALUACION");
                 entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
+                entity.Property(e => e.PeriodoEvaluacion).HasColumnName("PERIODO_EVALUADO");
+                entity.Property(e => e.TipoEvaluacion).HasColumnName("TIPO_EVALUACION");
             });
             modelBuilder.Entity<HistorialDocenteDac>(entity =>
             {

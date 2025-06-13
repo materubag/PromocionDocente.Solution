@@ -27,6 +27,29 @@
         <span class="dismiss">🗙</span>
     </div>
     <script src="_framework/blazor.webassembly.js"></script>
+    <script>
+        function abrirPDF(base64String, nombreArchivo) {
+            const byteCharacters = atob(base64String);
+            const byteArrays = [];
+            for (let offset = 0; offset < byteCharacters.length; offset += 1024) {
+                const slice = byteCharacters.slice(offset, offset + 1024);
+                const byteNumbers = new Array(slice.length);
+                for (let i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                byteArrays.push(new Uint8Array(byteNumbers));
+            }
+
+            const blob = new Blob(byteArrays, { type: "application/pdf" });
+            const url = URL.createObjectURL(blob);
+
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = nombreArchivo + ".pdf"; // Nombre del archivo PDF
+            link.target = "_blank"; // Abre en nueva pestaña
+            link.click(); // Dispara el clic
+        }
+    </script>
 </body>
 
 </html>

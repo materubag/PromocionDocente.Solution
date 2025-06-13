@@ -41,6 +41,22 @@ namespace PromocionDocente.API.Controllers
             return cursosCapacitacion;
         }
 
+        [HttpGet("cedula/{cedDoc}")]
+        public async Task<ActionResult<List<CursosCapacitacion>>> GetCursosPorCedula(string cedDoc)
+        {
+            // Buscar cursos donde la cédula coincida con cedDoc
+            var cursos = await _context.CursosCapacitacions
+                                       .Where(c => c.CedDoc == cedDoc)
+                                       .ToListAsync();
+
+            if (cursos == null || cursos.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return cursos;
+        }
+
         // PUT: api/CursosCapacitacions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

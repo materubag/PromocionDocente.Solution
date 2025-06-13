@@ -48,6 +48,7 @@ namespace PromocionDocente.Infrastructure.Contexts
         entity.Property(e => e.PdfEvaluacion).HasColumnName("PDF_EVALUACION");
         entity.Property(e => e.CedulaDocente).HasColumnName("CED_DOC");
         entity.Property(e => e.TipoEvaluacion).HasColumnName("TIPO_EVALUACION");
+    entity.Property(e => e.PeriodoEvaluacion).HasColumnName("PERIODO_EVALUADO");
 });
 
             modelBuilder.Entity<HistorialDocenteDac>(entity =>

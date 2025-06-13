@@ -14,5 +14,6 @@ namespace PromocionDocente.Domain.Entities
         public byte[]? PdfEvaluacion { get; set; }
         public string CedulaDocente { get; set; } = string.Empty;
         public string TipoEvaluacion { get; set; } = string.Empty;
+        public string PeriodoEvaluacion { get; set; } = string.Empty;
     }
 }
