@@ -10,12 +10,7 @@
 	<div class="header-container">
 		<div class="header-content">
 			<h1 class="titulo-principal">Sistema de Gestión de Investigaciones</h1>
-			<div class="docente-info">
-				<div class="info-text">
-					<div class="nombre">@docenteInfo.Nombre</div>
-					<div class="cargo">@docenteInfo.Cargo</div>
-				</div>
-			</div>
+
 		</div>
 	</div>
 
@@ -92,9 +87,9 @@
 										<div class="fecha-fin">Fin: @investigacion.FechaFin.ToString("dd/MM/yyyy")</div>
 									</td>
 									<td class="documento">
-										@if (investigacion.TieneArchivoPDF)
+										@if (!string.IsNullOrEmpty(investigacion.archivoPdf))
 										{
-											<button class="btn-documento" @onclick="() => DescargarPDF(investigacion)" title="Descargar PDF">
+											<button class="btn-documento" @onclick="() => VerPDF(investigacion)" title="Ver PDF">
 												<span class="documento-icon">📄</span>
 												<span class="documento-text">PDF</span>
 											</button>
@@ -760,23 +755,11 @@
 		}
 	}
 
-	private async Task DescargarPDF(InvestigacionInfo investigacion)
+	private async Task VerPDF(InvestigacionInfo investigacion)
 	{
-		if (investigacion.TieneArchivoPDF)
+		if (!string.IsNullOrEmpty(investigacion.archivoPdf))
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				$"📄 Descargando Documento PDF\n\n" +
-				$"• Investigación: {investigacion.TituloInvestigacion.Substring(0, Math.Min(50, investigacion.TituloInvestigacion.Length))}...\n" +
-				$"• Tipo: {investigacion.TipoInvestigacion}\n" +
-				$"• Campo: {investigacion.CampoAplicacion}\n\n" +
-				$"La descarga comenzará en breve...");
-		}
-		else
-		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				"⚠️ Documento no disponible\n\n" +
-				"Esta investigación aún no tiene un documento PDF.\n" +
-				"Complete la investigación para generar el documento.");
+			await JSRuntime.InvokeVoidAsync("window.open", investigacion.archivoPdf, "_blank");
 		}
 	}
 
@@ -791,6 +774,7 @@
 		public string CampoAplicacion { get; set; } = "";
 		public string Estado { get; set; } = "";
 		public bool Seleccionada { get; set; }
+		public string archivoPdf { get; set; } = "";
 		public bool TieneArchivoPDF { get; set; }
 	}
 	public class ImportacionResultado

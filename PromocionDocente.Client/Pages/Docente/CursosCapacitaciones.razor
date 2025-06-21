@@ -10,12 +10,7 @@
 	<div class="header-container">
 		<div class="header-content">
 			<h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
-			<div class="docente-info">
-				<div class="info-text">
-					<div class="nombre">@docenteInfo.Nombre</div>
-					<div class="cargo">@docenteInfo.Cargo</div>
-				</div>
-			</div>
+
 		</div>
 	</div>
 
@@ -84,9 +79,9 @@
 										</span>
 									</td>
 									<td class="documento">
-										@if (curso.TienePDF)
+										@if (!string.IsNullOrEmpty(curso.pdfCurso))
 										{
-											<button class="btn-documento" @onclick="() => DescargarPDF(curso)" title="Descargar PDF">
+											<button class="btn-documento" @onclick="() => VerPDF(curso)" title="Ver PDF">
 												<span class="documento-icon">📄</span>
 												<span class="documento-text">PDF</span>
 											</button>
@@ -589,7 +584,7 @@
 
 			if (string.IsNullOrEmpty(cedulaUsuario))
 			{
-				mensajeError = "No se encontró la cédula del usuario en localStorage";
+				mensajeError = "No se encontró la cédula del usuario";
 				return;
 			}
 
@@ -803,14 +798,11 @@
 		}
 	}
 
-	private async Task DescargarPDF(CursoCapacitacionInfo curso)
+	private async Task VerPDF(CursoCapacitacionInfo curso)
 	{
-		if (curso.TienePDF)
+		if (!string.IsNullOrEmpty(curso.pdfCurso))
 		{
-			// Convertir el PDF en base64 a un Blob y abrirlo
-			string base64String = curso.pdfCurso;
-			base64String = base64String.Replace("\n", "").Replace("\r", "");
-			await JSRuntime.InvokeVoidAsync("abrirPDF", base64String, curso.NombreCurso);
+			await JSRuntime.InvokeVoidAsync("window.open", curso.pdfCurso, "_blank");
 		}
 	}
 

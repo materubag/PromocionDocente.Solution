@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Remove="wwwroot\image.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.6" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="9.0.6">
@@ -30,6 +34,10 @@
     <ProjectReference Include="..\PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj" />
 
     <ProjectReference Include="..\PromocionDocente.Models\PromocionDocente.Models.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\image.png" />
   </ItemGroup>
 
 </Project>

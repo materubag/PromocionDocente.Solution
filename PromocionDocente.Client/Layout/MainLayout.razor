@@ -4,68 +4,69 @@
 @inherits LayoutComponentBase
 
 <div class="page">
-    <!-- Sidebar de navegación -->
-    <div class="sidebar shadow">
-        <NavMenu />
-    </div>
+	<!-- Sidebar de navegación -->
+	<div class="sidebar shadow">
+		<NavMenu />
+	</div>
 
-    <!-- Contenido principal -->
-    <main>
-        <!-- Barra superior con logo y usuario -->
-        <div class="top-row d-flex justify-content-between align-items-center px-4">
-            <div class="d-flex align-items-center">
-                <img src="https://img.icons8.com/color/48/000000/school.png" alt="Logo" style="width: 36px; height: 36px;" />
-                <span class="ms-2 fw-bold">Plataforma Docente</span>
-            </div>
-            <div class="d-flex align-items-center">
-                @if (usuario != null)
-                {
-                    <span class="me-3 text-muted">
-                        Usuario: <strong>@usuario.Nombre1 @usuario.Apellido1</strong>
-                    </span>
-                }
-                else
-                {
-                    <span class="me-3 text-muted">
-                        Usuario: <strong>No autenticado</strong>
-                    </span>
-                }
-                <button class="btn btn-outline-danger btn-sm" @onclick="Logout">
-                    Cerrar sesión
-                </button>
-            </div>
-        </div>
+	<!-- Contenido principal -->
+	<main>
+		<!-- Barra superior con logo y usuario -->
+		<div class="top-row d-flex justify-content-between align-items-center px-4">
+			<div class="d-flex align-items-center">
+				<img src="https://img.icons8.com/color/48/000000/school.png" alt="Logo" style="width: 36px; height: 36px;" />
+				<span class="ms-2 fw-bold">Plataforma Docente</span>
+			</div>
+			<div class="d-flex align-items-center">
+				@if (usuario != null)
+				{
+					<span class="me-3 text-muted">
+						Usuario: <strong>@usuario.Nombre1 @usuario.Apellido1</strong>
+						Rol:<strong> @usuario.Rol</strong>
+					</span>
+				}
+				else
+				{
+					<span class="me-3 text-muted">
+						Usuario: <strong>No autenticado</strong>
+					</span>
+				}
+				<button class="btn btn-outline-danger btn-sm" @onclick="Logout">
+					Cerrar sesión
+				</button>
+			</div>
+		</div>
 
-        <!-- Área del contenido de la página -->
-        <article class="content p-4">
-            @Body
-        </article>
-    </main>
+		<!-- Área del contenido de la página -->
+		<article class="content p-4">
+			@Body
+		</article>
+	</main>
 </div>
 
 @code {
-    private LoginResponse? usuario;
+	private LoginResponse? usuario;
 
-    protected override async Task OnInitializedAsync()
-    {
-        usuario = await LocalStorage.GetItemAsync<LoginResponse>("usuario");
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		usuario = await LocalStorage.GetItemAsync<LoginResponse>("usuario");
+	}
 
-    private async Task Logout()
-    {
-        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de cerrar sesión?");
-        if (confirmado)
-        {
-            await LocalStorage.RemoveItemAsync("usuario");
-            Navigation.NavigateTo("/");
-        }
-    }
+	private async Task Logout()
+	{
+		var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de cerrar sesión?");
+		if (confirmado)
+		{
+			await LocalStorage.RemoveItemAsync("usuario");
+			Navigation.NavigateTo("/");
+		}
+	}
 
-    public class LoginResponse
-    {
-        public string Cedula { get; set; } = string.Empty;
-        public string Nombre1 { get; set; } = string.Empty;
-        public string Apellido1 { get; set; } = string.Empty;
-        public string Rol { get; set; } = string.Empty;
-    }
+	public class LoginResponse
+	{
+		public string Cedula { get; set; } = string.Empty;
+		public string Nombre1 { get; set; } = string.Empty;
+		public string Apellido1 { get; set; } = string.Empty;
+		public string Rol { get; set; } = string.Empty;
+	}
 }
