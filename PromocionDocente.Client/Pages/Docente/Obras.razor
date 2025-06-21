@@ -9,12 +9,7 @@
 	<div class="header-container">
 		<div class="header-content">
 			<h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
-			<div class="docente-info">
-				<div class="info-text">
-					<div class="nombre">@docenteInfo.Nombre</div>
-					<div class="cargo">@docenteInfo.Cargo</div>
-				</div>
-			</div>
+
 		</div>
 	</div>
 
@@ -89,7 +84,7 @@
 									<td class="documento">
 										@if (obra.TienePDF())
 										{
-											<button class="btn-documento" @onclick="() => DescargarPDF(obra)" title="Descargar PDF">
+											<button class="btn-documento" @onclick="() => VerPDF(obra)" title="Ver PDF">
 												<span class="documento-icon">📄</span>
 												<span class="documento-text">PDF</span>
 											</button>
@@ -751,27 +746,15 @@
 		}
 	}
 
-	private async Task DescargarPDF(ObraInfo obra)
+	private async Task VerPDF(ObraInfo obra)
 	{
-		if (obra.TienePDF())
+		if (!string.IsNullOrEmpty(obra.PdfUrl))
 		{
-			// Convertir el PDF en base64 a un Blob y abrirlo
-			string base64String = Convert.ToBase64String(obra.PdfProduccion);
-			base64String = base64String.Replace("\n", "").Replace("\r", "");
-			await JSRuntime.InvokeVoidAsync("abrirPDF", base64String, obra.Titulo);
+			await JSRuntime.InvokeVoidAsync("window.open", obra.PdfUrl, "_blank");
 		}
 	}
 
-	private async Task MostrarPDF(ObraInfo obra)
-	{
-		if (obra.TienePDF())
-		{
-			string base64String = Convert.ToBase64String(obra.PdfProduccion);
-			base64String = base64String.Replace("\n", "").Replace("\r", "");
 
-			// Navegar a otra página y pasar el PDF como parámetro]
-		}
-	}
 
 	private async Task AbrirUrl(string url)
 	{
@@ -791,14 +774,14 @@
 		public string? DoiUrl { get; set; }
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
-		public byte[]? PdfProduccion { get; set; }
+		public string? PdfUrl { get; set; }
 
 		public bool Seleccionada { get; set; }
 
 		// Método para verificar si tiene PDF
 		public bool TienePDF()
 		{
-			return PdfProduccion != null && PdfProduccion.Length > 0;
+			return PdfUrl != null && PdfUrl.Length > 0;
 		}
 	}
 

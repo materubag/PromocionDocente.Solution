@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Domain.Entities;
+using PromocionDocente.Infrastructure.Utils;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -22,8 +23,37 @@ namespace PromocionDocente.API.Controllers
             var obras = await _context.Obras
                 .Where(o => o.CedulaDocente == cedula)
                 .ToListAsync();
-            
-            return Ok(obras);
+
+            var resultado = obras.Select(o =>
+            {
+                string pdfUrl = null;
+
+                if (o.PdfProduccion != null)
+                {
+                    string rutaRelativa = PdfHelper.GuardarBinarioComoPdf(
+                        o.PdfProduccion,
+                        o.CedulaDocente,
+                        o.Titulo,
+                        "Obras"
+                    );
+
+                    pdfUrl = rutaRelativa;
+                }
+                return new
+                {
+                    o.IdObra,
+                    o.CedulaDocente,
+                    o.TipoObra,
+                    o.Titulo,
+                    o.FechaPublicacion,
+                    o.DoiUrl,
+                    o.AreaConocimiento,
+                    o.Observaciones,
+                    PdfUrl = pdfUrl
+                };
+            });
+
+            return Ok(resultado);
         }
     }
 }
