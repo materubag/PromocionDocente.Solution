@@ -27,5 +27,7 @@ public partial class Usuario
 
     public string Rol { get; set; } = null!;
 
+    public string? Telefono { get; set; }
+
     public virtual ICollection<CursosCapacitacion> CursosCapacitacions { get; set; } = new List<CursosCapacitacion>();
 }

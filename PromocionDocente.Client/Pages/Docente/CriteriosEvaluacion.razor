@@ -1,0 +1,432 @@
+﻿@page "/docente/criterios"
+@layout PromocionDocente.Client.Layout.DocenteLayout
+@using PromocionDocente.Client.Models
+@using System.Text.Json.Serialization
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+
+<div class="evaluacion-container">
+	<!-- Header -->
+	<div class="header-container">
+		<div class="header-content">
+			<h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+			<div class="docente-info">
+				<div class="info-text">
+					<div class="nombre">@docenteInfo.Nombre</div>
+					<div class="cargo">@docenteInfo.Cargo</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="criterios-grid">
+		<!-- Número de Obras -->
+		<div class="criterio-card">
+			<div class="criterio-header">
+				<h3>Número de Obras</h3>
+				<span class="criterio-valor">@(datosEvaluacion?.NumerodeObras ?? 0)/@RequisitosP1.NumeroObras</span>
+			</div>
+			<div class="progress-bar">
+				<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.NumerodeObras ?? 0, RequisitosP1.NumeroObras))%"></div>
+			</div>
+		</div>
+
+		<!-- Investigación -->
+		<div class="criterio-card">
+			<div class="criterio-header">
+				<h3>Investigación (meses)</h3>
+				<span class="criterio-valor">@(datosEvaluacion?.HorasdeInvestigacion ?? 0)/@RequisitosP1.MesesInvestigacion</span>
+			</div>
+			<div class="progress-bar">
+				<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.HorasdeInvestigacion ?? 0, RequisitosP1.MesesInvestigacion))%"></div>
+			</div>
+		</div>
+
+		<!-- Promedio de Evaluación -->
+		<div class="criterio-card">
+			<div class="criterio-header">
+				<h3>Promedio Evaluación</h3>
+				<span class="criterio-valor">
+					@(datosEvaluacion != null ? datosEvaluacion.PromediodeEvaluacion.ToString("0") : "0")
+					<div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.PromediodeEvaluacion ?? 0, RequisitosP1.PromedioEvaluacion))%"></div>
+				</span>
+			</div>
+		</div>
+
+		<!-- Cursos de Capacitación -->
+		<div class="criterio-card">
+			<div class="criterio-header">
+				<h3>Cursos Capacitación(horas)</h3>
+				<span class="criterio-valor">@(datosEvaluacion?.CursosdeCapacitacion ?? 0)/@RequisitosP1.HorasCapacitacion</span>
+			</div>
+			<div class="progress-bar">
+				<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.CursosdeCapacitacion ?? 0, RequisitosP1.HorasCapacitacion))%"></div>
+			</div>
+		</div>
+
+		<!-- Años de Docencia -->
+		<div class="criterio-card">
+			<div class="criterio-header">
+				<h3>Años de Docencia</h3>
+				<span class="criterio-valor">@(datosEvaluacion?.AniosdeDocencia ?? 0)/@RequisitosP1.AniosDocencia</span>
+			</div>
+			<div class="progress-bar">
+				<div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.AniosdeDocencia ?? 0, RequisitosP1.AniosDocencia))%"></div>
+			</div>
+		</div>
+	</div>
+
+	<!-- Slider de Progreso General -->
+	<div class="progreso-container">
+		<h3>Progreso hacia @nivelObjetivo</h3>
+		<div class="slider-container">
+			<input type="range" min="0" max="100" value="@progresoGeneral" class="slider" id="progresoSlider" disabled />
+			<div class="slider-labels">
+				<span>0%</span>
+				<span>50%</span>
+				<span>100%</span>
+			</div>
+			<div class="progreso-texto">
+				@if (progresoGeneral >= 100)
+				{
+					<span class="completo">¡Cumples con todos los requisitos para @nivelObjetivo!</span>
+				}
+				else
+				{
+					<span>Te faltan @(100 - progresoGeneral)% para cumplir con los requisitos de @nivelObjetivo</span>
+				}
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.evaluacion-container {
+		min-height: 100vh;
+		background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+		;
+		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	}
+
+	.header-container {
+		background: rgba(255, 255, 255, 0.1);
+		backdrop-filter: blur(10px);
+		border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+		padding: 1rem 2rem;
+	}
+
+	.header-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
+
+	.titulo-principal {
+		color: white;
+		font-size: 2rem;
+		font-weight: 300;
+		margin: 0;
+	}
+
+	.docente-info {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		background: rgba(255, 255, 255, 0.1);
+		padding: 0.5rem 1rem;
+		border-radius: 50px;
+		backdrop-filter: blur(10px);
+	}
+
+	.avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		overflow: hidden;
+		background: #4A90E2;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+		.avatar img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
+
+	.info-text {
+		color: white;
+	}
+
+	.nombre {
+		font-weight: 600;
+		font-size: 0.9rem;
+	}
+
+	.cargo {
+		font-size: 0.8rem;
+		opacity: 0.8;
+	}
+
+
+	.evaluacion-container {
+		max-width: 1000px;
+		margin: 2rem auto;
+		padding: 2rem;
+	}
+
+	.evaluacion-header {
+		text-align: center;
+		margin-bottom: 3rem;
+	}
+
+		.evaluacion-header h1 {
+			color: #2c3e50;
+			font-size: 2.2rem;
+			margin-bottom: 0.5rem;
+		}
+
+		.evaluacion-header p {
+			color: #7f8c8d;
+			font-size: 1.1rem;
+		}
+
+	.criterios-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 1.5rem;
+		margin-bottom: 3rem;
+	}
+
+	.criterio-card {
+		background: white;
+		border-radius: 8px;
+		padding: 1.5rem;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	}
+
+	.criterio-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1rem;
+	}
+
+		.criterio-header h3 {
+			color: #2c3e50;
+			font-size: 1.2rem;
+			margin: 0;
+		}
+
+	.criterio-valor {
+		color: #0D47A1;
+		font-weight: 600;
+	}
+
+	.progress-bar {
+		height: 10px;
+		background: #e0e0e0;
+		border-radius: 5px;
+		overflow: hidden;
+	}
+
+	.progress-fill {
+		height: 100%;
+		background: linear-gradient(90deg, #0D47A1, #42A5F5);
+		border-radius: 5px;
+		transition: width 0.5s ease;
+	}
+
+	.progreso-container {
+		background: white;
+		border-radius: 8px;
+		padding: 2rem;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	}
+
+		.progreso-container h3 {
+			color: #2c3e50;
+			text-align: center;
+			margin-bottom: 1.5rem;
+		}
+
+	.slider-container {
+		max-width: 800px;
+		margin: 0 auto;
+	}
+
+	.slider {
+		-webkit-appearance: none;
+		width: 100%;
+		height: 15px;
+		border-radius: 7px;
+		background: #e0e0e0;
+		outline: none;
+		margin-bottom: 0.5rem;
+	}
+
+		.slider::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 25px;
+			height: 25px;
+			border-radius: 50%;
+			background: #0D47A1;
+			cursor: pointer;
+		}
+
+		.slider::-moz-range-thumb {
+			width: 25px;
+			height: 25px;
+			border-radius: 50%;
+			background: #4CAF50;
+			cursor: pointer;
+		}
+
+	.slider-labels {
+		display: flex;
+		justify-content: space-between;
+		color: #7f8c8d;
+		font-size: 0.9rem;
+	}
+
+	.progreso-texto {
+		text-align: center;
+		margin-top: 1.5rem;
+		font-size: 1.1rem;
+	}
+
+	.completo {
+		color: #0D47A1;
+		font-weight: 600;
+	}
+</style>
+
+@code {
+	private DatosEvaluacion datosEvaluacion;
+	private int progresoGeneral = 0;
+	private string nivelObjetivo = "DT2";
+	private DocenteInfo docenteInfo;
+
+	private static class RequisitosP1
+	{
+		public static int NumeroObras = 1;
+		public static int MesesInvestigacion = 0;
+		public static decimal PromedioEvaluacion = 100.0m;
+		public static int HorasCapacitacion = 96;
+		public static decimal AniosDocencia = 4.0m;
+	}
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		docenteInfo = new DocenteInfo
+			{
+				Nombre = "Nombre del Docente",
+				Cargo = "Cargo del Docente"
+			};
+
+		try
+		{
+			// Leer cédula desde localStorage
+			var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+			string cedulaUsuario = "";
+
+			if (!string.IsNullOrEmpty(usuarioJson))
+			{
+				var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+				cedulaUsuario = usuario?.Cedula ?? "";
+			}
+
+			if (string.IsNullOrEmpty(cedulaUsuario))
+			{
+				Console.WriteLine("No se encontró la cédula del usuario en localStorage.");
+				datosEvaluacion = new DatosEvaluacion(); // valores vacíos o default
+			}
+			else
+			{
+				datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine("Error al cargar datos: " + ex.Message);
+			datosEvaluacion = new DatosEvaluacion(); // valores vacíos
+		}
+		finally
+		{
+			progresoGeneral = CalcularProgresoGeneral();
+		}
+	}
+
+	// Clase para deserializar localStorage.usuario
+	public class LoginResponse
+	{
+		public string Cedula { get; set; } = "";
+		public string Nombre1 { get; set; } = "";
+		public string Apellido1 { get; set; } = "";
+		public string Rol { get; set; } = "";
+	}
+
+
+
+
+	private int CalcularProgresoGeneral()
+	{
+		var porcentajes = new List<int>
+	{
+		GetPorcentaje(datosEvaluacion.NumerodeObras, RequisitosP1.NumeroObras),
+		GetPorcentaje(datosEvaluacion.HorasdeInvestigacion, RequisitosP1.MesesInvestigacion),
+		GetPorcentajeDecimal(datosEvaluacion.PromediodeEvaluacion, RequisitosP1.PromedioEvaluacion),
+		GetPorcentaje(datosEvaluacion.CursosdeCapacitacion, RequisitosP1.HorasCapacitacion),
+		GetPorcentajeDecimal(datosEvaluacion.AniosdeDocencia, RequisitosP1.AniosDocencia)
+	};
+
+		return (int)porcentajes.Average();
+	}
+
+	private int GetPorcentaje(int valorActual, int valorRequerido)
+	{
+		if (valorRequerido == 0) return 100;
+		return Math.Min(100, (valorActual * 100) / valorRequerido);
+	}
+
+	private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
+	{
+		if (valorRequerido == 0) return 100;
+		return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
+	}
+
+	public class DatosEvaluacion
+	{
+		[JsonPropertyName("fechaBase")]
+		public string FechaBase { get; set; }
+
+		[JsonPropertyName("totalObras")]
+		public int NumerodeObras { get; set; }
+
+		[JsonPropertyName("mesesInvestigacion")]
+		public int HorasdeInvestigacion { get; set; }
+
+		[JsonPropertyName("promedioEvaluacion")]
+		public decimal PromediodeEvaluacion { get; set; }
+
+		[JsonPropertyName("horasCursos")]
+		public int CursosdeCapacitacion { get; set; }
+
+		[JsonPropertyName("aniosServicio")]
+		public decimal AniosdeDocencia { get; set; }
+	}
+
+	private class DocenteInfo
+	{
+		public string Nombre { get; set; }
+		public string Cargo { get; set; }
+	}
+}
+
+

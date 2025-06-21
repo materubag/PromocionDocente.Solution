@@ -13,9 +13,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class InvestigacionesController : ControllerBase
     {
-        private readonly PromocionDocenteContext _context;
+        private readonly PromociondocenteContext _context;
 
-        public InvestigacionesController(PromocionDocenteContext context)
+        public InvestigacionesController(PromociondocenteContext context)
         {
             _context = context;
         }
@@ -39,6 +39,22 @@ namespace PromocionDocente.API.Controllers
             }
 
             return investigacione;
+        }
+
+        // GET: api/Investigaciones/cedula/{cedula}
+        [HttpGet("cedula/{cedula}")]
+        public async Task<ActionResult<IEnumerable<Investigacione>>> GetInvestigacionesPorCedula(string cedula)
+        {
+            var investigaciones = await _context.Investigaciones
+                                                .Where(i => i.CedDoc == cedula)
+                                                .ToListAsync();
+
+            if (investigaciones == null || !investigaciones.Any())
+            {
+                return NotFound();
+            }
+
+            return investigaciones;
         }
 
         // PUT: api/Investigaciones/5

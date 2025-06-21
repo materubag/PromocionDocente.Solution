@@ -19,15 +19,12 @@ public partial class DiticContext : DbContext
 
     public virtual DbSet<Usuario> Usuarios { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=PC-MATEO\\SQLEXPRESS;Database=DITIC;Trusted_Connection=True;TrustServerCertificate=True;");
-
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<CursosCapacitacion>(entity =>
         {
-            entity.HasKey(e => e.IdCurso).HasName("PK__CursosCa__5D3F750225428971");
+            entity.HasKey(e => e.IdCurso).HasName("PK__CursosCa__5D3F75025B249F1C");
 
             entity.ToTable("CursosCapacitacion");
 
@@ -47,16 +44,16 @@ public partial class DiticContext : DbContext
             entity.HasOne(d => d.CedulaUsuarioNavigation).WithMany(p => p.CursosCapacitacions)
                 .HasForeignKey(d => d.CedulaUsuario)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__CursosCap__cedul__49C3F6B7");
+                .HasConstraintName("FK__CursosCap__cedul__3C69FB99");
         });
 
         modelBuilder.Entity<Usuario>(entity =>
         {
-            entity.HasKey(e => e.Cedula).HasName("PK__usuarios__415B7BE43C42A381");
+            entity.HasKey(e => e.Cedula).HasName("PK__usuarios__415B7BE4910C5E5C");
 
             entity.ToTable("usuarios");
 
-            entity.HasIndex(e => e.Correo, "UQ__usuarios__2A586E0B87AC0308").IsUnique();
+            entity.HasIndex(e => e.Correo, "UQ__usuarios__2A586E0B7E128175").IsUnique();
 
             entity.Property(e => e.Cedula)
                 .HasMaxLength(10)
@@ -96,6 +93,10 @@ public partial class DiticContext : DbContext
                 .HasMaxLength(20)
                 .IsUnicode(false)
                 .HasColumnName("rol");
+            entity.Property(e => e.Telefono)
+                .HasMaxLength(15)
+                .IsUnicode(false)
+                .HasColumnName("telefono");
         });
 
         OnModelCreatingPartial(modelBuilder);

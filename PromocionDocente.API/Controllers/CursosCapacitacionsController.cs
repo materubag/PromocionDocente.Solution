@@ -13,9 +13,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class CursosCapacitacionsController : ControllerBase
     {
-        private readonly PromocionDocenteContext _context;
+        private readonly PromociondocenteContext _context;
 
-        public CursosCapacitacionsController(PromocionDocenteContext context)
+        public CursosCapacitacionsController(PromociondocenteContext context)
         {
             _context = context;
         }
@@ -39,6 +39,22 @@ namespace PromocionDocente.API.Controllers
             }
 
             return cursosCapacitacion;
+        }
+
+        [HttpGet("cedula/{cedDoc}")]
+        public async Task<ActionResult<List<CursosCapacitacion>>> GetCursosPorCedula(string cedDoc)
+        {
+            // Buscar cursos donde la cédula coincida con cedDoc
+            var cursos = await _context.CursosCapacitacions
+                                       .Where(c => c.CedDoc == cedDoc)
+                                       .ToListAsync();
+
+            if (cursos == null || cursos.Count == 0)
+            {
+                return NotFound();
+            }
+
+            return cursos;
         }
 
         // PUT: api/CursosCapacitacions/5
