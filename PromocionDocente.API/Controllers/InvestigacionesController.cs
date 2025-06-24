@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Infrastructure.Utils;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -14,9 +14,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class InvestigacionesController : ControllerBase
     {
-        private readonly PromociondocenteContext _context;
+        private readonly PromocionDocenteContext _context;
 
-        public InvestigacionesController(PromociondocenteContext context)
+        public InvestigacionesController(PromocionDocenteContext context)
         {
             _context = context;
         }

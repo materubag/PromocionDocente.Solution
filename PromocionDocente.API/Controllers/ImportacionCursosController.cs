@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Models.DITIC_Models;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -10,9 +10,9 @@ namespace PromocionDocente.API.Controllers
     public class ImportacionCursosController : ControllerBase
     {
         private readonly DiticContext _diticContext;
-        private readonly PromociondocenteContext _localContext;
+        private readonly PromocionDocenteContext _localContext;
 
-        public ImportacionCursosController(DiticContext diticContext, PromociondocenteContext localContext)
+        public ImportacionCursosController(DiticContext diticContext, PromocionDocenteContext localContext)
         {
             _diticContext = diticContext;
             _localContext = localContext;
@@ -37,7 +37,7 @@ namespace PromocionDocente.API.Controllers
 
                 if (!yaExiste)
                 {
-                    var nuevoCurso = new Models.PromocionDocenteModels.CursosCapacitacion
+                    var nuevoCurso = new Models.Models.CursosCapacitacion
                     {
                         CedDoc = curso.CedulaUsuario,
                         NombreCurso = curso.NombreCurso,

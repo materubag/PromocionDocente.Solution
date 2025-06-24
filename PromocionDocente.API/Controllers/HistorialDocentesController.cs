@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -13,9 +13,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class HistorialDocentesController : ControllerBase
     {
-        private readonly PromociondocenteContext _context;
+        private readonly PromocionDocenteContext _context;
 
-        public HistorialDocentesController(PromociondocenteContext context)
+        public HistorialDocentesController(PromocionDocenteContext context)
         {
             _context = context;
         }

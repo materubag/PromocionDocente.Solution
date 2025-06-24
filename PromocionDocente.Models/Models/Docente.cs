@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class Docente
 {
@@ -16,8 +16,6 @@ public partial class Docente
     public string Ape2Doc { get; set; } = null!;
 
     public string TelDoc { get; set; } = null!;
-
-    public DateOnly? FecIng { get; set; }
 
     public DateOnly? FecNac { get; set; }
 
