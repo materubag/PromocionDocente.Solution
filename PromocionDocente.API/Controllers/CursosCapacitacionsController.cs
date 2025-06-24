@@ -4,7 +4,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Application.DTOs;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 
@@ -98,6 +100,42 @@ namespace PromocionDocente.API.Controllers
 
             return NoContent();
         }
+
+        [HttpPut("estado/{id}")]
+        public async Task<IActionResult> UpdateEstadoObra(int id, EstadoUpdateDto obraDto)
+        {
+            // Buscar la obra existente
+            var CursoExistente = await _context.CursosCapacitacions.FindAsync(id);
+
+            if (CursoExistente == null)
+            {
+                return NotFound($"No se encontró la obra con ID {id}");
+            }
+
+            // Actualizar solo los campos ESTADO y OBSERVACION
+            CursoExistente.Estado = obraDto.Estado;
+            CursoExistente.Observacion = obraDto.Observacion;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!CursosCapacitacionExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
+        }
+
+       
 
         // POST: api/CursosCapacitacions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Application.DTOs;
+using PromocionDocente.Models.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Models.PromocionDocenteModels;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -102,6 +103,40 @@ namespace PromocionDocente.API.Controllers
         private bool ObraExists(int id)
         {
             return _context.Obras.Any(e => e.IdObra == id);
+        }
+
+        [HttpPut("estado/{id}")]
+        public async Task<IActionResult> UpdateEstadoObra(int id, EstadoUpdateDto obraDto)
+        {
+            // Buscar la obra existente
+            var obraExistente = await _context.Obras.FindAsync(id);
+
+            if (obraExistente == null)
+            {
+                return NotFound($"No se encontró la obra con ID {id}");
+            }
+
+            // Actualizar solo los campos ESTADO y OBSERVACION
+            obraExistente.Estado = obraDto.Estado;
+            obraExistente.Observacion = obraDto.Observacion;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ObraExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
+
+            return NoContent();
         }
     }
 }

@@ -35,9 +35,7 @@ public partial class PromocionDocenteContext : DbContext
 
     public virtual DbSet<Postulacione> Postulaciones { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=PC-MATEO\\SQLEXPRESS;Database=PROMOCION_DOCENTE;Trusted_Connection=True;TrustServerCertificate=True;");
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){ }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -88,6 +86,10 @@ public partial class PromocionDocenteContext : DbContext
                 .HasMaxLength(150)
                 .IsUnicode(false)
                 .HasColumnName("NOMBRE_CURSO");
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("OBSERVACION");
             entity.Property(e => e.PdfCurso).HasColumnName("PDF_CURSO");
 
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.CursosCapacitacions)
@@ -201,6 +203,10 @@ public partial class PromocionDocenteContext : DbContext
                 .HasDefaultValue("PENDIENTE")
                 .HasColumnName("ESTADO");
             entity.Property(e => e.FechaEvaluacion).HasColumnName("FECHA_EVALUACION");
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("OBSERVACION");
             entity.Property(e => e.Observaciones)
                 .HasMaxLength(500)
                 .IsUnicode(false)
@@ -298,6 +304,10 @@ public partial class PromocionDocenteContext : DbContext
                 .HasColumnName("ESTADO");
             entity.Property(e => e.FechaFin).HasColumnName("FECHA_FIN");
             entity.Property(e => e.FechaInicio).HasColumnName("FECHA_INICIO");
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("OBSERVACION");
             entity.Property(e => e.TipoInvestigacion)
                 .HasMaxLength(100)
                 .IsUnicode(false)
@@ -338,6 +348,10 @@ public partial class PromocionDocenteContext : DbContext
                 .HasDefaultValue("PENDIENTE")
                 .HasColumnName("ESTADO");
             entity.Property(e => e.FechaPublicacion).HasColumnName("FECHA_PUBLICACION");
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("OBSERVACION");
             entity.Property(e => e.Observaciones)
                 .HasMaxLength(500)
                 .IsUnicode(false)
@@ -372,6 +386,7 @@ public partial class PromocionDocenteContext : DbContext
             entity.Property(e => e.EstPos)
                 .HasMaxLength(20)
                 .IsUnicode(false)
+                .HasDefaultValue("REVISION")
                 .HasColumnName("EST_POS");
             entity.Property(e => e.FecPos).HasColumnName("FEC_POS");
             entity.Property(e => e.IdCat)

@@ -28,7 +28,7 @@ builder.Services.AddDbContext<DACDbContext>(options =>
 builder.Services.AddDbContext<PromocionDocenteDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
 
-// Inyecta el servicio de importaci�n de las Obras
+// Inyecta el servicio de importacion de las Obras
 builder.Services.AddScoped<IObraImportService, ObraImportService>();
 // Inyecta servicio de Importacion de las evaluaciones
 builder.Services.AddScoped<IEvaluacionImportService, EvaluacionImportService>();

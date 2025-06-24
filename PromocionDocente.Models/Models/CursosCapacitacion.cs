@@ -19,5 +19,7 @@ public partial class CursosCapacitacion
 
     public string Estado { get; set; } = null!;
 
+    public string? Observacion { get; set; }
+
     public virtual Docente CedDocNavigation { get; set; } = null!;
 }

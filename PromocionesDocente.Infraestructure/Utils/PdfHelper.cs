@@ -1,9 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Metadata;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Xml.Linq;
+using iTextSharp.text;
+using iTextSharp.text.pdf;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace PromocionDocente.Infrastructure.Utils
 {
@@ -58,6 +63,38 @@ namespace PromocionDocente.Infrastructure.Utils
             nombre = Regex.Replace(nombre, @"[^\p{L}\p{N}_\.]", "_");
 
             return nombre;
+        }
+
+        public static byte[] GenerarPdfPostulacion(string cedula, string nombreDocente,
+        string categoriaAnterior, string categoriaNueva, DateOnly fechaAprobacion, string usuario)
+        {
+            // En lugar de generar un PDF real, creamos un documento de texto en memoria
+            // que representa la información que iría en el PDF
+            using (MemoryStream ms = new MemoryStream())
+            using (StreamWriter writer = new StreamWriter(ms))
+            {
+                writer.WriteLine("CERTIFICADO DE PROMOCIÓN DOCENTE");
+                writer.WriteLine("================================");
+                writer.WriteLine();
+                writer.WriteLine($"Fecha: {fechaAprobacion.ToString("dd/MM/yyyy")}");
+                writer.WriteLine();
+                writer.WriteLine("Por medio del presente documento se certifica que:");
+                writer.WriteLine();
+                writer.WriteLine($"El/La docente {nombreDocente} con cédula {cedula} ha sido " +
+                    $"promovido/a de la categoría {categoriaAnterior} a la categoría {categoriaNueva}, " +
+                    $"cumpliendo con todos los requisitos establecidos para dicha promoción.");
+                writer.WriteLine();
+                writer.WriteLine($"La promoción ha sido aprobada con fecha {fechaAprobacion.ToString("dd/MM/yyyy")}.");
+                writer.WriteLine();
+                writer.WriteLine("Este documento ha sido generado automáticamente por el " +
+                    "Sistema de Promoción Docente.");
+                writer.WriteLine($"Usuario: {usuario}");
+
+                writer.Flush();
+
+                // Convertir a base64 y luego a binario para simular el proceso
+                return ms.ToArray();
+            }
         }
     }
 }
