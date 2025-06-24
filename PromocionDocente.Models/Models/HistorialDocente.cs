@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class HistorialDocente
 {
@@ -14,6 +14,8 @@ public partial class HistorialDocente
     public DateOnly FecIni { get; set; }
 
     public DateOnly? FecFin { get; set; }
+
+    public byte[]? DocumentoPdf { get; set; }
 
     public virtual Docente CedDocNavigation { get; set; } = null!;
 

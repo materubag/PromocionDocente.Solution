@@ -8,7 +8,7 @@ using PromocionDocente.Infrastructure.Services;
 using PromocionDocente.Models.DAC_Models;
 using PromocionDocente.Models.DIDE_Models;
 using PromocionDocente.Models.DITIC_Models;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 using PromocionDocente.Models.TTHH_Models;
 using PromocionDocente.Repositories.Repositorios;
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +41,7 @@ builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
 builder.Services.AddScoped<AuthService>();
 
 
-builder.Services.AddDbContext<PromociondocenteContext>(options =>
+builder.Services.AddDbContext<PromocionDocenteContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
 builder.Services.AddDbContext<TthhContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TTHH")));

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class Obra
 {
@@ -22,6 +22,8 @@ public partial class Obra
     public string? Observaciones { get; set; }
 
     public byte[]? PdfProduccion { get; set; }
+
+    public string Estado { get; set; } = null!;
 
     public virtual Docente CedDocNavigation { get; set; } = null!;
 }

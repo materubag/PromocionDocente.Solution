@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class Evaluacione
 {
@@ -20,6 +20,8 @@ public partial class Evaluacione
     public string? Observaciones { get; set; }
 
     public byte[]? PdfEvaluacion { get; set; }
+
+    public string Estado { get; set; } = null!;
 
     public virtual Docente CedDocNavigation { get; set; } = null!;
 }
