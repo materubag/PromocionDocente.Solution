@@ -21,7 +21,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 // Configura los DbContext
-    //Conex�n a la base de datos de Externa (DAC)
+//Conex�n a la base de datos de Externa (DAC)
 builder.Services.AddDbContext<DACDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DAC")));
 // Conexi�n a la base de datos local de Promoci�n Docente
@@ -57,8 +57,8 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin() // Permitir cualquier origen
-              .AllowAnyHeader() 
-              .AllowAnyMethod(); 
+              .AllowAnyHeader()
+              .AllowAnyMethod();
     });
 });
 builder.Services.AddControllers();

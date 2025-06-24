@@ -17,14 +17,18 @@ namespace PromocionDocente.Infrastructure.Services
             _localContext = localContext;
         }
 
-        public async Task ImportarEvaluacionesDesdeDACAsync()
+        public async Task ImportarEvaluacionesDesdeDACPorCedulaAsync(string cedula)
         {
-            var evaluacionesExternas = await _dacContext.Evaluaciones.ToListAsync();
+            var evaluacionesExternas = await _dacContext.Evaluaciones
+                .Where(e => e.CedulaDocente == cedula)
+                .ToListAsync();
 
             foreach (var evaluacion in evaluacionesExternas)
             {
                 bool existe = await _localContext.Evaluaciones
-                    .AnyAsync(e => e.IdEvaluacion == evaluacion.IdEvaluacion);
+                    .AnyAsync(e => e.CedulaDocente == evaluacion.CedulaDocente &&
+                                   e.FechaEvaluacion == evaluacion.FechaEvaluacion &&
+                                   e.TipoEvaluacion == evaluacion.TipoEvaluacion); // Comparación lógica
 
                 if (!existe)
                 {
@@ -36,7 +40,6 @@ namespace PromocionDocente.Infrastructure.Services
                         PdfEvaluacion = evaluacion.PdfEvaluacion,
                         PeriodoEvaluacion = evaluacion.PeriodoEvaluacion,
                         TipoEvaluacion = evaluacion.TipoEvaluacion
-                        // Sin IdEvaluacion porque es autogenerado
                     };
 
                     _localContext.Evaluaciones.Add(nuevaEvaluacion);
@@ -45,5 +48,6 @@ namespace PromocionDocente.Infrastructure.Services
 
             await _localContext.SaveChangesAsync();
         }
+
     }
 }
