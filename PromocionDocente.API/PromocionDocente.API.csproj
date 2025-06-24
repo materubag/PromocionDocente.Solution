@@ -32,4 +32,11 @@
     <ProjectReference Include="..\PromocionDocente.Models\PromocionDocente.Models.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\Pdfs\Cursos\" />
+    <Folder Include="wwwroot\Pdfs\Evaluaciones\" />
+    <Folder Include="wwwroot\Pdfs\Investigaciones\" />
+    <Folder Include="wwwroot\Pdfs\Obras\" />
+  </ItemGroup>
+
 </Project>

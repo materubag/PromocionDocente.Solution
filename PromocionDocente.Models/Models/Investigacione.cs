@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class Investigacione
 {
@@ -22,6 +22,8 @@ public partial class Investigacione
     public string TipoInvestigacion { get; set; } = null!;
 
     public string CampoAplicacion { get; set; } = null!;
+
+    public string Estado { get; set; } = null!;
 
     public virtual Docente CedDocNavigation { get; set; } = null!;
 }

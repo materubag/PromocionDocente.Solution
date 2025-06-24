@@ -11,7 +11,6 @@
     <Folder Include="DAC_Models\" />
     <Folder Include="DIDE_Models\" />
     <Folder Include="TTHH_Models\" />
-    <Folder Include="PromocionDocenteModels\" />
   </ItemGroup>
 
   <ItemGroup>

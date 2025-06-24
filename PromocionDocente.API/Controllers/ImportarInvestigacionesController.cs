@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Models.DIDE_Models;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -10,9 +10,9 @@ namespace PromocionDocente.API.Controllers
     public class ImportarInvestigacionesController : ControllerBase
     {
         private readonly DideContext _dideContext;
-        private readonly PromociondocenteContext _localContext;
+        private readonly PromocionDocenteContext _localContext;
 
-        public ImportarInvestigacionesController(DideContext dideContext, PromociondocenteContext localContext)
+        public ImportarInvestigacionesController(DideContext dideContext, PromocionDocenteContext localContext)
         {
             _dideContext = dideContext;
             _localContext = localContext;
@@ -39,7 +39,7 @@ namespace PromocionDocente.API.Controllers
                 if (!yaExiste)
                 {
                     // Crear nuevo objeto usando el modelo LOCAL
-                    var nuevaInvestigacion = new Models.PromocionDocenteModels.Investigacione
+                    var nuevaInvestigacion = new Models.Models.Investigacione
                     {
                         CedDoc = investigacion.CedulaDocente,
                         TituloInvestigacion = investigacion.TituloInvestigacion,

@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class CursosCapacitacion
 {
@@ -16,6 +16,8 @@ public partial class CursosCapacitacion
     public int Horas { get; set; }
 
     public byte[]? PdfCurso { get; set; }
+
+    public string Estado { get; set; } = null!;
 
     public virtual Docente CedDocNavigation { get; set; } = null!;
 }

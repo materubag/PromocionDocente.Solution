@@ -11,12 +11,7 @@
 	<div class="header-container">
 		<div class="header-content">
 			<h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
-			<div class="docente-info">
-				<div class="info-text">
-					<div class="nombre">@docenteInfo.Nombre</div>
-					<div class="cargo">@docenteInfo.Cargo</div>
-				</div>
-			</div>
+
 		</div>
 	</div>
 
@@ -84,7 +79,7 @@
 									<td class="documento">
 										@if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
 										{
-											<button class="btn-documento" @onclick="() => DescargarPDF(evaluacion)" title="Descargar PDF">
+											<button class="btn-documento" @onclick="() => VerPDF(evaluacion)" title="Ver PDF">
 												<span class="documento-icon">📄</span>
 												<span class="documento-text">PDF</span>
 											</button>
@@ -728,18 +723,14 @@
 	// Lógica para editar evaluación
 		}
 
-		private async Task DescargarPDF(EvaluacionInfo evaluacion)
+		private async Task VerPDF(EvaluacionInfo evaluacion)
 		{
 	if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
 	{
-		{
-			// Convertir el PDF en base64 a un Blob y abrirlo
-			string base64String = evaluacion.PdfEvaluacion;
-			base64String = base64String.Replace("\n", "").Replace("\r", "");
-			await JSRuntime.InvokeVoidAsync("abrirPDF", base64String, evaluacion.CedulaDocente);
-		}
+		await JSRuntime.InvokeVoidAsync("window.open", evaluacion.PdfEvaluacion, "_blank");
 	}
 		}
+
 
 		public class EvaluacionInfo
 		{

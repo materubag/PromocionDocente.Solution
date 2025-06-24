@@ -1,14 +1,14 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Domain.Interfaces;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.Repositories.Repositorios
 {
     public class DatoDocenteRepositorio : IDatoDocente
     {
-        private readonly PromociondocenteContext _context;
+        private readonly PromocionDocenteContext _context;
 
-        public DatoDocenteRepositorio(PromociondocenteContext context)
+        public DatoDocenteRepositorio(PromocionDocenteContext context)
         {
             _context = context;
         }

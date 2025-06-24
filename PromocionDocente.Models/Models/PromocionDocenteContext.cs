@@ -2,15 +2,15 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
-public partial class PromociondocenteContext : DbContext
+public partial class PromocionDocenteContext : DbContext
 {
-    public PromociondocenteContext()
+    public PromocionDocenteContext()
     {
     }
 
-    public PromociondocenteContext(DbContextOptions<PromociondocenteContext> options)
+    public PromocionDocenteContext(DbContextOptions<PromocionDocenteContext> options)
         : base(options)
     {
     }
@@ -35,19 +35,19 @@ public partial class PromociondocenteContext : DbContext
 
     public virtual DbSet<Postulacione> Postulaciones { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {}
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Categoria>(entity =>
         {
-            entity.HasKey(e => e.IdCat).HasName("PK__CATEGORI__2BF8FA1CD85EA4FA");
+            entity.HasKey(e => e.IdCat).HasName("PK__CATEGORI__2BF8FA1CB63A28A3");
 
             entity.ToTable("CATEGORIAS");
 
-            entity.HasIndex(e => e.NivCat, "UQ__CATEGORI__BA0852F847397478").IsUnique();
+            entity.HasIndex(e => e.NivCat, "UQ__CATEGORI__BA0852F813CF67AC").IsUnique();
 
-            entity.HasIndex(e => e.NivCat, "UQ__CATEGORI__BA0852F8AA677C6A").IsUnique();
+            entity.HasIndex(e => e.NivCat, "UQ__CATEGORI__BA0852F8EE869B72").IsUnique();
 
             entity.Property(e => e.IdCat)
                 .HasMaxLength(5)
@@ -66,7 +66,7 @@ public partial class PromociondocenteContext : DbContext
 
         modelBuilder.Entity<CursosCapacitacion>(entity =>
         {
-            entity.HasKey(e => e.IdCurso).HasName("PK__CURSOS_C__9B4AE798685D913D");
+            entity.HasKey(e => e.IdCurso).HasName("PK__CURSOS_C__9B4AE79840965E15");
 
             entity.ToTable("CURSOS_CAPACITACION");
 
@@ -75,6 +75,11 @@ public partial class PromociondocenteContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("CED_DOC");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDIENTE")
+                .HasColumnName("ESTADO");
             entity.Property(e => e.FechaCurso).HasColumnName("FECHA_CURSO");
             entity.Property(e => e.Horas).HasColumnName("HORAS");
             entity.Property(e => e.NombreCurso)
@@ -86,12 +91,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.CursosCapacitacions)
                 .HasForeignKey(d => d.CedDoc)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__CURSOS_CA__CED_D__4E88ABD4");
+                .HasConstraintName("FK__CURSOS_CA__CED_D__4CA06362");
         });
 
         modelBuilder.Entity<DetallePostulacion>(entity =>
         {
-            entity.HasKey(e => e.IdDet).HasName("PK__DETALLE___2BBEC4500F4F34D6");
+            entity.HasKey(e => e.IdDet).HasName("PK__DETALLE___2BBEC450BBBEE306");
 
             entity.ToTable("DETALLE_POSTULACION");
 
@@ -120,12 +125,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.IdPosNavigation).WithMany(p => p.DetallePostulacions)
                 .HasForeignKey(d => d.IdPos)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__DETALLE_P__ID_PO__45F365D3");
+                .HasConstraintName("FK__DETALLE_P__ID_PO__4E88ABD4");
         });
 
         modelBuilder.Entity<Docente>(entity =>
         {
-            entity.HasKey(e => e.CedDoc).HasName("PK__DOCENTES__F987F0DCA4BED89D");
+            entity.HasKey(e => e.CedDoc).HasName("PK__DOCENTES__F987F0DCCB0CEA76");
 
             entity.ToTable("DOCENTES");
 
@@ -146,7 +151,6 @@ public partial class PromociondocenteContext : DbContext
                 .IsUnicode(false)
                 .HasDefaultValue("ACTIVO")
                 .HasColumnName("ESTADO_CONTRATO");
-            entity.Property(e => e.FecIng).HasColumnName("FEC_ING");
             entity.Property(e => e.FecNac).HasColumnName("FEC_NAC");
             entity.Property(e => e.FechaContratacion).HasColumnName("FECHA_CONTRATACION");
             entity.Property(e => e.FechaUltimoAscenso).HasColumnName("FECHA_ULTIMO_ASCENSO");
@@ -175,12 +179,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.IdFacNavigation).WithMany(p => p.Docentes)
                 .HasForeignKey(d => d.IdFac)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__DOCENTES__ID_FAC__3A81B327");
+                .HasConstraintName("FK__DOCENTES__ID_FAC__3C69FB99");
         });
 
         modelBuilder.Entity<Evaluacione>(entity =>
         {
-            entity.HasKey(e => e.IdEvaluacion).HasName("PK__EVALUACI__CE9B8DDC9A7D715E");
+            entity.HasKey(e => e.IdEvaluacion).HasName("PK__EVALUACI__CE9B8DDCE62FC4A8");
 
             entity.ToTable("EVALUACIONES");
 
@@ -189,6 +193,11 @@ public partial class PromociondocenteContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("CED_DOC");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDIENTE")
+                .HasColumnName("ESTADO");
             entity.Property(e => e.FechaEvaluacion).HasColumnName("FECHA_EVALUACION");
             entity.Property(e => e.Observaciones)
                 .HasMaxLength(500)
@@ -210,12 +219,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.Evaluaciones)
                 .HasForeignKey(d => d.CedDoc)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__EVALUACIO__CED_D__48CFD27E");
+                .HasConstraintName("FK__EVALUACIO__CED_D__4BAC3F29");
         });
 
         modelBuilder.Entity<Facultade>(entity =>
         {
-            entity.HasKey(e => e.IdFac).HasName("PK__FACULTAD__2B3AB9D878835522");
+            entity.HasKey(e => e.IdFac).HasName("PK__FACULTAD__2B3AB9D83F7F4CD6");
 
             entity.ToTable("FACULTADES");
 
@@ -235,7 +244,7 @@ public partial class PromociondocenteContext : DbContext
 
         modelBuilder.Entity<HistorialDocente>(entity =>
         {
-            entity.HasKey(e => e.IdHis).HasName("PK__HISTORIA__2E8FC4D08C41CD26");
+            entity.HasKey(e => e.IdHis).HasName("PK__HISTORIA__2E8FC4D0EAC51DF5");
 
             entity.ToTable("HISTORIAL_DOCENTE");
 
@@ -244,6 +253,7 @@ public partial class PromociondocenteContext : DbContext
                 .HasMaxLength(10)
                 .IsUnicode(false)
                 .HasColumnName("CED_DOC");
+            entity.Property(e => e.DocumentoPdf).HasColumnName("DOCUMENTO_PDF");
             entity.Property(e => e.FecFin).HasColumnName("FEC_FIN");
             entity.Property(e => e.FecIni).HasColumnName("FEC_INI");
             entity.Property(e => e.IdCat)
@@ -259,12 +269,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.IdCatNavigation).WithMany(p => p.HistorialDocentes)
                 .HasForeignKey(d => d.IdCat)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__HISTORIAL__ID_CA__5535A963");
+                .HasConstraintName("FK__HISTORIAL__ID_CA__5629CD9C");
         });
 
         modelBuilder.Entity<Investigacione>(entity =>
         {
-            entity.HasKey(e => e.IdInvestigacion).HasName("PK__INVESTIG__970DB1BCE8DF0E6E");
+            entity.HasKey(e => e.IdInvestigacion).HasName("PK__INVESTIG__970DB1BCB7ACB509");
 
             entity.ToTable("INVESTIGACIONES");
 
@@ -279,6 +289,11 @@ public partial class PromociondocenteContext : DbContext
                 .IsUnicode(false)
                 .HasColumnName("CED_DOC");
             entity.Property(e => e.DuracionMeses).HasColumnName("DURACION_MESES");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDIENTE")
+                .HasColumnName("ESTADO");
             entity.Property(e => e.FechaFin).HasColumnName("FECHA_FIN");
             entity.Property(e => e.FechaInicio).HasColumnName("FECHA_INICIO");
             entity.Property(e => e.TipoInvestigacion)
@@ -293,12 +308,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.Investigaciones)
                 .HasForeignKey(d => d.CedDoc)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__INVESTIGA__CED_D__5165187F");
+                .HasConstraintName("FK__INVESTIGA__CED_D__5441852A");
         });
 
         modelBuilder.Entity<Obra>(entity =>
         {
-            entity.HasKey(e => e.IdObra).HasName("PK__OBRAS__4D68E95AF160714C");
+            entity.HasKey(e => e.IdObra).HasName("PK__OBRAS__4D68E95A8FA426C8");
 
             entity.ToTable("OBRAS");
 
@@ -315,6 +330,11 @@ public partial class PromociondocenteContext : DbContext
                 .HasMaxLength(300)
                 .IsUnicode(false)
                 .HasColumnName("DOI_URL");
+            entity.Property(e => e.Estado)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasDefaultValue("PENDIENTE")
+                .HasColumnName("ESTADO");
             entity.Property(e => e.FechaPublicacion).HasColumnName("FECHA_PUBLICACION");
             entity.Property(e => e.Observaciones)
                 .HasMaxLength(500)
@@ -333,12 +353,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.Obras)
                 .HasForeignKey(d => d.CedDoc)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__OBRAS__CED_DOC__4BAC3F29");
+                .HasConstraintName("FK__OBRAS__CED_DOC__4E88ABD4");
         });
 
         modelBuilder.Entity<Postulacione>(entity =>
         {
-            entity.HasKey(e => e.IdPos).HasName("PK__POSTULAC__20AFD197AA4DA726");
+            entity.HasKey(e => e.IdPos).HasName("PK__POSTULAC__20AFD19765C366D0");
 
             entity.ToTable("POSTULACIONES");
 
@@ -364,12 +384,12 @@ public partial class PromociondocenteContext : DbContext
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.Postulaciones)
                 .HasForeignKey(d => d.CedDoc)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__POSTULACI__CED_D__412EB0B6");
+                .HasConstraintName("FK__POSTULACI__CED_D__4316F928");
 
             entity.HasOne(d => d.IdCatNavigation).WithMany(p => p.Postulaciones)
                 .HasForeignKey(d => d.IdCat)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__POSTULACI__ID_CA__4222D4EF");
+                .HasConstraintName("FK__POSTULACI__ID_CA__5DCAEF64");
         });
 
         OnModelCreatingPartial(modelBuilder);

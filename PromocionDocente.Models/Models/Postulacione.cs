@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace PromocionDocente.Models.PromocionDocenteModels;
+namespace PromocionDocente.Models.Models;
 
 public partial class Postulacione
 {

@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Infrastructure.Utils;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -13,9 +14,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class CursosCapacitacionsController : ControllerBase
     {
-        private readonly PromociondocenteContext _context;
+        private readonly PromocionDocenteContext _context;
 
-        public CursosCapacitacionsController(PromociondocenteContext context)
+        public CursosCapacitacionsController(PromocionDocenteContext context)
         {
             _context = context;
         }
@@ -42,20 +43,30 @@ namespace PromocionDocente.API.Controllers
         }
 
         [HttpGet("cedula/{cedDoc}")]
-        public async Task<ActionResult<List<CursosCapacitacion>>> GetCursosPorCedula(string cedDoc)
+        public async Task<ActionResult<List<object>>> GetCursosPorCedula(string cedDoc)
         {
-            // Buscar cursos donde la cédula coincida con cedDoc
             var cursos = await _context.CursosCapacitacions
                                        .Where(c => c.CedDoc == cedDoc)
                                        .ToListAsync();
 
             if (cursos == null || cursos.Count == 0)
-            {
                 return NotFound();
-            }
 
-            return cursos;
+            var resultado = cursos.Select(c => new
+            {
+                c.IdCurso,
+                c.CedDoc,
+                c.NombreCurso,
+                c.FechaCurso,
+                c.Horas,
+                PdfCurso = c.PdfCurso != null
+                    ? PdfHelper.GuardarBinarioComoPdf(c.PdfCurso, c.CedDoc, c.NombreCurso, "Cursos")
+                    : ""
+            }).ToList();
+
+            return Ok(resultado);
         }
+
 
         // PUT: api/CursosCapacitacions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

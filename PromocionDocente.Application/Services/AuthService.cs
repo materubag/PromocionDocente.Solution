@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
 using PromocionDocente.Domain.Interfaces;
-using PromocionDocente.Models.PromocionDocenteModels;
 using PromocionDocente.Models.TTHH_Models;
+using PromocionDocente.Models.Models;
+
 
 namespace PromocionDocente.Application.Services
 {
@@ -39,7 +40,6 @@ namespace PromocionDocente.Application.Services
                     Ape1Doc = usuario.Apellido1,
                     Ape2Doc = usuario.Apellido2,
                     TelDoc = usuario.Telefono,
-                    FecIng = null,
                     FecNac = null,
                     IdFac = usuario.Facultad,
                     NivelDocente = empleado?.NivelDocente,

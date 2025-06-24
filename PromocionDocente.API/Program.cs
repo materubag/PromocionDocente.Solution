@@ -8,7 +8,7 @@ using PromocionDocente.Infrastructure.Services;
 using PromocionDocente.Models.DAC_Models;
 using PromocionDocente.Models.DIDE_Models;
 using PromocionDocente.Models.DITIC_Models;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Models.Models;
 using PromocionDocente.Models.TTHH_Models;
 using PromocionDocente.Repositories.Repositorios;
 var builder = WebApplication.CreateBuilder(args);
@@ -41,7 +41,7 @@ builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
 builder.Services.AddScoped<AuthService>();
 
 
-builder.Services.AddDbContext<PromociondocenteContext>(options =>
+builder.Services.AddDbContext<PromocionDocenteContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("PROMOCION_DOCENTE")));
 builder.Services.AddDbContext<TthhContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("TTHH")));
@@ -56,7 +56,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin() // Permitir cualquier origen
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -64,14 +64,14 @@ builder.Services.AddCors(options =>
 builder.Services.AddControllers();
 
 // Swagger
-builder.Services.AddEndpointsApiExplorer(); // Habilita soporte a endpoint para Swagger
-builder.Services.AddSwaggerGen();           // Agrega Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowBlazorClient",
         policy =>
         {
-            policy.WithOrigins("https://localhost:7124") // También puedes probar con http:// si no estás usando https
+            policy.WithOrigins("https://localhost:7124")
                   .AllowAnyMethod()
                   .AllowAnyHeader();
         });
@@ -79,6 +79,7 @@ builder.Services.AddCors(options =>
 
 
 var app = builder.Build();
+app.UseStaticFiles();
 app.UseCors("AllowAll");
 
 // Middleware para Swagger

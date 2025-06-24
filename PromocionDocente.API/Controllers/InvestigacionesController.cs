@@ -5,7 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Models.PromocionDocenteModels;
+using PromocionDocente.Infrastructure.Utils;
+using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -13,9 +14,9 @@ namespace PromocionDocente.API.Controllers
     [ApiController]
     public class InvestigacionesController : ControllerBase
     {
-        private readonly PromociondocenteContext _context;
+        private readonly PromocionDocenteContext _context;
 
-        public InvestigacionesController(PromociondocenteContext context)
+        public InvestigacionesController(PromocionDocenteContext context)
         {
             _context = context;
         }
@@ -43,18 +44,31 @@ namespace PromocionDocente.API.Controllers
 
         // GET: api/Investigaciones/cedula/{cedula}
         [HttpGet("cedula/{cedula}")]
-        public async Task<ActionResult<IEnumerable<Investigacione>>> GetInvestigacionesPorCedula(string cedula)
+        public async Task<ActionResult<IEnumerable<object>>> GetInvestigacionesPorCedula(string cedula)
         {
             var investigaciones = await _context.Investigaciones
                                                 .Where(i => i.CedDoc == cedula)
                                                 .ToListAsync();
 
             if (investigaciones == null || !investigaciones.Any())
-            {
                 return NotFound();
-            }
 
-            return investigaciones;
+            var resultado = investigaciones.Select(i => new
+            {
+                i.IdInvestigacion,
+                i.CedDoc,
+                i.TituloInvestigacion,
+                i.DuracionMeses,
+                i.FechaInicio,
+                i.FechaFin,
+                i.TipoInvestigacion,
+                i.CampoAplicacion,
+                ArchivoPdf = i.ArchivoPdf != null
+                    ? PdfHelper.GuardarBinarioComoPdf(i.ArchivoPdf, i.CedDoc, i.TituloInvestigacion, "Investigaciones")
+                    : ""
+            });
+
+            return Ok(resultado);
         }
 
         // PUT: api/Investigaciones/5

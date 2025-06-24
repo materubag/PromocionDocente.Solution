@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Domain.Entities;
+using PromocionDocente.Infrastructure.Utils;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -23,7 +24,23 @@ namespace PromocionDocente.API.Controllers
                 .Where(e => e.CedulaDocente == cedula)
                 .ToListAsync();
 
-            return Ok(evaluaciones);
+            if (evaluaciones == null || evaluaciones.Count == 0)
+                return NotFound();
+
+            var resultado = evaluaciones.Select(e => new
+            {
+                e.IdEvaluacion,
+                e.FechaEvaluacion,
+                e.Calificacion,
+                e.CedulaDocente,
+                e.TipoEvaluacion,
+                e.PeriodoEvaluacion,
+                PdfEvaluacion = e.PdfEvaluacion != null
+                    ? PdfHelper.GuardarBinarioComoPdf(e.PdfEvaluacion, e.CedulaDocente, $"{e.TipoEvaluacion}_{e.PeriodoEvaluacion}", "Evaluaciones")
+                    : ""
+            }).ToList();
+
+            return Ok(resultado);
         }
     }
 }
