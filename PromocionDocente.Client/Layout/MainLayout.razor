@@ -1,4 +1,5 @@
-﻿@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+﻿@using PromocionDocente.Client.Services
+@inject UserSessionService UserSession
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inherits LayoutComponentBase
@@ -45,6 +46,17 @@
 </div>
 
 @code {
+
+    private async Task Logout()
+    {
+        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de cerrar sesión?");
+        if (confirmado)
+        {
+            await UserSession.EliminarUsuarioAsync();
+            Navigation.NavigateTo("/");
+        }
+    }
+
 	private LoginResponse? usuario;
 
 	protected override async Task OnInitializedAsync()
@@ -69,4 +81,5 @@
 		public string Apellido1 { get; set; } = string.Empty;
 		public string Rol { get; set; } = string.Empty;
 	}
+
 }

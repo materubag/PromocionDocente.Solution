@@ -1,6 +1,9 @@
-﻿using PromocionDocente.Application.DTOs;
+﻿using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Application.DTOs;
 using PromocionDocente.Domain.Interfaces;
+using PromocionDocente.Models.TTHH_Models;
 using PromocionDocente.Models.Models;
+
 
 namespace PromocionDocente.Application.Services
 {
@@ -8,11 +11,13 @@ namespace PromocionDocente.Application.Services
     {
         private readonly IUsuarioRepository _repository;
         private readonly IDatoDocente _dato;
+        private readonly TthhContext _rrhhContext; 
 
-        public AuthService(IUsuarioRepository repository, IDatoDocente dato)
+        public AuthService(IUsuarioRepository repository, IDatoDocente dato, TthhContext rrhhContext)
         {
             _repository = repository;
             _dato = dato;
+            _rrhhContext = rrhhContext;
         }
 
         public async Task<Login_Request?> LoginAsync(Login dto)
@@ -23,6 +28,9 @@ namespace PromocionDocente.Application.Services
             var docenteExiste = await _dato.ExisteDocenteAsync(usuario.Cedula);
             if (!docenteExiste)
             {
+                // Buscar datos adicionales en RRHH usando la cédula
+                var empleado = await _rrhhContext.TthhContratos
+                    .FirstOrDefaultAsync(e => e.CedDoc == usuario.Cedula);
 
                 var log = new Docente
                 {
@@ -34,11 +42,11 @@ namespace PromocionDocente.Application.Services
                     TelDoc = usuario.Telefono,
                     FecNac = null,
                     IdFac = usuario.Facultad,
-                    NivelDocente = null,
-                    FechaContratacion = null,
-                    FechaUltimoAscenso = null,
-                    PdfContrato = null,
-                    EstadoContrato = null
+                    NivelDocente = empleado?.NivelDocente,
+                    FechaContratacion = empleado?.FechaContratacion,
+                    FechaUltimoAscenso = empleado?.FechaUltimoAscenso,
+                    PdfContrato = empleado?.PdfContrato,
+                    EstadoContrato = empleado?.EstadoContrato
                 };
                 await _dato.AddAsync(log);
             }

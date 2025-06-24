@@ -1,4 +1,7 @@
-﻿﻿<Router AppAssembly="@typeof(App).Assembly">
+﻿@using PromocionDocente.Client.Services
+@inject UserSessionService UserSession
+﻿
+<Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
         @if (routeData.PageType == typeof(PromocionDocente.Client.Pages.Login))  // <-- Ajusta el namespace si es distinto
         {
@@ -18,3 +21,10 @@
         </LayoutView>
     </NotFound>
 </Router>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await UserSession.CargarUsuarioAsync();
+    }
+}
