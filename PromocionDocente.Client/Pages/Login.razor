@@ -1,8 +1,10 @@
 ﻿@page "/"
+@using PromocionDocente.Client.Services
 
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject UserSessionService UserSession
 
 <div class="container d-flex justify-content-center align-items-center min-vh-100">
     <div class="card shadow p-4 border-0" style="width: 100%; max-width: 400px; border-radius: 1rem; background-color: rgba(255, 255, 255, 0.95);">
@@ -50,7 +52,6 @@
         </div>
     </div>
 </div>
-
 @code {
     private LoginDTO loginModel = new();
     private string? errorMessage;
@@ -71,8 +72,8 @@
 
                 if (result != null)
                 {
-
                     await LocalStorage.SetItemAsync("usuario", result);
+                    await UserSession.CargarUsuarioAsync();
 
                     successMessage = "¡Inicio de sesión exitoso!";
                     StateHasChanged();
@@ -117,11 +118,7 @@
     {
         public string Cedula { get; set; } = string.Empty;
         public string Nombre1 { get; set; } = string.Empty;
-
         public string Apellido1 { get; set; } = string.Empty;
-
-
-
         public string Rol { get; set; } = string.Empty;
     }
 }
