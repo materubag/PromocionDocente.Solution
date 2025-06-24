@@ -40,7 +40,7 @@ namespace PromocionDocente.Application.Services
                     Ape1Doc = usuario.Apellido1,
                     Ape2Doc = usuario.Apellido2,
                     TelDoc = usuario.Telefono,
-                    FecNac = null,
+                    FecNac =empleado.FechaContratacion,
                     IdFac = usuario.Facultad,
                     NivelDocente = empleado?.NivelDocente,
                     FechaContratacion = empleado?.FechaContratacion,
