@@ -1,4 +1,4 @@
-﻿@using PromocionDocente.Client.Services
+﻿﻿@using PromocionDocente.Client.Services
 @inject UserSessionService UserSession
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
@@ -19,11 +19,11 @@
 				<span class="ms-2 fw-bold">Plataforma Docente</span>
 			</div>
 			<div class="d-flex align-items-center">
-				@if (usuario != null)
+				@if (UserSession.Usuario != null)
 				{
 					<span class="me-3 text-muted">
-						Usuario: <strong>@usuario.Nombre1 @usuario.Apellido1</strong>
-						Rol:<strong> @usuario.Rol</strong>
+						Usuario: <strong>@UserSession.Usuario.Nombre1 @UserSession.Usuario.Apellido1</strong>
+						Rol:<strong> @UserSession.Usuario.Rol</strong>
 					</span>
 				}
 				else
@@ -32,7 +32,7 @@
 						Usuario: <strong>No autenticado</strong>
 					</span>
 				}
-				<button class="btn btn-outline-danger btn-sm" @onclick="Logout">
+				<button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">
 					Cerrar sesión
 				</button>
 			</div>
@@ -47,39 +47,24 @@
 
 @code {
 
-    private async Task Logout()
-    {
-        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de cerrar sesión?");
-        if (confirmado)
-        {
-            await UserSession.EliminarUsuarioAsync();
-            Navigation.NavigateTo("/");
-        }
-    }
-
-	private LoginResponse? usuario;
-
-	protected override async Task OnInitializedAsync()
-	{
-		usuario = await LocalStorage.GetItemAsync<LoginResponse>("usuario");
-	}
-
-	private async Task Logout()
+	private async Task HandleLogout()
 	{
 		var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de cerrar sesión?");
 		if (confirmado)
 		{
-			await LocalStorage.RemoveItemAsync("usuario");
+			await UserSession.EliminarUsuarioAsync();
 			Navigation.NavigateTo("/");
 		}
 	}
 
-	public class LoginResponse
+
+
+	protected override async Task OnInitializedAsync()
 	{
-		public string Cedula { get; set; } = string.Empty;
-		public string Nombre1 { get; set; } = string.Empty;
-		public string Apellido1 { get; set; } = string.Empty;
-		public string Rol { get; set; } = string.Empty;
+		await UserSession.CargarUsuarioAsync();
 	}
 
+
+
+}
 }
