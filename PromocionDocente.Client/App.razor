@@ -1,17 +1,24 @@
-﻿@using PromocionDocente.Client.Services
-@inject UserSessionService UserSession
 ﻿
+@using PromocionDocente.Client.Services
+@inject UserSessionService UserSession
+
 <Router AppAssembly="@typeof(App).Assembly">
     <Found Context="routeData">
-        @if (routeData.PageType == typeof(PromocionDocente.Client.Pages.Login))  // <-- Ajusta el namespace si es distinto
+        @if (routeData.PageType == typeof(PromocionDocente.Client.Pages.Login))
         {
+            <!-- Página de login sin layout -->
             <RouteView RouteData="@routeData" />
+        }
+        else if (IsAdminPage(routeData.RouteValues))
+        {
+            <!-- Páginas de admin con AdminLayout -->
+            <RouteView RouteData="@routeData" DefaultLayout="@typeof(AdminLayout)" />
         }
         else
         {
+            <!-- Páginas normales con MainLayout -->
             <RouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)" />
         }
-
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />
     </Found>
     <NotFound>
@@ -26,5 +33,15 @@
     protected override async Task OnInitializedAsync()
     {
         await UserSession.CargarUsuarioAsync();
+    }
+
+    private bool IsAdminPage(IReadOnlyDictionary<string, object?> routeValues)
+    {
+        // Verifica si la ruta comienza con "admin"
+        if (routeValues.TryGetValue("page", out var page) && page != null)
+        {
+            return page.ToString()?.StartsWith("admin", StringComparison.OrdinalIgnoreCase) == true;
+        }
+        return false;
     }
 }
