@@ -88,7 +88,7 @@ namespace PromocionDocente.Infrastructure.Utils
                 writer.WriteLine();
                 writer.WriteLine("Este documento ha sido generado automáticamente por el " +
                     "Sistema de Promoción Docente.");
-                writer.WriteLine($"Usuario: {usuario}");
+                writer.WriteLine($"Revisor: {usuario}");
 
                 writer.Flush();
 

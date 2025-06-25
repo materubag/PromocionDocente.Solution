@@ -17,5 +17,8 @@ namespace PromocionDocente.Application.DTOs
         public string Estado { get; set; }
 
         public string Observacion { get; set; }
+
+        [Required(ErrorMessage = "El nombre de usuario es obligatorio")]
+        public string Usuario { get; set; }
     }
 }

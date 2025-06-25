@@ -35,7 +35,7 @@ public partial class PromocionDocenteContext : DbContext
 
     public virtual DbSet<Postulacione> Postulaciones { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){ }
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) { }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -100,36 +100,33 @@ public partial class PromocionDocenteContext : DbContext
 
         modelBuilder.Entity<DetallePostulacion>(entity =>
         {
-            entity.HasKey(e => e.IdDet).HasName("PK__DETALLE___2BBEC450BBBEE306");
+            entity.HasKey(e => e.IdDet).HasName("PK__DETALLE___2BBEC450F3BA194D");
 
             entity.ToTable("DETALLE_POSTULACION");
 
             entity.Property(e => e.IdDet).HasColumnName("ID_DET");
-            entity.Property(e => e.Detalle)
+            entity.Property(e => e.Estado)
                 .HasMaxLength(255)
                 .IsUnicode(false)
-                .HasColumnName("DETALLE");
+                .HasColumnName("ESTADO");
             entity.Property(e => e.IdOrigen)
-                .HasMaxLength(10)
+                .HasMaxLength(40)
                 .IsUnicode(false)
                 .HasColumnName("ID_ORIGEN");
             entity.Property(e => e.IdPos).HasColumnName("ID_POS");
-            entity.Property(e => e.Rechazado)
-                .HasDefaultValue(false)
-                .HasColumnName("RECHAZADO");
+            entity.Property(e => e.Observacion)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("OBSERVACION");
             entity.Property(e => e.TablaOrigen)
                 .HasMaxLength(40)
                 .IsUnicode(false)
                 .HasColumnName("TABLA_ORIGEN");
-            entity.Property(e => e.TipoIncumplimiento)
-                .HasMaxLength(30)
-                .IsUnicode(false)
-                .HasColumnName("TIPO_INCUMPLIMIENTO");
 
             entity.HasOne(d => d.IdPosNavigation).WithMany(p => p.DetallePostulacions)
                 .HasForeignKey(d => d.IdPos)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__DETALLE_P__ID_PO__4E88ABD4");
+                .HasConstraintName("FK__DETALLE_P__ID_PO__693CA210");
         });
 
         modelBuilder.Entity<Docente>(entity =>
@@ -397,6 +394,10 @@ public partial class PromocionDocenteContext : DbContext
                 .HasMaxLength(255)
                 .IsUnicode(false)
                 .HasColumnName("OBS_POS");
+            entity.Property(e => e.Revisor)
+                .HasMaxLength(255)
+                .IsUnicode(false)
+                .HasColumnName("REVISOR");
 
             entity.HasOne(d => d.CedDocNavigation).WithMany(p => p.Postulaciones)
                 .HasForeignKey(d => d.CedDoc)

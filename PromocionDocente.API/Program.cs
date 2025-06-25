@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using PromocionDocente.API.Controllers;
 using PromocionDocente.Application.Interfaces;
 using PromocionDocente.Application.Services;
 using PromocionDocente.Domain.Interfaces;

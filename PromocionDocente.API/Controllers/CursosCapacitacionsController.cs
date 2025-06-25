@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.Services;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -102,40 +103,91 @@ namespace PromocionDocente.API.Controllers
         }
 
         [HttpPut("estado/{id}")]
-        public async Task<IActionResult> UpdateEstadoObra(int id, EstadoUpdateDto obraDto)
+        public async Task<IActionResult> UpdateEstadoCurso(int id, EstadoUpdateDto cursoDto)
         {
-            // Buscar la obra existente
-            var CursoExistente = await _context.CursosCapacitacions.FindAsync(id);
+            // 1. Verificar que el curso existe
+            var curso = await _context.CursosCapacitacions
+                .Where(c => c.IdCurso == id)
+                .Select(c => new { c.CedDoc, c.Estado })
+                .FirstOrDefaultAsync();
 
-            if (CursoExistente == null)
+            if (curso == null)
             {
-                return NotFound($"No se encontró la obra con ID {id}");
+                return NotFound($"No se encontró el curso con ID {id}");
             }
 
-            // Actualizar solo los campos ESTADO y OBSERVACION
-            CursoExistente.Estado = obraDto.Estado;
-            CursoExistente.Observacion = obraDto.Observacion;
-
-            try
+            // 2. Verificar si se está intentando actualizar al mismo estado
+            if (curso.Estado == cursoDto.Estado)
             {
-                await _context.SaveChangesAsync();
+                return BadRequest($"El curso ya tiene el estado '{cursoDto.Estado}'. No se realizaron cambios.");
             }
-            catch (DbUpdateConcurrencyException)
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                if (!CursosCapacitacionExists(id))
+                try
                 {
-                    return NotFound();
+                    // 3. Actualizar estado en CURSOS_CAPACITACION
+                    string sqlUpdate = @"
+                UPDATE CURSOS_CAPACITACION 
+                SET ESTADO = @estado, 
+                    OBSERVACION = @observacion 
+                WHERE ID_CURSO = @id";
+
+                    var parametrosUpdate = new[]
+                    {
+                new SqlParameter("@estado", cursoDto.Estado),
+                new SqlParameter("@observacion", (object)cursoDto.Observacion ?? DBNull.Value),
+                new SqlParameter("@id", id)
+            };
+
+                    await _context.Database.ExecuteSqlRawAsync(sqlUpdate, parametrosUpdate);
+
+                    // 4. Registrar en DETALLE_POSTULACION si el estado es APROBADO o RECHAZADO
+                    if (cursoDto.Estado == "APROBADO" || cursoDto.Estado == "RECHAZADO")
+                    {
+                        // Obtener la última postulación del docente
+                        var ultimaPostulacion = await _context.Postulaciones
+                            .Where(p => p.CedDoc == curso.CedDoc)
+                            .OrderByDescending(p => p.FecPos)
+                            .Select(p => p.IdPos)
+                            .FirstOrDefaultAsync();
+
+                        if (ultimaPostulacion == 0)
+                        {
+                            await transaction.RollbackAsync();
+                            return BadRequest($"No se encontró una postulación para el docente con cédula {curso.CedDoc}");
+                        }
+
+                        // Insertar en DETALLE_POSTULACION
+                        string sqlInsert = @"
+                    INSERT INTO DETALLE_POSTULACION 
+                    (ID_POS, OBSERVACION, ESTADO, TABLA_ORIGEN, ID_ORIGEN)
+                    VALUES (@idPos, @observacion, @estado, @tablaOrigen, @idOrigen)";
+
+                        var parametrosInsert = new[]
+                        {
+                    new SqlParameter("@idPos", ultimaPostulacion),
+                    new SqlParameter("@observacion", string.IsNullOrEmpty(cursoDto.Observacion) ? "Sin observaciones" : cursoDto.Observacion),
+                    new SqlParameter("@estado", cursoDto.Estado),
+                    new SqlParameter("@tablaOrigen", "CURSOS_CAPACITACION"),
+                    new SqlParameter("@idOrigen", id.ToString())
+                };
+
+                        await _context.Database.ExecuteSqlRawAsync(sqlInsert, parametrosInsert);
+                    }
+
+                    await transaction.CommitAsync();
+                    return NoContent();
                 }
-                else
+                catch (Exception ex)
                 {
-                    throw;
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
                 }
             }
-
-            return NoContent();
         }
 
-       
+
 
         // POST: api/CursosCapacitacions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754

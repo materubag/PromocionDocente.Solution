@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
 using PromocionDocente.Infrastructure.Utils;
@@ -136,37 +137,88 @@ namespace PromocionDocente.API.Controllers
         }
 
         [HttpPut("estado/{id}")]
-        public async Task<IActionResult> UpdateEstadoObra(int id, EstadoUpdateDto investigacionDto)
+        public async Task<IActionResult> UpdateEstadoInvestigacion(int id, EstadoUpdateDto investigacionDto)
         {
-            // Buscar la obra existente
-            var investigacionExistente = await _context.Investigaciones.FindAsync(id);
+            // 1. Verificar que la investigación existe
+            var investigacion = await _context.Investigaciones
+                .Where(i => i.IdInvestigacion == id)
+                .Select(i => new { i.CedDoc, i.Estado })
+                .FirstOrDefaultAsync();
 
-            if (investigacionExistente == null)
+            if (investigacion == null)
             {
-                return NotFound($"No se encontró la obra con ID {id}");
+                return NotFound($"No se encontró la investigación con ID {id}");
             }
 
-            // Actualizar solo los campos ESTADO y OBSERVACION
-            investigacionExistente.Estado = investigacionDto.Estado;
-            investigacionExistente.Observacion = investigacionDto.Observacion;
-
-            try
+            // 2. Verificar si se está intentando actualizar al mismo estado
+            if (investigacion.Estado == investigacionDto.Estado)
             {
-                await _context.SaveChangesAsync();
+                return BadRequest($"La investigación ya tiene el estado '{investigacionDto.Estado}'. No se realizaron cambios.");
             }
-            catch (DbUpdateConcurrencyException)
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
             {
-                if (!InvestigacioneExists(id))
+                try
                 {
-                    return NotFound();
+                    // 3. Actualizar estado en INVESTIGACIONES
+                    string sqlUpdate = @"
+                UPDATE INVESTIGACIONES 
+                SET ESTADO = @estado, 
+                    OBSERVACION = @observacion 
+                WHERE ID_INVESTIGACION = @id";
+
+                    var parametrosUpdate = new[]
+                    {
+                new SqlParameter("@estado", investigacionDto.Estado),
+                new SqlParameter("@observacion", (object)investigacionDto.Observacion ?? DBNull.Value),
+                new SqlParameter("@id", id)
+            };
+
+                    await _context.Database.ExecuteSqlRawAsync(sqlUpdate, parametrosUpdate);
+
+                    // 4. Registrar en DETALLE_POSTULACION si el estado es APROBADO o RECHAZADO
+                    if (investigacionDto.Estado == "APROBADO" || investigacionDto.Estado == "RECHAZADO")
+                    {
+                        // Obtener la última postulación del docente
+                        var ultimaPostulacion = await _context.Postulaciones
+                            .Where(p => p.CedDoc == investigacion.CedDoc)
+                            .OrderByDescending(p => p.FecPos)
+                            .Select(p => p.IdPos)
+                            .FirstOrDefaultAsync();
+
+                        if (ultimaPostulacion == 0)
+                        {
+                            await transaction.RollbackAsync();
+                            return BadRequest($"No se encontró una postulación para el docente con cédula {investigacion.CedDoc}");
+                        }
+
+                        // Insertar en DETALLE_POSTULACION
+                        string sqlInsert = @"
+                    INSERT INTO DETALLE_POSTULACION 
+                    (ID_POS, OBSERVACION, ESTADO, TABLA_ORIGEN, ID_ORIGEN)
+                    VALUES (@idPos, @observacion, @estado, @tablaOrigen, @idOrigen)";
+
+                        var parametrosInsert = new[]
+                        {
+                    new SqlParameter("@idPos", ultimaPostulacion),
+                    new SqlParameter("@observacion", string.IsNullOrEmpty(investigacionDto.Observacion) ? "Sin observaciones" : investigacionDto.Observacion),
+                    new SqlParameter("@estado", investigacionDto.Estado),
+                    new SqlParameter("@tablaOrigen", "INVESTIGACIONES"),
+                    new SqlParameter("@idOrigen", id.ToString())
+                };
+
+                        await _context.Database.ExecuteSqlRawAsync(sqlInsert, parametrosInsert);
+                    }
+
+                    await transaction.CommitAsync();
+                    return NoContent();
                 }
-                else
+                catch (Exception ex)
                 {
-                    throw;
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
                 }
             }
-
-            return NoContent();
         }
     }
 }
