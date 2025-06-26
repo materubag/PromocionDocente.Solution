@@ -2,7 +2,6 @@
 @using static PromocionDocente.Client.Pages.Docente.CursosCapacitaciones
 @layout DocenteLayout
 @using static System.Net.WebRequestMethods
-@using static PromocionDocente.Client.Pages.Evaluaciones_docente
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 
@@ -68,12 +67,12 @@
 									<td>
 										<input type="checkbox" @bind="evaluacion.Seleccionada" />
 									</td>
-									<td>@evaluacion.PeriodoEvaluacion</td>
+									<td>@evaluacion.PeriodoEvaluado</td>
 									<td>@evaluacion.TipoEvaluacion</td>
 									<td>@evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy")</td>
 									<td class="resultado">
-										<span class="badge-resultado @GetClaseResultado(evaluacion.Calificacion)">
-											@evaluacion.Calificacion.ToString("0.00")
+										<span class="badge-resultado @GetClaseResultado(evaluacion.Resultado)">
+											@evaluacion.Resultado.ToString("0.00")
 										</span>
 									</td>
 									<td class="documento">
@@ -524,7 +523,7 @@
 		mensajeError = string.Empty;
 		try
 		{
-			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluacion/{cedulaUsuario}");
+			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/Evaluaciones/cedula/{cedulaUsuario}");
 		}
 		catch (Exception ex)
 		{
@@ -538,7 +537,7 @@
 		{
 			evaluacionesFiltradas = evaluaciones.Where(e =>
 				string.IsNullOrEmpty(filtroTexto) ||
-				e.PeriodoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+				e.PeriodoEvaluado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
 				e.TipoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
 			).ToList();
 
@@ -659,7 +658,7 @@
 	{
 		await JSRuntime.InvokeVoidAsync("alert",
 			$"Editar Evaluación Seleccionada\n\n" +
-			$"• Periodo: {seleccionada.PeriodoEvaluacion}\n" +
+			$"• Periodo: {seleccionada.PeriodoEvaluado}\n" +
 			$"• Tipo: {seleccionada.TipoEvaluacion}\n" +
 			$"Se abrirá el formulario de edición...");
 
@@ -716,8 +715,8 @@
 		{
 	await JSRuntime.InvokeVoidAsync("alert",
 		$"Editando Evaluación\n\n" +
-		$"• ID: {evaluacion.Id}\n" +
-		$"• Periodo: {evaluacion.PeriodoEvaluacion}\n" +
+		$"• ID: {evaluacion.IdEvaluacion}\n" +
+		$"• Periodo: {evaluacion.PeriodoEvaluado}\n" +
 		$"• Tipo: {evaluacion.TipoEvaluacion}\n" +
 		$"Redirigiendo al formulario de edición...");
 	// Lógica para editar evaluación
@@ -734,13 +733,14 @@
 
 		public class EvaluacionInfo
 		{
-	public int Id { get; set; }
+		public int IdEvaluacion { get; set; }
 	public DateTime FechaEvaluacion { get; set; }
-	public decimal Calificacion { get; set; }
+		public decimal Resultado { get; set; }
 	public string PdfEvaluacion { get; set; }
-	public string PeriodoEvaluacion { get; set; }
-	public string CedulaDocente { get; set; }
+		public string PeriodoEvaluado { get; set; }
+	public string CedDoc { get; set; }
 	public string TipoEvaluacion { get; set; }
+	public string Estado { get; set; }
 	public bool Seleccionada { get; set; }
 		}
 

@@ -104,6 +104,7 @@ namespace PromocionDocente.API.Controllers
             return _context.HistorialDocentes.Any(e => e.IdHis == id);
         }
 
+
         [HttpGet("estadisticas/{cedula}")]
         public async Task<ActionResult<object>> GetEstadisticasDocente(string cedula)
         {

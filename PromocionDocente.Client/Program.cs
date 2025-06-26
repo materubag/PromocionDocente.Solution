@@ -1,4 +1,5 @@
 using Blazored.LocalStorage;
+using Blazored.Toast;
 using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
 using PromocionDocente.Client;
@@ -12,5 +13,6 @@ builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri(builder.
 builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7088/") });
 builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<UserSessionService>();
+builder.Services.AddBlazoredToast();
 
 await builder.Build().RunAsync();

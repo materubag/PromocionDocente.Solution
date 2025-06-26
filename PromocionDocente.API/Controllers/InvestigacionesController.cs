@@ -65,6 +65,7 @@ namespace PromocionDocente.API.Controllers
                 i.FechaFin,
                 i.TipoInvestigacion,
                 i.CampoAplicacion,
+                i.Estado,
                 ArchivoPdf = i.ArchivoPdf != null
                     ? PdfHelper.GuardarBinarioComoPdf(i.ArchivoPdf, i.CedDoc, i.TituloInvestigacion, "Investigaciones")
                     : ""

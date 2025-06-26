@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -72,6 +73,46 @@ namespace PromocionDocente.API.Controllers
             }
 
             return NoContent();
+        }
+
+        [HttpGet("cedula/{cedula}")]
+        public async Task<IActionResult> GetObrasPorCedula(string cedula)
+        {
+            var obras = await _context.Obras
+                .Where(o => o.CedDoc == cedula)
+                .ToListAsync();
+
+            var resultado = obras.Select(o =>
+            {
+                string pdfUrl = null;
+
+                if (o.PdfProduccion != null)
+                {
+                    string rutaRelativa = PdfHelper.GuardarBinarioComoPdf(
+                        o.PdfProduccion,
+                        o.CedDoc,
+                        o.Titulo,
+                        "Obras"
+                    );
+
+                    pdfUrl = rutaRelativa;
+                }
+                return new
+                {
+                    o.IdObra,
+                    o.CedDoc,
+                    o.TipoObra,
+                    o.Titulo,
+                    o.FechaPublicacion,
+                    o.DoiUrl,
+                    o.AreaConocimiento,
+                    o.Observaciones,
+                    o.Estado,
+                    PdfUrl = pdfUrl
+                };
+            });
+
+            return Ok(resultado);
         }
 
         // POST: api/Obras

@@ -3,13 +3,22 @@
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
 @inherits LayoutComponentBase
+@using Blazored.Toast.Configuration
+
+
 
 <div class="page">
 	<!-- Sidebar de navegación -->
 	<div class="sidebar shadow">
 		<NavMenu />
 	</div>
-
+	<BlazoredToasts Position="ToastPosition.BottomRight"
+                Timeout="5"
+                IconType="IconType.FontAwesome"
+                SuccessClass="success-toast"
+                ErrorClass="error-toast"
+                InfoClass="info-toast"
+                WarningClass="warning-toast" />
 	<!-- Contenido principal -->
 	<main>
 		<!-- Barra superior con logo y usuario -->
