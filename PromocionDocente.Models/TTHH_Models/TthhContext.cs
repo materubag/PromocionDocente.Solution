@@ -17,7 +17,9 @@ public partial class TthhContext : DbContext
 
     public virtual DbSet<TthhContrato> TthhContratos { get; set; }
 
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder){}
+
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
