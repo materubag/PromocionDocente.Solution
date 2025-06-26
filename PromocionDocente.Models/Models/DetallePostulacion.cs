@@ -9,11 +9,9 @@ public partial class DetallePostulacion
 
     public int IdPos { get; set; }
 
-    public string TipoIncumplimiento { get; set; } = null!;
+    public string Observacion { get; set; } = null!;
 
-    public string Detalle { get; set; } = null!;
-
-    public bool? Rechazado { get; set; }
+    public string Estado { get; set; } = null!;
 
     public string? TablaOrigen { get; set; }
 

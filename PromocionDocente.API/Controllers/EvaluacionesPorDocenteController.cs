@@ -7,7 +7,7 @@ using PromocionDocente.Infrastructure.Utils;
 namespace PromocionDocente.API.Controllers
 {
     [ApiController]
-    [Route("api/evaluaciones")]
+    [Route("api/evaluacion")]
     public class EvaluacionesPorDocenteController : ControllerBase
     {
         private readonly PromocionDocenteDbContext _context;
@@ -42,5 +42,6 @@ namespace PromocionDocente.API.Controllers
 
             return Ok(resultado);
         }
+
     }
 }

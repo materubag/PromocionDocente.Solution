@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Application.DTOs;
+using PromocionDocente.Infrastructure.Utils;
+using PromocionDocente.Models.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Models.PromocionDocenteModels;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -103,5 +106,92 @@ namespace PromocionDocente.API.Controllers
         {
             return _context.Evaluaciones.Any(e => e.IdEvaluacion == id);
         }
+
+
+        [HttpPut("estado/{id}")]
+        public async Task<IActionResult> UpdateEstadoEvaluacion(int id, EstadoUpdateDto evaluacionDto)
+        {
+            // 1. Verificar que la evaluación existe
+            var evaluacion = await _context.Evaluaciones
+                .Where(e => e.IdEvaluacion == id)
+                .Select(e => new { e.CedDoc, e.Estado })
+                .FirstOrDefaultAsync();
+
+            if (evaluacion == null)
+            {
+                return NotFound($"No se encontró la evaluación con ID {id}");
+            }
+
+            // 2. Verificar si se está intentando actualizar al mismo estado
+            if (evaluacion.Estado == evaluacionDto.Estado)
+            {
+                return BadRequest($"La evaluación ya tiene el estado '{evaluacionDto.Estado}'. No se realizaron cambios.");
+            }
+
+            using (var transaction = await _context.Database.BeginTransactionAsync())
+            {
+                try
+                {
+                    // 3. Actualizar estado en EVALUACIONES
+                    string sqlUpdate = @"
+                UPDATE EVALUACIONES 
+                SET ESTADO = @estado, 
+                    OBSERVACION = @observacion 
+                WHERE ID_EVALUACION = @id";
+
+                    var parametrosUpdate = new[]
+                    {
+                new SqlParameter("@estado", evaluacionDto.Estado),
+                new SqlParameter("@observacion", (object)evaluacionDto.Observacion ?? DBNull.Value),
+                new SqlParameter("@id", id)
+            };
+
+                    await _context.Database.ExecuteSqlRawAsync(sqlUpdate, parametrosUpdate);
+
+                    // 4. Registrar en DETALLE_POSTULACION si el estado es APROBADO o RECHAZADO
+                    if (evaluacionDto.Estado == "APROBADO" || evaluacionDto.Estado == "RECHAZADO")
+                    {
+                        // Obtener la última postulación del docente
+                        var ultimaPostulacion = await _context.Postulaciones
+                            .Where(p => p.CedDoc == evaluacion.CedDoc)
+                            .OrderByDescending(p => p.FecPos)
+                            .Select(p => p.IdPos)
+                            .FirstOrDefaultAsync();
+
+                        if (ultimaPostulacion == 0)
+                        {
+                            await transaction.RollbackAsync();
+                            return BadRequest($"No se encontró una postulación para el docente con cédula {evaluacion.CedDoc}");
+                        }
+
+                        // Insertar en DETALLE_POSTULACION
+                        string sqlInsert = @"
+                    INSERT INTO DETALLE_POSTULACION 
+                    (ID_POS, OBSERVACION, ESTADO, TABLA_ORIGEN, ID_ORIGEN)
+                    VALUES (@idPos, @observacion, @estado, @tablaOrigen, @idOrigen)";
+
+                        var parametrosInsert = new[]
+                        {
+                    new SqlParameter("@idPos", ultimaPostulacion),
+                    new SqlParameter("@observacion", string.IsNullOrEmpty(evaluacionDto.Observacion) ? "Sin observaciones" : evaluacionDto.Observacion),
+                    new SqlParameter("@estado", evaluacionDto.Estado),
+                    new SqlParameter("@tablaOrigen", "EVALUACIONES"),
+                    new SqlParameter("@idOrigen", id.ToString())
+                };
+
+                        await _context.Database.ExecuteSqlRawAsync(sqlInsert, parametrosInsert);
+                    }
+
+                    await transaction.CommitAsync();
+                    return NoContent();
+                }
+                catch (Exception ex)
+                {
+                    await transaction.RollbackAsync();
+                    return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
+                }
+            }
+        }
+
     }
 }

@@ -1,14 +1,17 @@
-﻿﻿@using PromocionDocente.Client.Services  
+
+@using PromocionDocente.Client.Services  
 @inject UserSessionService UserSession  
 @inject NavigationManager Navigation  
 @inject IJSRuntime JS  
 @inherits LayoutComponentBase  
+
 
 <div class="page">  
 	<!-- Sidebar de navegación -->  
 	<div class="sidebar shadow">  
 		<NavMenu />  
 	</div>  
+
 
 	<!-- Contenido principal -->  
 	<main>  
@@ -38,6 +41,7 @@
 			</div>  
 		</div>  
 
+
 		<!-- Área del contenido de la página -->  
 		<article class="content p-4">  
 			@Body  
@@ -46,6 +50,7 @@
 </div>  
 
 @code {
+
 
 	private async Task HandleLogout()  
 	{  
@@ -66,4 +71,8 @@
 
 	
 
+
+
+
+}
 }

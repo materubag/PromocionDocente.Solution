@@ -1,0 +1,203 @@
+﻿@using PromocionDocente.Client.Services
+@inject UserSessionService UserSession
+@inject NavigationManager Navigation
+@namespace PromocionDocente.Client.Layout
+
+<div class="navbar-content">
+    <div class="navbar-left">
+        <button class="menu-toggle" @onclick="ToggleSidebar">
+            <span class="hamburger-icon">☰</span>
+        </button>
+        <h1 class="page-title">Sistema de Promoción Docente</h1>
+    </div>
+
+    <div class="navbar-right">
+        <div class="user-info">
+            <span class="user-name">@GetUserName()</span>
+            <div class="user-menu">
+                <button class="user-menu-button" @onclick="ToggleUserMenu">
+                    <span class="user-avatar">👤</span>
+                    <span class="dropdown-arrow">▼</span>
+                </button>
+
+                @if (showUserMenu)
+                {
+                    <div class="user-dropdown">
+                        <a href="/profile" class="dropdown-item">Mi Perfil</a>
+                        <a href="/settings" class="dropdown-item">Configuración</a>
+                        <div class="dropdown-divider"></div>
+                        <button class="dropdown-item logout-btn" @onclick="Logout">
+                            Cerrar Sesión
+                        </button>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .navbar-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        height: 100%;
+    }
+
+    .navbar-left {
+        display: flex;
+        align-items: center;
+    }
+
+    .menu-toggle {
+        display: none;
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        padding: 8px;
+        margin-right: 16px;
+        color: #64748b;
+    }
+
+    .hamburger-icon {
+        display: block;
+    }
+
+    .page-title {
+        margin: 0;
+        font-size: 1.5rem;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .navbar-right {
+        display: flex;
+        align-items: center;
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        position: relative;
+    }
+
+    .user-name {
+        margin-right: 12px;
+        font-weight: 500;
+        color: #475569;
+    }
+
+    .user-menu {
+        position: relative;
+    }
+
+    .user-menu-button {
+        display: flex;
+        align-items: center;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 8px 12px;
+        border-radius: 6px;
+        transition: background-color 0.2s ease;
+    }
+
+        .user-menu-button:hover {
+            background-color: #f1f5f9;
+        }
+
+    .user-avatar {
+        font-size: 1.2rem;
+        margin-right: 8px;
+    }
+
+    .dropdown-arrow {
+        font-size: 0.8rem;
+        color: #64748b;
+    }
+
+    .user-dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border: 1px solid #e2e8f0;
+        border-radius: 6px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        min-width: 180px;
+        z-index: 1000;
+        margin-top: 4px;
+    }
+
+    .dropdown-item {
+        display: block;
+        width: 100%;
+        padding: 12px 16px;
+        text-decoration: none;
+        color: #475569;
+        background: none;
+        border: none;
+        text-align: left;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+        .dropdown-item:hover {
+            background-color: #f8fafc;
+        }
+
+    .dropdown-divider {
+        height: 1px;
+        background-color: #e2e8f0;
+        margin: 4px 0;
+    }
+
+    .logout-btn {
+        color: #dc2626;
+        font-weight: 500;
+    }
+
+        .logout-btn:hover {
+            background-color: #fef2f2;
+        }
+
+  
+</style>
+
+@code {
+    private bool showUserMenu = false;
+
+    private void ToggleSidebar()
+    {
+        // Implementar lógica para mostrar/ocultar sidebar en móvil
+        // Esto requeriría JavaScript interop para manejar clases CSS
+    }
+
+    private void ToggleUserMenu()
+    {
+        showUserMenu = !showUserMenu;
+    }
+
+    private string GetUserName()
+    {
+        // Obtener el nombre del usuario de la sesión
+        return UserSession.Usuario?.Nombre1 ?? "Usuario";
+    }
+
+    private async Task Logout()
+    {
+        await UserSession.CargarUsuarioAsync();
+        Navigation.NavigateTo("/login");
+    }
+
+    // Cerrar el menú de usuario cuando se hace clic fuera
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Aquí podrías agregar un event listener para cerrar el menú
+        }
+    }
+}
