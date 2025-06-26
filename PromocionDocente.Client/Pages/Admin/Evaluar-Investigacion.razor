@@ -209,7 +209,7 @@
                                                class="form-control"
                                                id="comentarios"
                                                rows="4"
-                                               placeholder="Ingrese sus comentarios sobre el curso..." />
+                                               placeholder="Ingrese sus comentarios sobre el curso..." required />
                             </div>
 
                             <div class="d-grid gap-2">
@@ -1058,6 +1058,12 @@
             if (string.IsNullOrEmpty(evaluacion.DecisionSeleccionada))
             {
                 await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione el estado de la evaluación");
+                return;
+            }
+
+            if (string.IsNullOrEmpty(evaluacion.Comentarios))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Por favor realice un comentario");
                 return;
             }
 
