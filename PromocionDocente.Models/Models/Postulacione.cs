@@ -17,6 +17,8 @@ public partial class Postulacione
 
     public string? ObsPos { get; set; }
 
+    public string? Revisor { get; set; }
+
     public virtual Docente CedDocNavigation { get; set; } = null!;
 
     public virtual ICollection<DetallePostulacion> DetallePostulacions { get; set; } = new List<DetallePostulacion>();

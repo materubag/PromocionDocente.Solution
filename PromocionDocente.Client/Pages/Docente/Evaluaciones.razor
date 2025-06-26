@@ -524,7 +524,7 @@
 		mensajeError = string.Empty;
 		try
 		{
-			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluaciones/{cedulaUsuario}");
+			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluacion/{cedulaUsuario}");
 		}
 		catch (Exception ex)
 		{
