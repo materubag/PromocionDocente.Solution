@@ -9,6 +9,8 @@
     @if (cargando)
     {
         <div class="text-center p-4">
+        <div class="row align-items-center mb-4 border-bottom pb-3">
+            <div class="col-auto">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Cargando...</span>
             </div>
@@ -17,8 +19,6 @@
     }
     else
     {
-        <div class="row align-items-center mb-4 border-bottom pb-3">
-            <div class="col-auto">
                 <button class="btn btn-link text-muted p-0" @onclick="Volver">
                     <i class="fas fa-arrow-left me-2"></i>Volver
                 </button>
@@ -30,137 +30,189 @@
         </div>
 
         <div class="card mb-4">
-    <div class="card-header">
-        <h5 class="mb-0">
-            <i class="fas fa-user me-2"></i>Información General
-        </h5>
-    </div>
-    <div class="card-body">
-        <div class="row">
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label text-muted">Cargo Actual</label>
-                    <p class="mb-0">@infoDocente.CargoActual</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted">Fecha de Solicitud</label>
-                    <p class="mb-0">@infoDocente.FechaSolicitud.ToString("yyyy-MM-dd")</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted">Estado</label>
-                    <p class="mb-0">
-                        <span class="badge @GetClaseBadgeEstadoSolicitud(infoDocente.Estado)">
-                            @infoDocente.Estado
-                        </span>
-                    </p>
-                </div>
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-user me-2"></i>Información General
+                </h5>
             </div>
-            <div class="col-md-6">
-                <div class="mb-3">
-                    <label class="form-label text-muted">Cargo Solicitado</label>
-                    <p class="mb-0">@infoDocente.CargoSolicitado</p>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label text-muted">Tiempo en Proceso</label>
-                    <p class="mb-0">@infoDocente.TiempoEnProceso</p>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Cargo Actual</label>
+                            <p class="mb-0">@infoDocente.CargoActual</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Fecha de Solicitud</label>
+                            <p class="mb-0">@infoDocente.FechaSolicitud.ToString("yyyy-MM-dd")</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Estado</label>
+                            <p class="mb-0">
+                                <span class="badge @GetClaseBadgeEstadoSolicitud(infoDocente.Estado)">
+                                    @infoDocente.Estado
+                                </span>
+                            </p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Cargo Solicitado</label>
+                            <p class="mb-0">@infoDocente.CargoSolicitado</p>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted">Tiempo en Proceso</label>
+                            <p class="mb-0">@infoDocente.TiempoEnProceso</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</div>
 
+        <!-- Tabla de Documentos Adjuntos -->
         <div class="card mb-4">
-            
+            <div class="card-header">
+                <h5 class="mb-0">
+                    <i class="fas fa-file-alt me-2"></i>Documentos adjuntos
+                </h5>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>#</th>
+                                <th>Documento</th>
+                                <th>Estado</th>
+                                <th>Acción</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var documento in Documentos)
+                            {
+                                <tr>
+                                    <td>@documento.Id</td>
+                                    <td>@documento.Nombre</td>
+                                    <td>
+                                        <span class="badge @GetClaseBadgeEstado(documento.Estado)">
+                                            @documento.Estado
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn @GetClaseBotonDocumento(documento.Estado) btn-sm"
+                                                @onclick="() => IrAEvaluacion(documento.Id, documento.Nombre)">
+                                            @GetTextoBotonDocumento(documento.Estado)
+                                        </button>
+                                        @if (documento.Estado == "Pendiente")
+                                        {
+                                            <button class="btn btn-success btn-sm ms-2" @onclick="() => MarcarComoEvaluado(documento)">
+                                                ✓ Marcar Evaluado
+                                            </button>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <!-- Información de debug debajo de la tabla -->
+                <div class="mt-3 p-3 bg-light rounded">
+                    <small class="text-muted">
+                        <strong>Estado de evaluación:</strong><br>
+                        Documentos evaluados: @Documentos.Count(d => d.Estado == "Aprobado" || d.Estado == "Rechazado") de @Documentos.Count<br>
+                        Todos evaluados: @(TodosEvaluados() ? "Sí" : "No")
+                    </small>
+                </div>
+            </div>
         </div>
 
-        <!-- CAMBIO: Mostrar siempre la sección de decisión para debug -->
+        <!-- Sección de decisión final SIEMPRE visible -->
         <div class="card">
             <div class="card-header">
                 <h5 class="mb-0">Tomar Decisión Final</h5>
                 @if (!TodosEvaluados())
                 {
-                    <small class="text-warning">⚠️ Primero debe evaluar todos los documentos</small>
+                    <small class="text-warning">⚠ Primero debe evaluar todos los documentos</small>
                 }
             </div>
-           <div class="card-body">
-    <EditForm Model="@decision" OnValidSubmit="@GuardarDecision">
-        <div class="mb-4">
-            <label class="form-label">Decisión</label>
-            <div class="decision-container">
-                <!-- Opción Aprobar -->
-                <div class="decision-option @(decision.DecisionSeleccionada == "Aprobar" ? "selected" : "")">
-                    <input type="radio"
-                           name="decision-final"
-                           id="aprobar-final"
-                           value="Aprobar"
-                           @onchange="@((args) => CambiarDecisionFinal(args))"
-                           checked="@(decision.DecisionSeleccionada == "Aprobar")" />
-                    <label class="decision-label" for="aprobar-final">
-                        <div class="decision-content">
-                            <i class="fas fa-check-circle text-success me-3"></i>
-                            <div class="decision-text">
-                                <h6 class="mb-1">Aprobar Promoción</h6>
-                                <small class="text-muted">El docente cumple con todos los requisitos</small>
+            <div class="card-body">
+                <EditForm Model="@decision" OnValidSubmit="@GuardarDecision">
+                    <div class="mb-4">
+                        <label class="form-label">Decisión</label>
+                        <div class="decision-container">
+                            <!-- Opción Aprobar -->
+                            <div class="decision-option @(decision.DecisionSeleccionada == "Aprobar" ? "selected" : "")">
+                                <input type="radio"
+                                       name="decision-final"
+                                       id="aprobar-final"
+                                       value="Aprobar"
+                                       @onchange="@((args) => CambiarDecisionFinal(args))"
+                                       checked="@(decision.DecisionSeleccionada == "Aprobar")" />
+                                <label class="decision-label" for="aprobar-final">
+                                    <div class="decision-content">
+                                        <i class="fas fa-check-circle text-success me-3"></i>
+                                        <div class="decision-text">
+                                            <h6 class="mb-1">Aprobar Promoción</h6>
+                                            <small class="text-muted">El docente cumple con todos los requisitos</small>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
-                        </div>
-                    </label>
-                </div>
 
-                <!-- Opción Rechazar -->
-                <div class="decision-option @(decision.DecisionSeleccionada == "Rechazar" ? "selected" : "")">
-                    <input type="radio"
-                           name="decision-final"
-                           id="rechazar-final"
-                           value="Rechazar"
-                           @onchange="@((args) => CambiarDecisionFinal(args))"
-                           checked="@(decision.DecisionSeleccionada == "Rechazar")" />
-                    <label class="decision-label" for="rechazar-final">
-                        <div class="decision-content">
-                            <i class="fas fa-times-circle text-danger me-3"></i>
-                            <div class="decision-text">
-                                <h6 class="mb-1">Rechazar Promoción</h6>
-                                <small class="text-muted">El docente no cumple con los requisitos</small>
+                            <!-- Opción Rechazar -->
+                            <div class="decision-option @(decision.DecisionSeleccionada == "Rechazar" ? "selected" : "")">
+                                <input type="radio"
+                                       name="decision-final"
+                                       id="rechazar-final"
+                                       value="Rechazar"
+                                       @onchange="@((args) => CambiarDecisionFinal(args))"
+                                       checked="@(decision.DecisionSeleccionada == "Rechazar")" />
+                                <label class="decision-label" for="rechazar-final">
+                                    <div class="decision-content">
+                                        <i class="fas fa-times-circle text-danger me-3"></i>
+                                        <div class="decision-text">
+                                            <h6 class="mb-1">Rechazar Promoción</h6>
+                                            <small class="text-muted">El docente no cumple con los requisitos</small>
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
                         </div>
-                    </label>
-                </div>
+                    </div>
+                    <div class="mb-4">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <InputTextArea @bind-Value="decision.Observaciones"
+                                       class="form-control"
+                                       id="observaciones"
+                                       rows="6"
+                                       placeholder="Ingrese sus observaciones sobre la evaluación..." />
+                    </div>
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="loading-dots me-2">●●●</span>
+                                <text>Guardando...</text>
+                            }
+                            else
+                            {
+                                <text>Guardar Decisión</text>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
             </div>
-        </div>
-
-        <div class="mb-4">
-            <label for="observaciones" class="form-label">Observaciones</label>
-            <InputTextArea @bind-Value="decision.Observaciones"
-                          class="form-control"
-                          id="observaciones"
-                          rows="6"
-                          placeholder="Ingrese sus observaciones sobre la evaluación..." />
-        </div>
-
-        <div class="d-grid">
-            <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
-                @if (isLoading)
-                {
-                    <span class="loading-dots me-2">●●●</span>
-                    <text>Guardando...</text>
-                }
-                else
-                {
-                    <text>Guardar Decisión</text>
-                }
-            </button>
-        </div>
-    </EditForm>
-</div>
         </div>
     }
 </div>
+
 
 @code {
     private DecisionModel decision = new();
     private bool isLoading = false;
     private bool cargando = true;
     private string cedulaDocente = "";
-    
+
     // Objeto para almacenar la información del docente
     private DocenteInfoModel infoDocente = new DocenteInfoModel();
 
@@ -170,253 +222,155 @@
         new DocumentoModel { Id = 2, Nombre = "Evaluacion", Estado = "Pendiente" },
         new DocumentoModel { Id = 3, Nombre = "Cursos/Capacitaciones", Estado = "Pendiente" },
         new DocumentoModel { Id = 4, Nombre = "Obras/Papers", Estado = "Pendiente" },
-        new DocumentoModel { Id = 5, Nombre = "Años Docencia", Estado = "Pendiente" }
+        
     };
 
-   protected override async Task OnInitializedAsync()
-{
-    try
-    {
-        cargando = true;
-        StateHasChanged();
-        
-        // Obtener los parámetros de la URL
-        var uri = new Uri(Navigation.Uri);
-        var query = HttpUtility.ParseQueryString(uri.Query);
-        
-        // Verificar si tenemos un código de docente
-        var codigoDocente = query["codigo"];
-        
-        if (!string.IsNullOrEmpty(codigoDocente))
-        {
-            // Cargar datos desde el dashboard
-            await CargarDatosPorCodigo(codigoDocente);
-        }
-        else
-        {
-            // Usar datos de ejemplo si no hay código
-            infoDocente = new DocenteInfoModel
-            {
-                NombreCompleto = "Docente de Ejemplo",
-                Codigo = "0000000000",
-                CargoActual = "Docente Titular 1",
-                CargoSolicitado = "Docente Titular 2",
-                FechaSolicitud = new DateTime(2025, 6, 26),
-                TiempoEnProceso = "0 días"
-            };
-            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se proporcionó código, usando datos de ejemplo");
-        }
-
-        // Cargar el estado de los documentos
-        await CargarEstadoDocumentos();
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error en inicialización: {ex.Message}");
-    }
-    finally
-    {
-        cargando = false;
-        StateHasChanged();
-    }
-}
-
-
-private async Task CargarDatosPorCodigo(string codigo)
-{
-    try
-    {
-        // Hacer la solicitud al API para obtener los datos del dashboard
-        var response = await Http.GetAsync("api/Postulaciones/dashboard");
-        
-        if (response.IsSuccessStatusCode)
-        {
-            var dashboardData = await response.Content.ReadFromJsonAsync<DashboardDataDto>();
-            
-            // Buscar la solicitud por código
-            var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Codigo == codigo);
-            
-            if (solicitud != null)
-            {
-                // Extraer nivel actual y solicitado del campo "nivel"
-                var niveles = ExtraerNiveles(solicitud.Nivel);
-                
-                // Actualizar los datos del docente basados en la solicitud
-                infoDocente = new DocenteInfoModel
-                {
-                    NombreCompleto = solicitud.NombreDocente,
-                    Codigo = solicitud.Codigo,
-                    CargoActual = niveles.NivelActual,
-                    CargoSolicitado = niveles.NivelSolicitado,
-                    FechaSolicitud = solicitud.Fecha,
-                    TiempoEnProceso = solicitud.TiempoEspera,
-                    Estado = solicitud.Estado
-                };
-                
-                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Datos de código {codigo} cargados: {infoDocente.NombreCompleto}");
-            }
-            else
-            {
-                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se encontró solicitud con código: {codigo}");
-                // Mostrar mensaje amigable al usuario
-                await JSRuntime.InvokeVoidAsync("alert", $"No se encontró información para el código: {codigo}");
-            }
-        }
-        else
-        {
-            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error al cargar dashboard: {await response.Content.ReadAsStringAsync()}");
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error al cargar datos por código: {ex.Message}");
-    }
-}
-
-// Método auxiliar para extraer niveles de un string con formato "Nivel X a Nivel Y"
-private (string NivelActual, string NivelSolicitado) ExtraerNiveles(string nivelTexto)
-{
-    if (string.IsNullOrEmpty(nivelTexto))
-        return ("No especificado", "No especificado");
-    
-    // Verificar si contiene "a" para separar niveles
-    if (nivelTexto.Contains(" a "))
-    {
-        var partes = nivelTexto.Split(new[] { " a " }, StringSplitOptions.None);
-        return (partes[0].Trim(), partes[1].Trim());
-    }
-    
-    // Si no tiene el formato esperado, devolver el texto completo como nivel actual
-    // y calcular el siguiente nivel
-    return (nivelTexto, ObtenerNivelSiguiente(nivelTexto));
-}
-
-// Método auxiliar para determinar el siguiente nivel
-private string ObtenerNivelSiguiente(string nivelActual)
-{
-    return nivelActual switch
-    {
-        "Docente Titular 1" => "Docente Titular 2",
-        "Docente Titular 2" => "Docente Titular 3",
-        "Docente Titular 3" => "Docente Titular 4",
-        "Docente Titular 4" => "Docente Titular 5",
-        "Profesor Auxiliar" => "Profesor Agregado",
-        "Profesor Agregado" => "Profesor Principal",
-        _ => "Nivel Superior"
-    };
-}
-
-private async Task CargarDatosPorSolicitudId(int solicitudId)
-{
-    try
-    {
-        // Hacer la solicitud al API para obtener los datos de la solicitud
-        var response = await Http.GetAsync($"api/Postulaciones/{solicitudId}");
-        
-        if (response.IsSuccessStatusCode)
-        {
-            var solicitud = await response.Content.ReadFromJsonAsync<DocenteInfoModel>();
-            if (solicitud != null)
-            {
-                // Actualizar los datos del docente basados en la solicitud
-                infoDocente = new DocenteInfoModel
-                {
-                    NombreCompleto = solicitud.NombreCompleto,
-                    Codigo = solicitud.Codigo, 
-                    CargoActual = solicitud.CargoActual,
-                    CargoSolicitado = ObtenerNivelSiguiente(solicitud.CargoActual),
-                    FechaSolicitud = solicitud.FechaSolicitud,
-                    TiempoEnProceso = solicitud.TiempoEnProceso
-                };
-                
-                // Guardar la cédula para usarla en otras funciones
-                cedulaDocente = solicitud.Codigo;
-                
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"Error al cargar datos por solicitud: {ex.Message}");
-    }
-}
-
-    private async Task CargarInfoDocente(string cedula)
+    protected override async Task OnInitializedAsync()
     {
         try
         {
-            // Hacer la solicitud al API
-            var response = await Http.GetAsync($"api/Docentes/{cedula}/postulacion");
-            
+            cargando = true;
+            StateHasChanged();
+
+            // Obtener los parámetros de la URL
+            var uri = new Uri(Navigation.Uri);
+            var query = HttpUtility.ParseQueryString(uri.Query);
+
+            // Verificar si tenemos un código de docente
+            var codigoDocente = query["codigo"];
+            if (!string.IsNullOrEmpty(codigoDocente))
+            {
+                await CargarDatosPorCodigo(codigoDocente);
+                cedulaDocente = codigoDocente;
+            }
+            else
+            {
+                infoDocente = new DocenteInfoModel
+                {
+                    NombreCompleto = "Docente de Ejemplo",
+                    Codigo = "0000000000",
+                    CargoActual = "Docente Titular 1",
+                    CargoSolicitado = "Docente Titular 2",
+                    FechaSolicitud = new DateTime(2025, 6, 26),
+                    TiempoEnProceso = "0 días"
+                };
+                cedulaDocente = "0000000000";
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se proporcionó código, usando datos de ejemplo");
+            }
+
+            await CargarEstadoDocumentos();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error en inicialización: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task CargarDatosPorCodigo(string codigo)
+    {
+        try
+        {
+            var response = await Http.GetAsync("api/Postulaciones/dashboard");
             if (response.IsSuccessStatusCode)
             {
-                var docente = await response.Content.ReadFromJsonAsync<DocenteInfoModel>();
-                if (docente != null)
+                var dashboardData = await response.Content.ReadFromJsonAsync<DashboardDataDto>();
+                var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Codigo == codigo);
+                if (solicitud != null)
                 {
-                    infoDocente = docente;
-                    Console.WriteLine($"Datos del docente cargados: {infoDocente.NombreCompleto}");
+                    var niveles = ExtraerNiveles(solicitud.Nivel);
+                    infoDocente = new DocenteInfoModel
+                    {
+                        NombreCompleto = solicitud.NombreDocente,
+                        Codigo = solicitud.Codigo,
+                        CargoActual = niveles.NivelActual,
+                        CargoSolicitado = niveles.NivelSolicitado,
+                        FechaSolicitud = solicitud.Fecha,
+                        TiempoEnProceso = solicitud.TiempoEspera,
+                        Estado = solicitud.Estado
+                    };
+                    Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Datos de código {codigo} cargados: {infoDocente.NombreCompleto}");
+                }
+                else
+                {
+                    Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se encontró solicitud con código: {codigo}");
+                    await JSRuntime.InvokeVoidAsync("alert", $"No se encontró información para el código: {codigo}");
                 }
             }
             else
             {
-                // Si falla, usar datos temporales pero con la cédula correcta
-                infoDocente = new DocenteInfoModel
-                {
-                    NombreCompleto = "Docente",
-                    Codigo = cedula,
-                    CargoActual = "Profesor Auxiliar",
-                    CargoSolicitado = "Profesor Agregado",
-                    FechaSolicitud = DateTime.Now.AddDays(-30),
-                    TiempoEnProceso = "30 días"
-                };
-                Console.WriteLine($"Error al cargar datos del docente: {await response.Content.ReadAsStringAsync()}");
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error al cargar dashboard: {await response.Content.ReadAsStringAsync()}");
             }
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error al cargar información del docente: {ex.Message}");
+            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error al cargar datos por código: {ex.Message}");
         }
+    }
+
+    private (string NivelActual, string NivelSolicitado) ExtraerNiveles(string nivelTexto)
+    {
+        if (string.IsNullOrEmpty(nivelTexto))
+            return ("No especificado", "No especificado");
+        if (nivelTexto.Contains(" a "))
+        {
+            var partes = nivelTexto.Split(new[] { " a " }, StringSplitOptions.None);
+            return (partes[0].Trim(), partes[1].Trim());
+        }
+        return (nivelTexto, ObtenerNivelSiguiente(nivelTexto));
+    }
+
+    private string ObtenerNivelSiguiente(string nivelActual)
+    {
+        return nivelActual switch
+        {
+            "Docente Titular 1" => "Docente Titular 2",
+            "Docente Titular 2" => "Docente Titular 3",
+            "Docente Titular 3" => "Docente Titular 4",
+            "Docente Titular 4" => "Docente Titular 5",
+            "Profesor Auxiliar" => "Profesor Agregado",
+            "Profesor Agregado" => "Profesor Principal",
+            _ => "Nivel Superior"
+        };
     }
 
     private async Task CargarEstadoDocumentos()
-{
-    try
     {
-        // Si hay un código, intentar cargar los documentos reales
-        if (!string.IsNullOrEmpty(infoDocente.Codigo))
+        try
         {
-            // Cargar estado desde el API
-            var responseDocumentos = await Http.GetAsync($"api/Docentes/{infoDocente.Codigo}/documentos");
-            
-            if (responseDocumentos.IsSuccessStatusCode)
+            if (!string.IsNullOrEmpty(infoDocente.Codigo))
             {
-                var documentos = await responseDocumentos.Content.ReadFromJsonAsync<List<DocumentoModel>>();
-                if (documentos != null && documentos.Any())
+                var responseDocumentos = await Http.GetAsync($"api/Docentes/{infoDocente.Codigo}/documentos");
+                if (responseDocumentos.IsSuccessStatusCode)
                 {
-                    Documentos = documentos;
-                    return;
+                    var documentos = await responseDocumentos.Content.ReadFromJsonAsync<List<DocumentoModel>>();
+                    if (documentos != null && documentos.Any())
+                    {
+                        Documentos = documentos;
+                        return;
+                    }
+                }
+            }
+            foreach (var documento in Documentos)
+            {
+                var estado = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"documento_{documento.Id}_estado");
+                if (!string.IsNullOrEmpty(estado))
+                {
+                    documento.Estado = estado;
+                    documento.Evaluado = estado != "En Proceso" && estado != "Pendiente";
                 }
             }
         }
-        
-        // Si no hay código o falla la carga, usar localStorage como fallback
-        foreach (var documento in Documentos)
+        catch (Exception)
         {
-            var estado = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"documento_{documento.Id}_estado");
-            if (!string.IsNullOrEmpty(estado))
-            {
-                documento.Estado = estado;
-                documento.Evaluado = estado != "En Proceso" && estado != "Pendiente";
-            }
+            // Puedes agregar logging si lo deseas
         }
-        
     }
-    catch (Exception ex)
-    {
-    }
-}
 
-    // MÉTODO TEMPORAL PARA TESTING
     private async Task MarcarComoEvaluado(DocumentoModel documento)
     {
         documento.Estado = "Aprobado";
@@ -429,11 +383,11 @@ private async Task CargarDatosPorSolicitudId(int solicitudId)
         return Documentos.All(d => d.Estado == "Aprobado" || d.Estado == "Rechazado");
     }
 
-   private void CambiarDecisionFinal(ChangeEventArgs e)
-{
-    decision.DecisionSeleccionada = e.Value?.ToString() ?? "";
-    StateHasChanged();
-}
+    private void CambiarDecisionFinal(ChangeEventArgs e)
+    {
+        decision.DecisionSeleccionada = e.Value?.ToString() ?? "";
+        StateHasChanged();
+    }
 
     private string GetIconoEstado(string estado)
     {
@@ -485,7 +439,6 @@ private async Task CargarDatosPorSolicitudId(int solicitudId)
 
     private void IrAEvaluacion(int documentoId, string nombreDocumento)
     {
-        // Incluir la cédula en la navegación para que la página de evaluación sepa qué docente evaluar
         string ruta = documentoId switch
         {
             1 => $"/evaluar-investigacion?cedula={cedulaDocente}",
@@ -495,7 +448,6 @@ private async Task CargarDatosPorSolicitudId(int solicitudId)
             5 => $"/evaluar-docencia?cedula={cedulaDocente}",
             _ => $"/evaluar-documento/1?cedula={cedulaDocente}"
         };
-
         Navigation.NavigateTo(ruta);
     }
 
@@ -505,98 +457,62 @@ private async Task CargarDatosPorSolicitudId(int solicitudId)
     }
 
     private async Task GuardarDecision()
-{
-    try
     {
-        isLoading = true;
-        StateHasChanged();
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
 
-        if (string.IsNullOrEmpty(decision.DecisionSeleccionada))
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione una decisión");
-            return;
-        }
-        
-        // Crear el DTO para enviar al API
-        var postulacionDto = new PostulacionAprobacionDto
-        {
-            CedulaDocente = infoDocente.Codigo,
-            Estado = decision.DecisionSeleccionada == "Aprobar" ? "APROBADO" : "RECHAZADO",
-            Observacion = decision.Observaciones,
-            Usuario = "materubag" // Usuario hardcodeado como solicitado
-        };
-        
-        
-        // Enviar al API
-        var response = await Http.PutAsJsonAsync("api/Postulaciones/evaluar", postulacionDto);
-        
-        if (response.IsSuccessStatusCode)
-        {
-            var mensajeExito = await response.Content.ReadAsStringAsync();
-            await JSRuntime.InvokeVoidAsync("alert", mensajeExito);
-            
-            // Redirigir al dashboard después de procesar
-            Navigation.NavigateTo("/");
-        }
-        else
-        {
-            var errorMessage = await response.Content.ReadAsStringAsync();
-            await JSRuntime.InvokeVoidAsync("alert", $"Error: {errorMessage}");
-        }
-    }
-    catch (Exception ex)
-    {
-        await JSRuntime.InvokeVoidAsync("alert", $"Error al procesar la solicitud: {ex.Message}");
-    }
-    finally
-    {
-        isLoading = false;
-        StateHasChanged();
-    }
-}
-
-private async Task<string> ObtenerUsuarioActual()
-{
-    try
-    {
-        var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
-        if (!string.IsNullOrEmpty(usuarioJson))
-        {
-            var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
-            if (usuario != null)
+            if (string.IsNullOrEmpty(decision.DecisionSeleccionada))
             {
-                return usuario.Cedula; // O usuario.Nombre1 + " " + usuario.Apellido1 según lo que necesites
+                await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione una decisión");
+                return;
+            }
+
+            var postulacionDto = new PostulacionAprobacionDto
+            {
+                CedulaDocente = infoDocente.Codigo,
+                Estado = decision.DecisionSeleccionada == "Aprobar" ? "APROBADO" : "RECHAZADO",
+                Observacion = decision.Observaciones,
+                Usuario = "materubag" // Usuario hardcodeado como solicitado
+            };
+
+            var response = await Http.PutAsJsonAsync("api/Postulaciones/evaluar", postulacionDto);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var mensajeExito = await response.Content.ReadAsStringAsync();
+                await JSRuntime.InvokeVoidAsync("alert", mensajeExito);
+                Navigation.NavigateTo("/");
+            }
+            else
+            {
+                var errorMessage = await response.Content.ReadAsStringAsync();
+                await JSRuntime.InvokeVoidAsync("alert", $"Error: {errorMessage}");
             }
         }
-        
-        return "materubag"; // Valor por defecto
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"Error al procesar la solicitud: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
-    catch
-    {
-        return "materubag";
-    }
-}
 
-// Clase para deserializar el usuario del localStorage
-public class LoginResponse
-{
-    public string Cedula { get; set; } = "";
-    public string Nombre1 { get; set; } = "";
-    public string Apellido1 { get; set; } = "";
-    public string Rol { get; set; } = "";
-}
-
-    // Clases para datos
+    // --- Clases modelo ---
     public class DocenteInfoModel
-{
-    public string NombreCompleto { get; set; } = "";
-    public string Codigo { get; set; } = "";  
-    public string CargoActual { get; set; } = "";
-    public string CargoSolicitado { get; set; } = "";
-    public DateTime FechaSolicitud { get; set; } = DateTime.Now;
-    public string TiempoEnProceso { get; set; } = "";
-    public string Estado { get; set; } = "REVISION";
-}
+    {
+        public string NombreCompleto { get; set; } = "";
+        public string Codigo { get; set; } = "";
+        public string CargoActual { get; set; } = "";
+        public string CargoSolicitado { get; set; } = "";
+        public DateTime FechaSolicitud { get; set; } = DateTime.Now;
+        public string TiempoEnProceso { get; set; } = "";
+        public string Estado { get; set; } = "REVISION";
+    }
 
     public class DocumentoModel
     {
@@ -612,24 +528,15 @@ public class LoginResponse
         public string Observaciones { get; set; } = "";
     }
 
+    public class LoginResponse
+    {
+        public string Cedula { get; set; } = "";
+        public string Nombre1 { get; set; } = "";
+        public string Apellido1 { get; set; } = "";
+        public string Rol { get; set; } = "";
+    }
 
-private string GetClaseBadgeEstadoSolicitud(string estado)
-{
-    if (string.IsNullOrEmpty(estado)) return "bg-warning-subtle text-warning";
-    
-    if (estado.Contains("PENDIENTE", StringComparison.OrdinalIgnoreCase))
-        return "bg-warning-subtle text-warning";
-    else if (estado.Contains("REVISION", StringComparison.OrdinalIgnoreCase))
-        return "bg-info-subtle text-info";
-    else if (estado.Contains("RECHAZADO", StringComparison.OrdinalIgnoreCase))
-        return "bg-danger-subtle text-danger";
-    else if (estado.Contains("APROBADO", StringComparison.OrdinalIgnoreCase))
-        return "bg-success-subtle text-success";
-    else
-        return "bg-secondary-subtle text-secondary";
-}
-
- public class DashboardDataDto
+    public class DashboardDataDto
     {
         public DashboardEstadisticasDto Estadisticas { get; set; }
         public List<SolicitudDocenteDto> Solicitudes { get; set; } = new List<SolicitudDocenteDto>();
@@ -654,19 +561,26 @@ private string GetClaseBadgeEstadoSolicitud(string estado)
         public string Estado { get; set; }
     }
 
-    public class ValidacionDto
+    public class PostulacionAprobacionDto
     {
+        public string CedulaDocente { get; set; }
+        public string Estado { get; set; }
+        public string Observacion { get; set; }
         public string Usuario { get; set; }
     }
 
-    public class PostulacionAprobacionDto
-{
-    public string CedulaDocente { get; set; }
-
-    public string Estado { get; set; }
-
-    public string Observacion { get; set; }
-
-    public string Usuario { get; set; }
-}
+    private string GetClaseBadgeEstadoSolicitud(string estado)
+    {
+        if (string.IsNullOrEmpty(estado)) return "bg-warning-subtle text-warning";
+        if (estado.Contains("PENDIENTE", StringComparison.OrdinalIgnoreCase))
+            return "bg-warning-subtle text-warning";
+        else if (estado.Contains("REVISION", StringComparison.OrdinalIgnoreCase))
+            return "bg-info-subtle text-info";
+        else if (estado.Contains("RECHAZADO", StringComparison.OrdinalIgnoreCase))
+            return "bg-danger-subtle text-danger";
+        else if (estado.Contains("APROBADO", StringComparison.OrdinalIgnoreCase))
+            return "bg-success-subtle text-success";
+        else
+            return "bg-secondary-subtle text-secondary";
+    }
 }
