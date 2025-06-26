@@ -1,0 +1,131 @@
+﻿@inject IJSRuntime JS
+@inject HttpClient Http
+@using PromocionDocente.Application.DTOs
+@using System.Net.Http.Json
+
+@if (mostrar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <EditForm Model="@investigacionEditada" OnValidSubmit="ActualizarInvestigacion">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Investigación</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Cédula del Docente</label>
+                            <InputText class="form-control" @bind-Value="investigacionEditada.CedulaDocente" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Título de la Investigación</label>
+                            <InputText class="form-control" @bind-Value="investigacionEditada.TituloInvestigacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Duración (meses)</label>
+                            <InputNumber class="form-control" @bind-Value="investigacionEditada.DuracionMeses" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha Inicio</label>
+                            <InputDate class="form-control" @bind-Value="investigacionEditada.FechaInicio" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha Fin</label>
+                            <InputDate class="form-control" @bind-Value="investigacionEditada.FechaFin" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Investigación</label>
+                            <InputText class="form-control" @bind-Value="investigacionEditada.TipoInvestigacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Campo de Aplicación</label>
+                            <InputText class="form-control" @bind-Value="investigacionEditada.CampoAplicacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Estado</label>
+                            <InputText class="form-control" @bind-Value="investigacionEditada.Estado" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Observación (opcional)</label>
+                            <InputTextArea class="form-control" @bind-Value="investigacionEditada.Observacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Reemplazar PDF de la Investigación (opcional)</label>
+                            <InputFile OnChange="OnInputFileChange" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public InvestigacionDto Investigacion { get; set; } = new();
+    [Parameter] public EventCallback OnInvestigacionActualizada { get; set; }
+
+    private InvestigacionDto investigacionEditada = new();
+    private bool mostrar = true;
+
+    protected override void OnInitialized()
+    {
+        investigacionEditada = new InvestigacionDto
+        {
+            IdInvestigacion = Investigacion.IdInvestigacion,
+            CedulaDocente = Investigacion.CedulaDocente,
+            TituloInvestigacion = Investigacion.TituloInvestigacion,
+            DuracionMeses = Investigacion.DuracionMeses,
+            FechaInicio = Investigacion.FechaInicio,
+            FechaFin = Investigacion.FechaFin,
+            TipoInvestigacion = Investigacion.TipoInvestigacion,
+            CampoAplicacion = Investigacion.CampoAplicacion,
+            Estado = Investigacion.Estado,
+            Observacion = Investigacion.Observacion,
+            ArchivoPdf = Investigacion.ArchivoPdf
+        };
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var archivoPdf = e.File;
+        using var stream = archivoPdf.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        investigacionEditada.ArchivoPdf = ms.ToArray();
+    }
+
+    private async Task ActualizarInvestigacion()
+    {
+        var response = await Http.PutAsJsonAsync($"api/investigaciones/{investigacionEditada.IdInvestigacion}", investigacionEditada);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnInvestigacionActualizada.InvokeAsync();
+            mostrar = false;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Error al actualizar la investigación.");
+        }
+    }
+
+    private void CerrarModal() => mostrar = false;
+}

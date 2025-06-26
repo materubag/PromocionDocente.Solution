@@ -110,6 +110,126 @@
     </div>
 </div>
 
+
+<!-- Modal para evaluar -->
+@if (mostrarModal && cursoSeleccionado != null)
+{
+    <div class="modal-overlay" @onclick="CerrarModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@cursoSeleccionado.Nombre</h5>
+                <button class="btn-close" @onclick="CerrarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="documento-viewer">
+                    <div class="pdf-container">
+                        <div class="pdf-placeholder">
+                            <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                            <h4>@cursoSeleccionado.Nombre</h4>
+                            <p class="text-muted">Curso de Capacitación</p>
+
+                            <div class="documento-content">
+                                <h6>Detalles del Curso:</h6>
+                                <p><strong>Nombre:</strong> @cursoSeleccionado.Nombre</p>
+                                <p><strong>Descripción:</strong> @cursoSeleccionado.Descripcion</p>
+                                <p><strong>Fecha de Realización:</strong> @cursoSeleccionado.FechaRealizacion.ToString("dd/MM/yyyy")</p>
+                                <p><strong>Duración:</strong> @cursoSeleccionado.DuracionHoras horas</p>
+                                <p><strong>Institución:</strong> @cursoSeleccionado.Institucion</p>
+                                <p><strong>Estado Actual:</strong> @cursoSeleccionado.Estado</p>
+
+                                @if (cursoSeleccionado.Id == 1)
+                                {
+                                    <div class="mt-3">
+                                        <h6>Contenido del Curso:</h6>
+                                        <ul class="text-start">
+                                            <li>Fundamentos de metodologías activas</li>
+                                            <li>Implementación práctica en el aula</li>
+                                            <li>Evaluación de resultados de aprendizaje</li>
+                                            <li>Casos de estudio y mejores prácticas</li>
+                                        </ul>
+                                    </div>
+                                }
+                                else if (cursoSeleccionado.Id == 2)
+                                {
+                                    <div class="mt-3">
+                                        <h6>Módulos Completados:</h6>
+                                        <ul class="text-start">
+                                            <li>Herramientas digitales para la educación</li>
+                                            <li>Plataformas de aprendizaje virtual</li>
+                                            <li>Gamificación en el aula</li>
+                                            <li>Evaluación digital</li>
+                                        </ul>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mt-3">
+                                        <h6>Competencias Desarrolladas:</h6>
+                                        <p>Desarrollo profesional continuo en el área de especialización académica y pedagógica.</p>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="evaluacion-panel">
+                        <h6>Evaluación del Curso</h6>
+                        <EditForm Model="@evaluacion" OnValidSubmit="@GuardarEvaluacion">
+                            <div class="mb-4">
+                                <label class="form-label">Decisión</label>
+                                <div class="decision-group">
+                                    <!-- CAMBIO: Usar string en lugar de enum -->
+                                    <div class="decision-option aprobar">
+                                        <input type="radio" name="decision" id="aprobado-curso" value="Aprobado" @onchange="@((args) => CambiarDecision(args))" />
+                                        <label class="form-check-label" for="aprobado-curso">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Aprobar Curso</span>
+                                        </label>
+                                    </div>
+                                    <div class="decision-option rechazar">
+                                        <input type="radio" name="decision" id="rechazado-curso" value="Rechazado" @onchange="@((args) => CambiarDecision(args))" />
+                                        <label class="form-check-label" for="rechazado-curso">
+                                            <i class="fas fa-times-circle"></i>
+                                            <span>Rechazar Curso</span>
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="comentarios" class="form-label">Comentarios</label>
+                                <InputTextArea @bind-Value="evaluacion.Comentarios"
+                                               class="form-control"
+                                               id="comentarios"
+                                               rows="4"
+                                               placeholder="Ingrese sus comentarios sobre el curso..." required />
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
+                                    @if (isLoading)
+                                    {
+                                        <span class="spinner-loading me-2"></span>
+                                        <text>Guardando...</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Guardar Evaluación</text>
+                                    }
+                                </button>
+                                <button type="button" class="btn btn-secondary" @onclick="CerrarModal">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
 <style>
     /* Reutiliza el CSS del archivo de obras, pero agrega lo necesario para panel de revisión y badges de estado */
     .obras-container {

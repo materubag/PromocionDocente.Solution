@@ -55,6 +55,7 @@
 							<th class="col-tipo">Tipo Evaluación</th>
 							<th class="col-fecha">Fecha</th>
 							<th class="col-resultado">Resultado</th>
+							<th class="col-estado">Estado</th>
 							<th class="col-documento">Documento</th>
 						</tr>
 					</thead>
@@ -75,6 +76,7 @@
 											@evaluacion.Resultado.ToString("0.00")
 										</span>
 									</td>
+
 									<td class="documento">
 										@if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
 										{
