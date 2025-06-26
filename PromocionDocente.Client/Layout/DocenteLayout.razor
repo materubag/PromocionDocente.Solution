@@ -1,6 +1,7 @@
-﻿﻿@* Components/Layout/DocenteLayout.razor *@
-@inherits LayoutComponentBase
+﻿@inherits LayoutComponentBase
 @inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
 
 <div class="docente-layout">
     <nav class="sidebar">
@@ -14,12 +15,6 @@
         </div>
 
         <ul class="nav-menu">
-            @*<li class="nav-item">
-                <a href="/docente/dashboard" class="nav-link @GetActiveClass("/docente/dashboard")">
-                    <span class="nav-icon">🏠</span>
-                    Dashboard
-                </a>
-            </li>*@
             <li class="nav-item">
                 <a href="/docente/criterios" class="nav-link @GetActiveClass("/docente/criterios")">
                     <span class="nav-icon">📋</span>
@@ -27,32 +22,30 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/docente/obras" class="nav-link @GetActiveClass("/docente/obras")">
+                <a href="/docente/obras" class="nav-link @GetActiveClass("/docente/obras") @(hayRechazosObras ? "tiene-rechazos" : "")">
                     <span class="nav-icon">📄</span>
                     Obras/Papers
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/docente/evaluaciones" class="nav-link @GetActiveClass("/docente/evaluaciones")">
+                <a href="/docente/evaluaciones" class="nav-link @GetActiveClass("/docente/evaluaciones") @(hayRechazosEvaluaciones ? "tiene-rechazos" : "")">
                     <span class="nav-icon">📊</span>
                     Evaluaciones
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/docente/capacitaciones" class="nav-link @GetActiveClass("/docente/capacitaciones")">
+                <a href="/docente/capacitaciones" class="nav-link @GetActiveClass("/docente/capacitaciones") @(hayRechazosCapacitaciones ? "tiene-rechazos" : "")">
                     <span class="nav-icon">📚</span>
                     Cursos/Capacitaciones
                 </a>
             </li>
             <li class="nav-item">
-                <a href="/docente/investigaciones" class="nav-link @GetActiveClass("/docente/investigaciones")">
+                <a href="/docente/investigaciones" class="nav-link @GetActiveClass("/docente/investigaciones") @(hayRechazosInvestigaciones ? "tiene-rechazos" : "")">
                     <span class="nav-icon">🔍</span>
                     Investigaciones
                 </a>
             </li>
-
         </ul>
-
     </nav>
 
     <main class="main-content">
@@ -60,17 +53,66 @@
     </main>
 </div>
 
+<style>
+    /* Estilo para elementos con rechazos */
+    .tiene-rechazos {
+        color: #FFB900 !important;
+        font-weight: bold;
+        border-right: 3px solid #FFB900;
+    }
+</style>
 
 @code {
+    private bool hayRechazosObras = false;
+    private bool hayRechazosEvaluaciones = false;
+    private bool hayRechazosCapacitaciones = false;
+    private bool hayRechazosInvestigaciones = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerificarRechazos();
+    }
+
+    private async Task VerificarRechazos()
+    {
+        try
+        {
+            // Obtener cédula desde localStorage
+            var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+            if (string.IsNullOrEmpty(usuarioJson))
+                return;
+
+            var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+            var cedula = usuario?.Cedula;
+            if (string.IsNullOrEmpty(cedula))
+                return;
+
+            // Verificar si hay rechazos
+            var respuesta = await Http.GetAsync($"api/DetallePostulacions/rechazados/{cedula}");
+            if (respuesta.IsSuccessStatusCode)
+            {
+                var rechazos = await respuesta.Content.ReadFromJsonAsync<RechazosInfo>();
+                if (rechazos != null)
+                {
+                    // Alertas específicas por categoría
+                    hayRechazosObras = rechazos.ObrasRechazadas?.Count > 0;
+                    hayRechazosEvaluaciones = rechazos.EvaluacionesRechazadas?.Count > 0;
+                    hayRechazosCapacitaciones = rechazos.CursosRechazados?.Count > 0;
+                    hayRechazosInvestigaciones = rechazos.InvestigacionesRechazadas?.Count > 0;
+
+                    Console.WriteLine($"[2025-06-26 05:30:16] Usuario: materubag, Alertas cargadas");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al verificar rechazos: {ex.Message}");
+        }
+    }
+
     private string GetActiveClass(string path)
     {
         return Navigation.Uri.Contains(path) ? "active" : "";
-    }
-
-    private void Logout()
-    {
-        // Implementar lógica de logout
-        Navigation.NavigateTo("/");
     }
 
     private void GoToHome()
@@ -78,4 +120,18 @@
         Navigation.NavigateTo("/home");
     }
 
+    // Clases mínimas necesarias
+    private class LoginResponse
+    {
+        public string Cedula { get; set; }
+    }
+
+    private class RechazosInfo
+    {
+        public int TotalRechazados { get; set; }
+        public List<object> ObrasRechazadas { get; set; } = new();
+        public List<object> EvaluacionesRechazadas { get; set; } = new();
+        public List<object> CursosRechazados { get; set; } = new();
+        public List<object> InvestigacionesRechazadas { get; set; } = new();
+    }
 }

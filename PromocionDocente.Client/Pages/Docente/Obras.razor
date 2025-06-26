@@ -595,7 +595,7 @@
 		try
 		{
 			// Llamada a la API para obtener las obras filtradas por cédula
-			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/obras/{cedulaUsuario}");
+			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/Obras/cedula/{cedulaUsuario}");
 			FiltrarObras(); // Filtra las obras obtenidas
 		}
 		catch (Exception ex)
@@ -775,7 +775,8 @@
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
 		public string? PdfUrl { get; set; }
-
+        public string? CedDoc { get; set; }
+        public string? Estado { get; set; }
 		public bool Seleccionada { get; set; }
 
 		// Método para verificar si tiene PDF

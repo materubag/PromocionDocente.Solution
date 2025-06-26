@@ -5,423 +5,734 @@
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
 
-<div class="evaluacion-container">
-	<!-- Header -->
-	<div class="header-container">
-		<div class="header-content">
-			<h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
-
-		</div>
-	</div>
-
-	<div class="criterios-grid">
-		<!-- Número de Obras -->
-		<div class="criterio-card">
-			<div class="criterio-header">
-				<h3>Número de Obras</h3>
-				<span class="criterio-valor">@(datosEvaluacion?.NumerodeObras ?? 0)/@RequisitosP1.NumeroObras</span>
-			</div>
-			<div class="progress-bar">
-				<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.NumerodeObras ?? 0, RequisitosP1.NumeroObras))%"></div>
-			</div>
-		</div>
-
-		<!-- Investigación -->
-		<div class="criterio-card">
-			<div class="criterio-header">
-				<h3>Investigación (meses)</h3>
-				<span class="criterio-valor">@(datosEvaluacion?.HorasdeInvestigacion ?? 0)/@RequisitosP1.MesesInvestigacion</span>
-			</div>
-			<div class="progress-bar">
-				<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.HorasdeInvestigacion ?? 0, RequisitosP1.MesesInvestigacion))%"></div>
-			</div>
-		</div>
-
-		<!-- Promedio de Evaluación -->
-		<div class="criterio-card">
-			<div class="criterio-header">
-				<h3>Promedio Evaluación</h3>
-				<span class="criterio-valor">
-					@(datosEvaluacion != null ? datosEvaluacion.PromediodeEvaluacion.ToString("0") : "0")
-					<div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.PromediodeEvaluacion ?? 0, RequisitosP1.PromedioEvaluacion))%"></div>
-				</span>
-			</div>
-		</div>
-
-		<!-- Cursos de Capacitación -->
-		<div class="criterio-card">
-			<div class="criterio-header">
-				<h3>Cursos Capacitación(horas)</h3>
-				<span class="criterio-valor">@(datosEvaluacion?.CursosdeCapacitacion ?? 0)/@RequisitosP1.HorasCapacitacion</span>
-			</div>
-			<div class="progress-bar">
-				<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.CursosdeCapacitacion ?? 0, RequisitosP1.HorasCapacitacion))%"></div>
-			</div>
-		</div>
-
-		<!-- Años de Docencia -->
-		<div class="criterio-card">
-			<div class="criterio-header">
-				<h3>Años de Docencia</h3>
-				<span class="criterio-valor">@(datosEvaluacion?.AniosdeDocencia ?? 0)/@RequisitosP1.AniosDocencia</span>
-			</div>
-			<div class="progress-bar">
-				<div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.AniosdeDocencia ?? 0, RequisitosP1.AniosDocencia))%"></div>
-			</div>
-		</div>
-	</div>
-
-	<!-- Slider de Progreso General -->
-	<div class="progreso-container">
-		<h3>Progreso hacia @nivelObjetivo</h3>
-		<div class="slider-container">
-			<input type="range" min="0" max="100" value="@progresoGeneral" class="slider" id="progresoSlider" disabled />
-			<div class="slider-labels">
-				<span>0%</span>
-				<span>50%</span>
-				<span>100%</span>
-			</div>
-			<div class="progreso-texto">
-				@if (progresoGeneral >= 100)
-				{
-					<span class="completo">¡Cumples con todos los requisitos para @nivelObjetivo!</span>
-				}
-				else
-				{
-					<span>Te faltan @(100 - progresoGeneral)% para cumplir con los requisitos de @nivelObjetivo</span>
-				}
-			</div>
-		</div>
-	</div>
+<!-- Header siempre visible -->
+<div class="header-container">
+    <div class="header-content">
+        <h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+    </div>
 </div>
 
+@if (!tienePostulacionRechazada)
+{
+    <!-- Contenedor de evaluación normal -->
+    <div class="evaluacion-container">
+        @if (hayRechazosDisponibles)
+        {
+            <div class="notificacion-rechazos">
+                <div class="notificacion-contenido">
+                    <div class="notificacion-icono">⚠️</div>
+                    <div class="notificacion-texto">Tienes @(solicitudesRechazadas?.TotalRechazados ?? 0) solicitudes rechazadas</div>
+                    <button class="btn-ver-rechazos" @onclick="VerRechazos">
+                        Ver detalles
+                    </button>
+                </div>
+            </div>
+        }
+
+        <div class="criterios-grid">
+            <!-- Número de Obras -->
+            <div class="criterio-card">
+                <div class="criterio-header">
+                    <h3>Número de Obras</h3>
+                    <span class="criterio-valor">@(datosEvaluacion?.NumerodeObras ?? 0)/@RequisitosP1.NumeroObras</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.NumerodeObras ?? 0, RequisitosP1.NumeroObras))%"></div>
+                </div>
+            </div>
+
+            <!-- Investigación -->
+            <div class="criterio-card">
+                <div class="criterio-header">
+                    <h3>Investigación (meses)</h3>
+                    <span class="criterio-valor">@(datosEvaluacion?.HorasdeInvestigacion ?? 0)/@RequisitosP1.MesesInvestigacion</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.HorasdeInvestigacion ?? 0, RequisitosP1.MesesInvestigacion))%"></div>
+                </div>
+            </div>
+
+            <!-- Promedio de Evaluación -->
+            <div class="criterio-card">
+                <div class="criterio-header">
+                    <h3>Promedio Evaluación</h3>
+                    <span class="criterio-valor">
+                        @(datosEvaluacion != null ? datosEvaluacion.PromediodeEvaluacion.ToString("0") : "0")
+                        <div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.PromediodeEvaluacion ?? 0, RequisitosP1.PromedioEvaluacion))%"></div>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Cursos de Capacitación -->
+            <div class="criterio-card">
+                <div class="criterio-header">
+                    <h3>Cursos Capacitación(horas)</h3>
+                    <span class="criterio-valor">@(datosEvaluacion?.CursosdeCapacitacion ?? 0)/@RequisitosP1.HorasCapacitacion</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.CursosdeCapacitacion ?? 0, RequisitosP1.HorasCapacitacion))%"></div>
+                </div>
+            </div>
+
+            <!-- Años de Docencia -->
+            <div class="criterio-card">
+                <div class="criterio-header">
+                    <h3>Años de Docencia</h3>
+                    <span class="criterio-valor">@(datosEvaluacion?.AniosdeDocencia ?? 0)/@RequisitosP1.AniosDocencia</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.AniosdeDocencia ?? 0, RequisitosP1.AniosDocencia))%"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slider de Progreso General -->
+        <div class="progreso-container">
+            <h3>Progreso hacia @nivelObjetivo</h3>
+            <div class="slider-container">
+                <input type="range" min="0" max="100" value="@progresoGeneral" class="slider" id="progresoSlider" disabled />
+                <div class="slider-labels">
+                    <span>0%</span>
+                    <span>50%</span>
+                    <span>100%</span>
+                </div>
+                <div class="progreso-texto">
+                    @if (progresoGeneral >= 100)
+                    {
+                        <span class="completo">¡Cumples con todos los requisitos para @nivelObjetivo!</span>
+                    }
+                    else
+                    {
+                        <span>Te faltan @(100 - progresoGeneral)% para cumplir con los requisitos de @nivelObjetivo</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <!-- Contenedor de postulaciones rechazadas -->
+    <div class="rechazados-container">
+        <div class="rechazados-header">
+            <h3>Postulación Rechazada</h3>
+            <span class="fecha-rechazado">@solicitudesRechazadas.FechaGeneracion</span>
+        </div>
+        <div class="rechazados-contenido">
+            <div class="rechazados-info">
+                <p><strong>Revisado por:</strong> @solicitudesRechazadas.UsuarioGeneracion</p>
+                <p><strong>Total de elementos rechazados:</strong> @solicitudesRechazadas.TotalRechazados</p>
+            </div>
+
+            @if (solicitudesRechazadas.ObrasRechazadas.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Obras Rechazadas (@solicitudesRechazadas.ObrasRechazadas.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var obra in solicitudesRechazadas.ObrasRechazadas)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@obra.Titulo</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Tipo: @obra.TipoObra</span>
+                                    <span>Fecha: @obra.FechaPublicacion.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@obra.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (solicitudesRechazadas.InvestigacionesRechazadas.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Investigaciones Rechazadas (@solicitudesRechazadas.InvestigacionesRechazadas.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var inv in solicitudesRechazadas.InvestigacionesRechazadas)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@inv.TituloInvestigacion</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Periodo: @inv.FechaInicio.ToString("dd/MM/yyyy") - @inv.FechaFin.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@inv.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (solicitudesRechazadas.CursosRechazados.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Cursos Rechazados (@solicitudesRechazadas.CursosRechazados.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var curso in solicitudesRechazadas.CursosRechazados)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@curso.NombreCurso</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Fecha: @curso.FechaCurso.ToString("dd/MM/yyyy")</span>
+                                    <span>Horas: @curso.Horas</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@curso.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (solicitudesRechazadas.EvaluacionesRechazadas.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Evaluaciones Rechazadas (@solicitudesRechazadas.EvaluacionesRechazadas.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var eval in solicitudesRechazadas.EvaluacionesRechazadas)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@eval.TipoEvaluacion</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Periodo: @eval.PeriodoEvaluado</span>
+                                    <span>Resultado: @eval.Resultado.ToString("F2")</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@eval.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="boton-regresar">
+                <button class="btn-regresar" @onclick="VerCriterios">
+                    Regresar a Criterios
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
 <style>
-	.evaluacion-container {
-		min-height: 100vh;
-		background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
-		;
-		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	}
+    /* Estilos para el header */
+    .header-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+    }
 
-	.header-container {
-		background: rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-		padding: 1rem 2rem;
-	}
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
-	.header-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
 
-	.titulo-principal {
-		color: white;
-		font-size: 2rem;
-		font-weight: 300;
-		margin: 0;
-	}
+    /* Estilos para la notificación de rechazos */
+    .notificacion-rechazos {
+        background: #fff8e1;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #ffc107;
+    }
 
-	.docente-info {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		background: rgba(255, 255, 255, 0.1);
-		padding: 0.5rem 1rem;
-		border-radius: 50px;
-		backdrop-filter: blur(10px);
-	}
+    .notificacion-contenido {
+        display: flex;
+        align-items: center;
+        padding: 1rem;
+    }
 
-	.avatar {
-		width: 40px;
-		height: 40px;
-		border-radius: 50%;
-		overflow: hidden;
-		background: #4A90E2;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-	}
+    .notificacion-icono {
+        font-size: 1.5rem;
+        margin-right: 1rem;
+    }
 
-		.avatar img {
-			width: 100%;
-			height: 100%;
-			object-fit: cover;
-		}
+    .notificacion-texto {
+        flex-grow: 1;
+        font-weight: 500;
+    }
 
-	.info-text {
-		color: white;
-	}
+    .btn-ver-rechazos {
+        background: #ffc107;
+        color: #333;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
 
-	.nombre {
-		font-weight: 600;
-		font-size: 0.9rem;
-	}
+        .btn-ver-rechazos:hover {
+            background: #ffb300;
+        }
 
-	.cargo {
-		font-size: 0.8rem;
-		opacity: 0.8;
-	}
+    /* Estilos para el contenedor de evaluación */
+    .evaluacion-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 2rem;
+        min-height: 100vh;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
 
+    .criterios-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
 
-	.evaluacion-container {
-		max-width: 1000px;
-		margin: 2rem auto;
-		padding: 2rem;
-	}
+    .criterio-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
 
-	.evaluacion-header {
-		text-align: center;
-		margin-bottom: 3rem;
-	}
+    .criterio-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
 
-		.evaluacion-header h1 {
-			color: #2c3e50;
-			font-size: 2.2rem;
-			margin-bottom: 0.5rem;
-		}
+        .criterio-header h3 {
+            color: #2c3e50;
+            font-size: 1.2rem;
+            margin: 0;
+        }
 
-		.evaluacion-header p {
-			color: #7f8c8d;
-			font-size: 1.1rem;
-		}
+    .criterio-valor {
+        color: #0D47A1;
+        font-weight: 600;
+    }
 
-	.criterios-grid {
-		display: grid;
-		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-		gap: 1.5rem;
-		margin-bottom: 3rem;
-	}
+    .progress-bar {
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+    }
 
-	.criterio-card {
-		background: white;
-		border-radius: 8px;
-		padding: 1.5rem;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-	}
+    .progress-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #0D47A1, #42A5F5);
+        border-radius: 5px;
+        transition: width 0.5s ease;
+    }
 
-	.criterio-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-	}
+    .progreso-container {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
 
-		.criterio-header h3 {
-			color: #2c3e50;
-			font-size: 1.2rem;
-			margin: 0;
-		}
+        .progreso-container h3 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
 
-	.criterio-valor {
-		color: #0D47A1;
-		font-weight: 600;
-	}
+    .slider-container {
+        max-width: 800px;
+        margin: 0 auto;
+    }
 
-	.progress-bar {
-		height: 10px;
-		background: #e0e0e0;
-		border-radius: 5px;
-		overflow: hidden;
-	}
+    .slider {
+        -webkit-appearance: none;
+        width: 100%;
+        height: 15px;
+        border-radius: 7px;
+        background: #e0e0e0;
+        outline: none;
+        margin-bottom: 0.5rem;
+    }
 
-	.progress-fill {
-		height: 100%;
-		background: linear-gradient(90deg, #0D47A1, #42A5F5);
-		border-radius: 5px;
-		transition: width 0.5s ease;
-	}
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #0D47A1;
+            cursor: pointer;
+        }
 
-	.progreso-container {
-		background: white;
-		border-radius: 8px;
-		padding: 2rem;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-	}
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #4CAF50;
+            cursor: pointer;
+        }
 
-		.progreso-container h3 {
-			color: #2c3e50;
-			text-align: center;
-			margin-bottom: 1.5rem;
-		}
+    .slider-labels {
+        display: flex;
+        justify-content: space-between;
+        color: #7f8c8d;
+        font-size: 0.9rem;
+    }
 
-	.slider-container {
-		max-width: 800px;
-		margin: 0 auto;
-	}
+    .progreso-texto {
+        text-align: center;
+        margin-top: 1.5rem;
+        font-size: 1.1rem;
+    }
 
-	.slider {
-		-webkit-appearance: none;
-		width: 100%;
-		height: 15px;
-		border-radius: 7px;
-		background: #e0e0e0;
-		outline: none;
-		margin-bottom: 0.5rem;
-	}
+    .completo {
+        color: #0D47A1;
+        font-weight: 600;
+    }
 
-		.slider::-webkit-slider-thumb {
-			-webkit-appearance: none;
-			appearance: none;
-			width: 25px;
-			height: 25px;
-			border-radius: 50%;
-			background: #0D47A1;
-			cursor: pointer;
-		}
+    /* Estilos para el contenedor de rechazados */
+    .rechazados-container {
+        max-width: 1000px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+        border-left: 5px solid #e53935;
+    }
 
-		.slider::-moz-range-thumb {
-			width: 25px;
-			height: 25px;
-			border-radius: 50%;
-			background: #4CAF50;
-			cursor: pointer;
-		}
+    .rechazados-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #e0e0e0;
+        padding-bottom: 1rem;
+        margin-bottom: 1.5rem;
+    }
 
-	.slider-labels {
-		display: flex;
-		justify-content: space-between;
-		color: #7f8c8d;
-		font-size: 0.9rem;
-	}
+        .rechazados-header h3 {
+            color: #e53935;
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
 
-	.progreso-texto {
-		text-align: center;
-		margin-top: 1.5rem;
-		font-size: 1.1rem;
-	}
+    .fecha-rechazado {
+        color: #757575;
+        font-size: 0.9rem;
+    }
 
-	.completo {
-		color: #0D47A1;
-		font-weight: 600;
-	}
+    .rechazados-info {
+        background: #ffebee;
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1.5rem;
+    }
+
+        .rechazados-info p {
+            margin: 0.5rem 0;
+            color: #333;
+        }
+
+    .seccion-rechazados {
+        margin-bottom: 1.5rem;
+    }
+
+        .seccion-rechazados h4 {
+            color: #333;
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+            padding-left: 0.5rem;
+            border-left: 3px solid #e53935;
+        }
+
+    .lista-rechazados {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .item-rechazado {
+        background: #f5f5f5;
+        border-radius: 4px;
+        padding: 1rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-rechazado-titulo {
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 0.5rem;
+    }
+
+    .item-rechazado-detalle {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 1.5rem;
+        color: #757575;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+
+    /* Estilos mejorados para observaciones */
+    .observacion-container {
+        background: #ffebee;
+        border-radius: 4px;
+        padding: 0.8rem;
+        margin-top: 0.8rem;
+        border-left: 3px solid #e53935;
+    }
+
+    .observacion-titulo {
+        font-weight: 600;
+        color: #e53935;
+        margin-bottom: 0.5rem;
+    }
+
+    .observacion-texto {
+        color: #333;
+    }
+
+    .boton-regresar {
+        display: flex;
+        justify-content: center;
+        margin-top: 2rem;
+    }
+
+    .btn-regresar {
+        background-color: #0D47A1;
+        color: white;
+        border: none;
+        padding: 0.8rem 2rem;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+
+        .btn-regresar:hover {
+            background-color: #0a3d8f;
+        }
 </style>
 
 @code {
-	private DatosEvaluacion datosEvaluacion;
-	private int progresoGeneral = 0;
-	private string nivelObjetivo = "DT2";
-	private DocenteInfo docenteInfo;
+    private DatosEvaluacion datosEvaluacion;
+    private int progresoGeneral = 0;
+    private string nivelObjetivo = "DT2";
+    private DocenteInfo docenteInfo;
+    private SolicitudesRechazadas solicitudesRechazadas;
+    private bool tienePostulacionRechazada = false;
+    private bool hayRechazosDisponibles = false;
 
-	private static class RequisitosP1
-	{
-		public static int NumeroObras = 1;
-		public static int MesesInvestigacion = 0;
-		public static decimal PromedioEvaluacion = 100.0m;
-		public static int HorasCapacitacion = 96;
-		public static decimal AniosDocencia = 4.0m;
-	}
+    private static class RequisitosP1
+    {
+        public static int NumeroObras = 1;
+        public static int MesesInvestigacion = 0;
+        public static decimal PromedioEvaluacion = 100.0m;
+        public static int HorasCapacitacion = 96;
+        public static decimal AniosDocencia = 4.0m;
+    }
 
+    protected override async Task OnInitializedAsync()
+    {
+        docenteInfo = new DocenteInfo
+        {
+            Nombre = "Nombre del Docente",
+            Cargo = "Cargo del Docente"
+        };
 
+        try
+        {
+            // Leer cédula desde localStorage
+            var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+            string cedulaUsuario = "";
 
-	protected override async Task OnInitializedAsync()
-	{
-		docenteInfo = new DocenteInfo
-			{
-				Nombre = "Nombre del Docente",
-				Cargo = "Cargo del Docente"
-			};
+            if (!string.IsNullOrEmpty(usuarioJson))
+            {
+                var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+                cedulaUsuario = usuario?.Cedula ?? "";
+            }
 
-		try
-		{
-			// Leer cédula desde localStorage
-			var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
-			string cedulaUsuario = "";
+            if (string.IsNullOrEmpty(cedulaUsuario))
+            {
+                Console.WriteLine("No se encontró la cédula del usuario en localStorage.");
+                datosEvaluacion = new DatosEvaluacion(); // valores vacíos o default
+            }
+            else
+            {
+                datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
 
-			if (!string.IsNullOrEmpty(usuarioJson))
-			{
-				var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
-				cedulaUsuario = usuario?.Cedula ?? "";
-			}
+                // Cargar datos de postulaciones rechazadas
+                try
+                {
+                    solicitudesRechazadas = await Http.GetFromJsonAsync<SolicitudesRechazadas>($"api/DetallePostulacions/rechazados/{cedulaUsuario}");
 
-			if (string.IsNullOrEmpty(cedulaUsuario))
-			{
-				Console.WriteLine("No se encontró la cédula del usuario en localStorage.");
-				datosEvaluacion = new DatosEvaluacion(); // valores vacíos o default
-			}
-			else
-			{
-				datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
-			}
-		}
-		catch (Exception ex)
-		{
-			Console.WriteLine("Error al cargar datos: " + ex.Message);
-			datosEvaluacion = new DatosEvaluacion(); // valores vacíos
-		}
-		finally
-		{
-			progresoGeneral = CalcularProgresoGeneral();
-		}
-	}
+                    // Verificar si hay postulaciones rechazadas
+                    hayRechazosDisponibles = solicitudesRechazadas != null && solicitudesRechazadas.TotalRechazados > 0;
 
-	// Clase para deserializar localStorage.usuario
-	public class LoginResponse
-	{
-		public string Cedula { get; set; } = "";
-		public string Nombre1 { get; set; } = "";
-		public string Apellido1 { get; set; } = "";
-		public string Rol { get; set; } = "";
-	}
+                    // Por defecto, mostrar la vista de rechazos primero si hay alguno
+                    tienePostulacionRechazada = hayRechazosDisponibles;
 
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al cargar postulaciones rechazadas: {ex.Message}");
+                    hayRechazosDisponibles = false;
+                    tienePostulacionRechazada = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine("Error al cargar datos: " + ex.Message);
+            datosEvaluacion = new DatosEvaluacion(); // valores vacíos
+        }
+        finally
+        {
+            progresoGeneral = CalcularProgresoGeneral();
+        }
+    }
 
+    private void VerCriterios()
+    {
+        tienePostulacionRechazada = false;
+    }
 
+    private void VerRechazos()
+    {
+        tienePostulacionRechazada = true;
+    }
 
-	private int CalcularProgresoGeneral()
-	{
-		var porcentajes = new List<int>
-	{
-		GetPorcentaje(datosEvaluacion.NumerodeObras, RequisitosP1.NumeroObras),
-		GetPorcentaje(datosEvaluacion.HorasdeInvestigacion, RequisitosP1.MesesInvestigacion),
-		GetPorcentajeDecimal(datosEvaluacion.PromediodeEvaluacion, RequisitosP1.PromedioEvaluacion),
-		GetPorcentaje(datosEvaluacion.CursosdeCapacitacion, RequisitosP1.HorasCapacitacion),
-		GetPorcentajeDecimal(datosEvaluacion.AniosdeDocencia, RequisitosP1.AniosDocencia)
-	};
+    private int CalcularProgresoGeneral()
+    {
+        var porcentajes = new List<int>
+        {
+            GetPorcentaje(datosEvaluacion.NumerodeObras, RequisitosP1.NumeroObras),
+            GetPorcentaje(datosEvaluacion.HorasdeInvestigacion, RequisitosP1.MesesInvestigacion),
+            GetPorcentajeDecimal(datosEvaluacion.PromediodeEvaluacion, RequisitosP1.PromedioEvaluacion),
+            GetPorcentaje(datosEvaluacion.CursosdeCapacitacion, RequisitosP1.HorasCapacitacion),
+            GetPorcentajeDecimal(datosEvaluacion.AniosdeDocencia, RequisitosP1.AniosDocencia)
+        };
 
-		return (int)porcentajes.Average();
-	}
+        return (int)porcentajes.Average();
+    }
 
-	private int GetPorcentaje(int valorActual, int valorRequerido)
-	{
-		if (valorRequerido == 0) return 100;
-		return Math.Min(100, (valorActual * 100) / valorRequerido);
-	}
+    private int GetPorcentaje(int valorActual, int valorRequerido)
+    {
+        if (valorRequerido == 0) return 100;
+        return Math.Min(100, (valorActual * 100) / valorRequerido);
+    }
 
-	private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
-	{
-		if (valorRequerido == 0) return 100;
-		return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
-	}
+    private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
+    {
+        if (valorRequerido == 0) return 100;
+        return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
+    }
 
-	public class DatosEvaluacion
-	{
-		[JsonPropertyName("fechaBase")]
-		public string FechaBase { get; set; }
+    public class DatosEvaluacion
+    {
+        [JsonPropertyName("fechaBase")]
+        public string FechaBase { get; set; }
 
-		[JsonPropertyName("totalObras")]
-		public int NumerodeObras { get; set; }
+        [JsonPropertyName("totalObras")]
+        public int NumerodeObras { get; set; }
 
-		[JsonPropertyName("mesesInvestigacion")]
-		public int HorasdeInvestigacion { get; set; }
+        [JsonPropertyName("mesesInvestigacion")]
+        public int HorasdeInvestigacion { get; set; }
 
-		[JsonPropertyName("promedioEvaluacion")]
-		public decimal PromediodeEvaluacion { get; set; }
+        [JsonPropertyName("promedioEvaluacion")]
+        public decimal PromediodeEvaluacion { get; set; }
 
-		[JsonPropertyName("horasCursos")]
-		public int CursosdeCapacitacion { get; set; }
+        [JsonPropertyName("horasCursos")]
+        public int CursosdeCapacitacion { get; set; }
 
-		[JsonPropertyName("aniosServicio")]
-		public decimal AniosdeDocencia { get; set; }
-	}
+        [JsonPropertyName("aniosServicio")]
+        public decimal AniosdeDocencia { get; set; }
+    }
 
-	private class DocenteInfo
-	{
-		public string Nombre { get; set; }
-		public string Cargo { get; set; }
-	}
+    private class DocenteInfo
+    {
+        public string Nombre { get; set; }
+        public string Cargo { get; set; }
+    }
+
+    // Clase para deserializar localStorage.usuario
+    public class LoginResponse
+    {
+        public string Cedula { get; set; } = "";
+        public string Nombre1 { get; set; } = "";
+        public string Apellido1 { get; set; } = "";
+        public string Rol { get; set; } = "";
+    }
+
+    // Clases para las solicitudes rechazadas
+    public class SolicitudesRechazadas
+    {
+        public string CedulaDocente { get; set; }
+        public string NombreDocente { get; set; }
+        public string CategoriaActual { get; set; }
+        public string UltimaFechaHistorial { get; set; }
+        public List<ObraRechazada> ObrasRechazadas { get; set; } = new List<ObraRechazada>();
+        public List<InvestigacionRechazada> InvestigacionesRechazadas { get; set; } = new List<InvestigacionRechazada>();
+        public List<CursoRechazado> CursosRechazados { get; set; } = new List<CursoRechazado>();
+        public List<EvaluacionRechazada> EvaluacionesRechazadas { get; set; } = new List<EvaluacionRechazada>();
+        public int TotalRechazados { get; set; }
+        public string FechaGeneracion { get; set; }
+        public string UsuarioGeneracion { get; set; }
+    }
+
+    public class ObraRechazada
+    {
+        public int IdObra { get; set; }
+        public string Titulo { get; set; }
+        public string TipoObra { get; set; }
+        public DateTime FechaPublicacion { get; set; }
+        public string Observacion { get; set; }
+    }
+
+    public class InvestigacionRechazada
+    {
+        public int IdInvestigacion { get; set; }
+        public string TituloInvestigacion { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public string Observacion { get; set; }
+    }
+
+    public class CursoRechazado
+    {
+        public int IdCurso { get; set; }
+        public string NombreCurso { get; set; }
+        public DateTime FechaCurso { get; set; }
+        public int Horas { get; set; }
+        public string Observacion { get; set; }
+    }
+
+    public class EvaluacionRechazada
+    {
+        public int IdEvaluacion { get; set; }
+        public string TipoEvaluacion { get; set; }
+        public string PeriodoEvaluado { get; set; }
+        public decimal Resultado { get; set; }
+        public string Observacion { get; set; }
+    }
 }
-
-
