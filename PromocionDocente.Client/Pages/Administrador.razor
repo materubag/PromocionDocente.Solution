@@ -1,9 +1,268 @@
 ﻿@page "/administrador"
-@layout Administradorlayout
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
 
-<h3>Administrador</h3>
-<p>holaaaaaaa</p>
+<div class="container-fluid">
+
+    <div class="row align-items-center mb-4 border-bottom pb-3">
+        <div class="col-auto">
+            <button class="btn btn-link text-muted p-0" @onclick="Volver">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </button>
+        </div>
+        <div class="col">
+            <h2 class="mb-1">Evaluación de Promoción Docente</h2>
+            <p class="text-muted mb-0">Dr. María González - 099234678</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-user me-2"></i>Información General
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Cargo Actual</label>
+                        <p class="mb-0">@CargoActual</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Fecha de Solicitud</label>
+                        <p class="mb-0">@FechaSolicitud.ToString("yyyy-MM-dd")</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Cargo Solicitado</label>
+                        <p class="mb-0">@CargoSolicitado</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Tiempo en Proceso</label>
+                        <p class="mb-0">@TiempoEnProceso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="mb-0">
+                <i class="fas fa-file-alt me-2"></i>Documentos adjuntos
+            </h5>
+            @foreach (var documento in Documentos)
+            {
+                <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-alt @(documento.Estado == "Completo" ? "text-success" : "text-warning") me-3"></i>
+                        <div>
+                            <h6 class="mb-1">@documento.Nombre</h6>
+                            <span class="badge @(documento.Estado == "Completo" ? "bg-success-subtle text-success" : "bg-warning-subtle text-warning")">
+                                @documento.Estado
+                            </span>
+                        </div>
+                    </div>
+                    <button class="btn @(documento.Estado == "Completo" ? "btn-outline-success" : "btn-primary") btn-sm"
+                            @onclick="() => IrAEvaluacion(documento.Id, documento.Nombre)">
+                        @(documento.Estado == "Completo" ? "Ver Evaluación" : "Ir a Evaluar")
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+
+    @if (TodosEvaluados())
+    {
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Tomar Decisión Final</h5>
+            </div>
+            <div class="card-body">
+                <EditForm Model="@decision" OnValidSubmit="@GuardarDecision">
+                    <div class="mb-4">
+                        <label class="form-label">Decisión</label>
+                        <div class="d-grid gap-2">
+                            <InputRadioGroup @bind-Value="decision.TipoDecision" class="form-check-group">
+                                <div class="form-check p-3 border rounded">
+                                    <InputRadio Value="TipoDecision.Aprobar" class="form-check-input" id="aprobar" />
+                                    <label class="form-check-label w-100" for="aprobar">
+                                        <i class="fas fa-check-circle text-success me-2"></i>
+                                        Aprobar Promoción
+                                    </label>
+                                </div>
+                                <div class="form-check p-3 border rounded">
+                                    <InputRadio Value="TipoDecision.Rechazar" class="form-check-input" id="rechazar" />
+                                    <label class="form-check-label w-100" for="rechazar">
+                                        <i class="fas fa-times-circle text-danger me-2"></i>
+                                        Rechazar Promoción
+                                    </label>
+                                </div>
+                            </InputRadioGroup>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <InputTextArea @bind-Value="decision.Observaciones"
+                                       class="form-control"
+                                       id="observaciones"
+                                       rows="6"
+                                       placeholder="Ingrese sus observaciones sobre la evaluación..." />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
+                            @if (isLoading)
+                            {
+                                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                                <text>Guardando...</text>
+                            }
+                            else
+                            {
+                                <text>Guardar Decisión</text>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    }
+</div>
 
 @code {
+    private DecisionModel decision = new();
+    private bool isLoading = false;
 
+    private string CargoActual = "Profesor Auxiliar";
+    private string CargoSolicitado = "Profesor Agregado";
+    private DateTime FechaSolicitud = new DateTime(2024, 12, 15);
+    private string TiempoEnProceso = "183 días";
+
+    private List<DocumentoModel> Documentos = new()
+    {
+        new DocumentoModel { Id = 1, Nombre = "Investigacion", Estado = "Pendiente" },
+        new DocumentoModel { Id = 2, Nombre = "Evaluacion", Estado = "Pendiente" },
+        new DocumentoModel { Id = 3, Nombre = "Cursos/Capacitaciones", Estado = "Pendiente" },
+        new DocumentoModel { Id = 4, Nombre = "Obras/Papers", Estado = "Pendiente" },
+        new DocumentoModel { Id = 5, Nombre = "Años Docencia", Estado = "Pendiente" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEstadoDocumentos();
+    }
+
+    private async Task CargarEstadoDocumentos()
+    {
+        try
+        {
+            foreach (var documento in Documentos)
+            {
+                var estado = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"documento_{documento.Id}_estado");
+                if (!string.IsNullOrEmpty(estado))
+                {
+                    documento.Estado = estado;
+                    documento.Evaluado = estado == "Completo";
+                }
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando estado de documentos: {ex.Message}");
+        }
+    }
+
+    private bool TodosEvaluados()
+    {
+        return Documentos.All(d => d.Estado == "Completo");
+    }
+
+    private void IrAEvaluacion(int documentoId, string nombreDocumento)
+    {
+        string ruta = documentoId switch
+        {
+            1 => "/evaluar-investigacion", // Investigacion
+            2 => "/evaluar-evaluacion",    // Evaluacion  
+            3 => "/evaluar-cursos",        // Cursos/Capacitaciones
+            4 => "/evaluar-obras",         // Obras/Papers
+            5 => "/evaluar-docencia",      // Años Docencia
+          
+        };
+        
+        Navigation.NavigateTo(ruta);
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task GuardarDecision()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            if (decision.TipoDecision == default(TipoDecision))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione una decisión");
+                return;
+            }
+
+            await Task.Delay(2000);
+
+            var decisionData = new
+            {
+                TipoDecision = decision.TipoDecision.ToString(),
+                Observaciones = decision.Observaciones ?? "",
+                Fecha = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                Usuario = "Cuadrado1224",
+                Docente = "Dr. María González",
+                CargoActual = CargoActual,
+                CargoSolicitado = CargoSolicitado
+            };
+
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "ultima_decision",
+                System.Text.Json.JsonSerializer.Serialize(decisionData));
+
+            await JSRuntime.InvokeVoidAsync("alert", "✅ Decisión guardada exitosamente");
+            decision = new DecisionModel();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error al guardar la decisión: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    public class DocumentoModel
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Estado { get; set; } = "Pendiente";
+        public bool Evaluado { get; set; } = false;
+    }
+
+    public class DecisionModel
+    {
+        public TipoDecision TipoDecision { get; set; }
+        public string Observaciones { get; set; } = "";
+    }
+
+    public enum TipoDecision
+    {
+        Aprobar,
+        Rechazar
+    }
 }
