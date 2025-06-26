@@ -19,12 +19,22 @@ namespace PromocionDocente.Infrastructure.Services
 
         public async Task<bool> AgregarArchivoAsync(ArchivoDTO dto)
         {
+            if (dto.ContenidoArchivo is null || dto.ContenidoArchivo.Length == 0)
+                return false;
+
+            var nombreArchivo = $"{Guid.NewGuid()}_{dto.Titulo}.pdf";
+            var rutaAbsoluta = Path.Combine(_env.WebRootPath, "archivos", nombreArchivo);
+            var rutaRelativa = $"/archivos/{nombreArchivo}";
+
+            // Guarda el PDF
+            await File.WriteAllBytesAsync(rutaAbsoluta, dto.ContenidoArchivo);
+
             var archivo = new ArchivoDocente
             {
                 Titulo = dto.Titulo,
                 Encargado = dto.Encargado,
                 Fecha = dto.Fecha,
-                RutaArchivo = dto.RutaArchivo
+                RutaArchivo = rutaRelativa
             };
 
             _context.ArchivosDocente.Add(archivo);

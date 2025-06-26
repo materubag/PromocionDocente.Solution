@@ -63,12 +63,11 @@ else
     {
         if (archivoSubido is not null)
         {
-            var nombre = $"{Guid.NewGuid()}_{archivoSubido.Name}";
-            archivo!.RutaArchivo = $"/archivos/{nombre}";
-
-            var rutaCompleta = Path.Combine("wwwroot/archivos", nombre); // Este path puede variar según si usas WebAssembly o no
-            using var stream = new FileStream(rutaCompleta, FileMode.Create);
+            using var stream = new MemoryStream();
             await archivoSubido.OpenReadStream().CopyToAsync(stream);
+            archivo!.ContenidoArchivo = stream.ToArray();
+
+            archivo.RutaArchivo = $"archivos/{Guid.NewGuid()}_{archivoSubido.Name}";
         }
 
         var exito = await ArchivoService.ActualizarArchivoAsync(id, archivo!);
@@ -76,4 +75,5 @@ else
         if (exito)
             mensajeExito = "El archivo fue actualizado correctamente.";
     }
+
 }

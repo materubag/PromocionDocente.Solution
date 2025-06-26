@@ -52,8 +52,11 @@
         if (archivoSubido is null)
             return;
 
-        var nombreArchivo = $"{Guid.NewGuid()}_{archivoSubido.Name}";
-        archivo.RutaArchivo = $"/archivos/{nombreArchivo}";
+        using var stream = new MemoryStream();
+        await archivoSubido.OpenReadStream().CopyToAsync(stream);
+        archivo.ContenidoArchivo = stream.ToArray();
+
+        archivo.RutaArchivo = $"archivos/{Guid.NewGuid()}_{archivoSubido.Name}";
 
         var exito = await ArchivoService.AgregarArchivoAsync(archivo);
 
