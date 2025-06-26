@@ -9,11 +9,11 @@
             <button class="btn-volver" @onclick="Volver">
                 <i class="fas fa-arrow-left me-2"></i>Volver
             </button>
-            <h1 class="titulo-principal">Evaluación de Investigación</h1>
+            <h1 class="titulo-principal">Cursos y Capacitaciones</h1>
             <div class="docente-info">
                 <div class="info-text">
                     <div class="nombre">Dr. María González</div>
-                    <div class="cargo">Investigación - Evaluación en Proceso</div>
+                    <div class="cargo">Cursos/Capacitaciones - Evaluación en Proceso</div>
                 </div>
             </div>
         </div>
@@ -23,7 +23,7 @@
         <div class="tabla-container">
             <div class="toolbar">
                 <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Buscar proyectos..." @bind="filtroTexto" @oninput="FiltrarProyectos" />
+                    <input type="text" class="search-input" placeholder="Buscar cursos..." @bind="filtroTexto" @oninput="FiltrarCursos" />
                     <span class="search-icon">🔍</span>
                 </div>
                 <div class="action-buttons">
@@ -45,52 +45,52 @@
                             <th class="col-checkbox">
                                 <input type="checkbox" @onchange="SeleccionarTodos" />
                             </th>
-                            <th class="col-tipo">Proyecto</th>
+                            <th class="col-tipo">Curso/Capacitación</th>
                             <th class="col-estado">Estado</th>
-                            <th class="col-fecha">Fecha Inicio</th>
+                            <th class="col-fecha">Fecha Realización</th>
                             <th class="col-evaluador">Duración</th>
                             <th class="col-documento">Ver PDF</th>
                             <th class="col-accion">Evaluar</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (proyectosFiltrados != null && proyectosFiltrados.Any())
+                        @if (cursosFiltrados != null && cursosFiltrados.Any())
                         {
-                            @foreach (var proyecto in proyectosFiltrados)
+                            @foreach (var curso in cursosFiltrados)
                             {
-                                <tr class="@(proyecto.Seleccionado ? "selected" : "") @(proyecto.Estado == "Completo" ? "completed" : "pending")">
+                                <tr class="@(curso.Seleccionado ? "selected" : "") @GetClaseFilaEstado(curso.Estado)">
                                     <td>
-                                        <input type="checkbox" @bind="proyecto.Seleccionado" />
+                                        <input type="checkbox" @bind="curso.Seleccionado" />
                                     </td>
                                     <td>
                                         <div class="documento-info">
-                                            <i class="fas fa-flask @(proyecto.Estado == "Completo" ? "text-success" : "text-warning") me-2"></i>
+                                            <i class="fas fa-graduation-cap @GetIconoEstado(curso.Estado) me-2"></i>
                                             <div class="titulo-info">
-                                                <span class="titulo-texto">@proyecto.Nombre</span>
-                                                <small class="observaciones">@proyecto.Descripcion</small>
+                                                <span class="titulo-texto">@curso.Nombre</span>
+                                                <small class="observaciones">@curso.Descripcion</small>
                                             </div>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge-estado @(proyecto.Estado == "Completo" ? "estado-completo" : "estado-pendiente")">
-                                            @proyecto.Estado
+                                        <span class="badge-estado @GetClaseBadgeEstado(curso.Estado)">
+                                            @curso.Estado
                                         </span>
                                     </td>
-                                    <td>@proyecto.FechaInicio.ToString("dd/MM/yyyy")</td>
+                                    <td>@curso.FechaRealizacion.ToString("dd/MM/yyyy")</td>
                                     <td>
-                                        <span class="area-badge">@proyecto.Duracion meses</span>
+                                        <span class="area-badge">@curso.DuracionHoras hrs</span>
                                     </td>
                                     <td class="documento">
-                                        <button class="btn-documento" @onclick="() => VerDocumento(proyecto)" title="Ver PDF">
+                                        <button class="btn-documento" @onclick="() => VerDocumento(curso)" title="Ver PDF">
                                             <span class="documento-icon">📄</span>
                                             <span class="documento-text">PDF</span>
                                         </button>
                                     </td>
                                     <td class="doi-cell">
-                                        <button class="btn-evaluar @(proyecto.Estado == "Completo" ? "btn-reevaluar" : "btn-pendiente")"
-                                                @onclick="() => EvaluarProyecto(proyecto)" title="Evaluar proyecto">
-                                            <span class="evaluar-icon">@(proyecto.Estado == "Completo" ? "✓" : "⏳")</span>
-                                            <span class="evaluar-text">@(proyecto.Estado == "Completo" ? "Re-evaluar" : "Evaluar")</span>
+                                        <button class="btn-evaluar @GetClaseBotonEvaluar(curso.Estado)"
+                                                @onclick="() => EvaluarCurso(curso)" title="Evaluar curso">
+                                            <span class="evaluar-icon">@GetIconoBotonEvaluar(curso.Estado)</span>
+                                            <span class="evaluar-text">@GetTextoBotonEvaluar(curso.Estado)</span>
                                         </button>
                                     </td>
                                 </tr>
@@ -99,7 +99,7 @@
                         else
                         {
                             <tr>
-                                <td colspan="7" class="no-data">No se encontraron proyectos de investigación</td>
+                                <td colspan="7" class="no-data">No se encontraron cursos o capacitaciones</td>
                             </tr>
                         }
                     </tbody>
@@ -108,10 +108,10 @@
 
             <div class="pagination-container">
                 <div class="pagination-info">
-                    Mostrando @proyectosFiltrados.Count de @Proyectos.Count proyectos
+                    Mostrando @cursosFiltrados.Count de @Cursos.Count cursos
                 </div>
                 <div class="pagination-controls">
-                    <span class="page-info">Proyectos de Investigación</span>
+                    <span class="page-info">Cursos y Capacitaciones</span>
                 </div>
             </div>
         </div>
@@ -119,56 +119,87 @@
 </div>
 
 <!-- Modal para evaluar -->
-@if (mostrarModal && proyectoSeleccionado != null)
+@if (mostrarModal && cursoSeleccionado != null)
 {
     <div class="modal-overlay" @onclick="CerrarModal">
         <div class="modal-content" @onclick:stopPropagation="true">
             <div class="modal-header">
-                <h5>@proyectoSeleccionado.Nombre</h5>
+                <h5>@cursoSeleccionado.Nombre</h5>
                 <button class="btn-close" @onclick="CerrarModal">&times;</button>
             </div>
             <div class="modal-body">
                 <div class="documento-viewer">
                     <div class="pdf-container">
                         <div class="pdf-placeholder">
-                            <i class="fas fa-flask fa-3x text-primary mb-3"></i>
-                            <h4>@proyectoSeleccionado.Nombre</h4>
-                            <p class="text-muted">Proyecto de Investigación</p>
+                            <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
+                            <h4>@cursoSeleccionado.Nombre</h4>
+                            <p class="text-muted">Curso de Capacitación</p>
 
                             <div class="documento-content">
-                                <h6>Detalles del Proyecto:</h6>
-                                <p><strong>Título:</strong> @proyectoSeleccionado.Nombre</p>
-                                <p><strong>Descripción:</strong> @proyectoSeleccionado.Descripcion</p>
-                                <p><strong>Fecha de Inicio:</strong> @proyectoSeleccionado.FechaInicio.ToString("dd/MM/yyyy")</p>
-                                <p><strong>Duración:</strong> @proyectoSeleccionado.Duracion meses</p>
-                                <p><strong>Estado del Proyecto:</strong> En desarrollo</p>
-                                <p><strong>Presupuesto:</strong> $@(proyectoSeleccionado.Id * 5000)</p>
+                                <h6>Detalles del Curso:</h6>
+                                <p><strong>Nombre:</strong> @cursoSeleccionado.Nombre</p>
+                                <p><strong>Descripción:</strong> @cursoSeleccionado.Descripcion</p>
+                                <p><strong>Fecha de Realización:</strong> @cursoSeleccionado.FechaRealizacion.ToString("dd/MM/yyyy")</p>
+                                <p><strong>Duración:</strong> @cursoSeleccionado.DuracionHoras horas</p>
+                                <p><strong>Institución:</strong> @cursoSeleccionado.Institucion</p>
+                                <p><strong>Estado Actual:</strong> @cursoSeleccionado.Estado</p>
+
+                                @if (cursoSeleccionado.Id == 1)
+                                {
+                                    <div class="mt-3">
+                                        <h6>Contenido del Curso:</h6>
+                                        <ul class="text-start">
+                                            <li>Fundamentos de metodologías activas</li>
+                                            <li>Implementación práctica en el aula</li>
+                                            <li>Evaluación de resultados de aprendizaje</li>
+                                            <li>Casos de estudio y mejores prácticas</li>
+                                        </ul>
+                                    </div>
+                                }
+                                else if (cursoSeleccionado.Id == 2)
+                                {
+                                    <div class="mt-3">
+                                        <h6>Módulos Completados:</h6>
+                                        <ul class="text-start">
+                                            <li>Herramientas digitales para la educación</li>
+                                            <li>Plataformas de aprendizaje virtual</li>
+                                            <li>Gamificación en el aula</li>
+                                            <li>Evaluación digital</li>
+                                        </ul>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="mt-3">
+                                        <h6>Competencias Desarrolladas:</h6>
+                                        <p>Desarrollo profesional continuo en el área de especialización académica y pedagógica.</p>
+                                    </div>
+                                }
                             </div>
                         </div>
                     </div>
 
                     <div class="evaluacion-panel">
-                        <h6>Evaluación del Proyecto</h6>
+                        <h6>Evaluación del Curso</h6>
                         <EditForm Model="@evaluacion" OnValidSubmit="@GuardarEvaluacion">
                             <div class="mb-4">
                                 <label class="form-label">Decisión</label>
                                 <div class="decision-group">
-                                    <InputRadioGroup @bind-Value="evaluacion.Estado" class="form-check-group">
-                                        <div class="decision-option aprobar">
-                                            <InputRadio Value="EstadoEvaluacion.Aprobado" class="form-check-input" id="aprobado" />
-                                            <label class="form-check-label" for="aprobado">
-                                                <i class="fas fa-check-circle"></i>
-                                                <span>Aprobar Proyecto</span>
-                                            </label>
-                                        </div>
-                                        <div class="decision-option rechazar">
-                                            <InputRadio Value="EstadoEvaluacion.Rechazado" class="form-check-input" id="rechazado" />
-                                            <label class="form-check-label" for="rechazado">
-                                                <i class="fas fa-times-circle"></i>
-                                                <span>Rechazar Proyecto</span>
-                                            </label>
-                                        </div>
-                                    </InputRadioGroup>
+                                    <!-- CAMBIO: Usar string en lugar de enum -->
+                                    <div class="decision-option aprobar">
+                                        <input type="radio" name="decision" id="aprobado-curso" value="Aprobado" @onchange="@((args) => CambiarDecision(args))" />
+                                        <label class="form-check-label" for="aprobado-curso">
+                                            <i class="fas fa-check-circle"></i>
+                                            <span>Aprobar Curso</span>
+                                        </label>
+                                    </div>
+                                    <div class="decision-option rechazar">
+                                        <input type="radio" name="decision" id="rechazado-curso" value="Rechazado" @onchange="@((args) => CambiarDecision(args))" />
+                                        <label class="form-check-label" for="rechazado-curso">
+                                            <i class="fas fa-times-circle"></i>
+                                            <span>Rechazar Curso</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -178,7 +209,7 @@
                                                class="form-control"
                                                id="comentarios"
                                                rows="4"
-                                               placeholder="Ingrese sus comentarios sobre el proyecto..." />
+                                               placeholder="Ingrese sus comentarios sobre el curso..." />
                             </div>
 
                             <div class="d-grid gap-2">
@@ -205,7 +236,6 @@
     </div>
 }
 
-<!-- CSS igual al anterior -->
 <style>
     .obras-container {
         min-height: 100vh;
@@ -396,13 +426,18 @@
             background: #e3f2fd;
         }
 
-        .obras-table tbody tr.completed {
-            background: #f8fff8;
-        }
+    /* Estados de fila */
+    .fila-aprobado {
+        background: #f8fff8;
+    }
 
-        .obras-table tbody tr.pending {
-            background: #fffdf8;
-        }
+    .fila-rechazado {
+        background: #fff8f8;
+    }
+
+    .fila-proceso {
+        background: #fffdf8;
+    }
 
     .col-checkbox {
         width: 40px;
@@ -413,15 +448,15 @@
     }
 
     .col-estado {
-        width: 100px;
+        width: 120px;
     }
 
     .col-fecha {
-        width: 150px;
+        width: 130px;
     }
 
     .col-evaluador {
-        width: 120px;
+        width: 100px;
     }
 
     .col-documento {
@@ -458,20 +493,26 @@
     }
 
     .badge-estado {
-        padding: 0.25rem 0.5rem;
+        padding: 0.25rem 0.75rem;
         border-radius: 12px;
         font-size: 0.8rem;
         font-weight: 600;
     }
 
-    .estado-completo {
-        background: #e3f2fd;
-        color: #1976d2;
+    /* Badge Estados */
+    .estado-aprobado {
+        background: #d4edda;
+        color: #155724;
     }
 
-    .estado-pendiente {
-        background: #fff3e0;
-        color: #f57c00;
+    .estado-rechazado {
+        background: #f8d7da;
+        color: #721c24;
+    }
+
+    .estado-proceso {
+        background: #fff3cd;
+        color: #856404;
     }
 
     .area-badge {
@@ -526,25 +567,37 @@
         border: 1px solid;
     }
 
-    .btn-pendiente {
-        background: #fff3e0;
-        border-color: #f57c00;
-        color: #f57c00;
+    /* Botones Evaluar Estados */
+    .btn-proceso {
+        background: #fff3cd;
+        border-color: #ffc107;
+        color: #856404;
     }
 
-        .btn-pendiente:hover {
-            background: #f57c00;
+        .btn-proceso:hover {
+            background: #ffc107;
             color: white;
         }
 
-    .btn-reevaluar {
-        background: #e3f2fd;
-        border-color: #2196f3;
-        color: #2196f3;
+    .btn-aprobado {
+        background: #d4edda;
+        border-color: #28a745;
+        color: #155724;
     }
 
-        .btn-reevaluar:hover {
-            background: #2196f3;
+        .btn-aprobado:hover {
+            background: #28a745;
+            color: white;
+        }
+
+    .btn-rechazado {
+        background: #f8d7da;
+        border-color: #dc3545;
+        color: #721c24;
+    }
+
+        .btn-rechazado:hover {
+            background: #dc3545;
             color: white;
         }
 
@@ -752,6 +805,10 @@
         color: #ffc107 !important;
     }
 
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
     .me-2 {
         margin-right: 0.5rem !important;
     }
@@ -764,12 +821,20 @@
         margin-bottom: 1.5rem !important;
     }
 
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+
     .d-grid {
         display: grid !important;
     }
 
     .gap-2 {
         gap: 0.5rem !important;
+    }
+
+    .text-start {
+        text-align: left !important;
     }
 
     .form-control {
@@ -823,36 +888,42 @@
     private EvaluacionModel evaluacion = new();
     private bool isLoading = false;
     private bool mostrarModal = false;
-    private ProyectoModel? proyectoSeleccionado = null;
+    private CursoModel? cursoSeleccionado = null;
 
     private string filtroTexto = "";
-    private List<ProyectoModel> proyectosFiltrados = new();
+    private List<CursoModel> cursosFiltrados = new();
 
-    private List<ProyectoModel> Proyectos = new()
+    private List<CursoModel> Cursos = new()
     {
-        new ProyectoModel { Id = 1, Nombre = "Análisis de Datos Educativos", Estado = "Pendiente", Descripcion = "Investigación sobre patrones de aprendizaje", FechaInicio = new DateTime(2023, 3, 15), Duracion = 18 },
-        new ProyectoModel { Id = 2, Nombre = "Metodologías Innovadoras", Estado = "Pendiente", Descripcion = "Desarrollo de nuevas técnicas de enseñanza", FechaInicio = new DateTime(2023, 8, 1), Duracion = 24 },
-        new ProyectoModel { Id = 3, Nombre = "Tecnología en el Aula", Estado = "Pendiente", Descripcion = "Integración de herramientas digitales", FechaInicio = new DateTime(2024, 1, 10), Duracion = 12 }
+        new CursoModel { Id = 1, Nombre = "Metodologías Activas de Aprendizaje", Estado = "En Proceso", Descripcion = "Curso sobre técnicas pedagógicas innovadoras", FechaRealizacion = new DateTime(2024, 3, 15), DuracionHoras = 40, Institucion = "Universidad Pedagógica Nacional" },
+        new CursoModel { Id = 2, Nombre = "Tecnologías Educativas Digitales", Estado = "En Proceso", Descripcion = "Capacitación en herramientas digitales", FechaRealizacion = new DateTime(2024, 1, 20), DuracionHoras = 60, Institucion = "Instituto de Tecnología Educativa" },
+        new CursoModel { Id = 3, Nombre = "Evaluación por Competencias", Estado = "En Proceso", Descripcion = "Seminario sobre sistemas de evaluación", FechaRealizacion = new DateTime(2023, 11, 10), DuracionHoras = 30, Institucion = "Centro de Desarrollo Docente" },
+        new CursoModel { Id = 4, Nombre = "Investigación Pedagógica", Estado = "En Proceso", Descripcion = "Workshop sobre metodología de investigación", FechaRealizacion = new DateTime(2023, 9, 5), DuracionHoras = 50, Institucion = "Academia de Investigación Educativa" }
     };
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarEstadoProyectos();
-        FiltrarProyectos();
+        await CargarEstadoCursos();
+        FiltrarCursos();
     }
 
-    private async Task CargarEstadoProyectos()
+    private async Task CargarEstadoCursos()
     {
         try
         {
-            var estado = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "documento_1_estado");
-            if (!string.IsNullOrEmpty(estado) && estado == "Completo")
+            // Cargar estado individual de cada curso
+            foreach (var curso in Cursos)
             {
-                foreach (var proyecto in Proyectos)
+                var estadoCurso = await JSRuntime.InvokeAsync<string>("localStorage.getItem",
+                    $"curso_{curso.Id}_estado");
+
+                if (!string.IsNullOrEmpty(estadoCurso))
                 {
-                    proyecto.Estado = "Completo";
+                    curso.Estado = estadoCurso;
                 }
             }
+
+            StateHasChanged();
         }
         catch (Exception ex)
         {
@@ -860,43 +931,119 @@
         }
     }
 
-    private void FiltrarProyectos()
+    private void FiltrarCursos()
     {
-        proyectosFiltrados = Proyectos.Where(p =>
+        cursosFiltrados = Cursos.Where(c =>
             string.IsNullOrEmpty(filtroTexto) ||
-            p.Nombre.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
-            p.Descripcion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
+            c.Nombre.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            c.Descripcion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            c.Institucion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
         ).ToList();
 
         StateHasChanged();
     }
 
+    // NUEVO: Método para cambiar la decisión usando radio buttons manuales
+    private void CambiarDecision(ChangeEventArgs e)
+    {
+        evaluacion.DecisionSeleccionada = e.Value?.ToString() ?? "";
+        Console.WriteLine($"Decisión cambiada a: {evaluacion.DecisionSeleccionada}");
+        StateHasChanged();
+    }
+
+    // Métodos para obtener clases CSS según el estado
+    private string GetClaseFilaEstado(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "fila-aprobado",
+            "Rechazado" => "fila-rechazado",
+            "En Proceso" => "fila-proceso",
+            _ => "fila-proceso"
+        };
+    }
+
+    private string GetClaseBadgeEstado(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "estado-aprobado",
+            "Rechazado" => "estado-rechazado",
+            "En Proceso" => "estado-proceso",
+            _ => "estado-proceso"
+        };
+    }
+
+    private string GetIconoEstado(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "text-success",
+            "Rechazado" => "text-danger",
+            "En Proceso" => "text-warning",
+            _ => "text-warning"
+        };
+    }
+
+    private string GetClaseBotonEvaluar(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "btn-aprobado",
+            "Rechazado" => "btn-rechazado",
+            "En Proceso" => "btn-proceso",
+            _ => "btn-proceso"
+        };
+    }
+
+    private string GetIconoBotonEvaluar(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "✓",
+            "Rechazado" => "✗",
+            "En Proceso" => "⏳",
+            _ => "⏳"
+        };
+    }
+
+    private string GetTextoBotonEvaluar(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "Re-evaluar",
+            "Rechazado" => "Re-evaluar",
+            "En Proceso" => "Evaluar",
+            _ => "Evaluar"
+        };
+    }
+
     private void SeleccionarTodos(ChangeEventArgs e)
     {
         bool seleccionar = (bool)e.Value;
-        foreach (var proyecto in proyectosFiltrados)
+        foreach (var curso in cursosFiltrados)
         {
-            proyecto.Seleccionado = seleccionar;
+            curso.Seleccionado = seleccionar;
         }
     }
 
-    private void VerDocumento(ProyectoModel proyecto)
+    private void VerDocumento(CursoModel curso)
     {
-        proyectoSeleccionado = proyecto;
-        evaluacion = new EvaluacionModel();
+        cursoSeleccionado = curso;
+        evaluacion = new EvaluacionModel(); // Reiniciar evaluación
         mostrarModal = true;
         StateHasChanged();
     }
 
-    private void EvaluarProyecto(ProyectoModel proyecto)
+    private void EvaluarCurso(CursoModel curso)
     {
-        VerDocumento(proyecto);
+        VerDocumento(curso);
     }
 
     private void CerrarModal()
     {
         mostrarModal = false;
-        proyectoSeleccionado = null;
+        cursoSeleccionado = null;
         evaluacion = new EvaluacionModel();
         StateHasChanged();
     }
@@ -908,7 +1055,7 @@
             isLoading = true;
             StateHasChanged();
 
-            if (evaluacion.Estado == default(EstadoEvaluacion))
+            if (string.IsNullOrEmpty(evaluacion.DecisionSeleccionada))
             {
                 await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione el estado de la evaluación");
                 return;
@@ -916,31 +1063,50 @@
 
             await Task.Delay(1500);
 
-            // Marcar todos los proyectos como completados
-            foreach (var proyecto in Proyectos)
+            string nuevoEstado = evaluacion.DecisionSeleccionada;
+
+            // CORRECCIÓN: Solo actualizar el curso seleccionado, no todos
+            if (cursoSeleccionado != null)
             {
-                proyecto.Estado = "Completo";
+                cursoSeleccionado.Estado = nuevoEstado;
+
+                // Guardar estado individual del curso en localStorage
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem",
+                    $"curso_{cursoSeleccionado.Id}_estado", nuevoEstado);
             }
 
-            // Guardar estado en localStorage
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "documento_1_estado", "Completo");
+            // OPCIONAL: Solo marcar el documento como evaluado si TODOS los cursos están evaluados
+            var todosEvaluados = Cursos.All(c => c.Estado == "Aprobado" || c.Estado == "Rechazado");
+            if (todosEvaluados)
+            {
+                // Determinar el estado general basado en la mayoría
+                var aprobados = Cursos.Count(c => c.Estado == "Aprobado");
+                var rechazados = Cursos.Count(c => c.Estado == "Rechazado");
+                var estadoGeneral = aprobados >= rechazados ? "Aprobado" : "Rechazado";
+
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "documento_3_estado", estadoGeneral);
+            }
 
             var evaluacionData = new
             {
-                DocumentoId = 1,
-                DocumentoNombre = "Investigacion",
-                Estado = evaluacion.Estado.ToString(),
+                CursoId = cursoSeleccionado?.Id,
+                CursoNombre = cursoSeleccionado?.Nombre,
+                Estado = evaluacion.DecisionSeleccionada,
                 Comentarios = evaluacion.Comentarios ?? "",
                 Fecha = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
                 Evaluador = "Cuadrado1224"
             };
 
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "evaluacion_1",
+            // Guardar evaluación específica del curso
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem",
+                $"evaluacion_curso_{cursoSeleccionado?.Id}",
                 System.Text.Json.JsonSerializer.Serialize(evaluacionData));
 
-            await JSRuntime.InvokeVoidAsync("alert", "✅ Evaluación de Investigación guardada exitosamente");
+            await JSRuntime.InvokeVoidAsync("alert",
+                $"✅ Curso '{cursoSeleccionado?.Nombre}' evaluado como {nuevoEstado}");
+
             CerrarModal();
-            FiltrarProyectos();
+            FiltrarCursos();
         }
         catch (Exception ex)
         {
@@ -955,21 +1121,25 @@
 
     private async Task ActualizarEstados()
     {
-        await CargarEstadoProyectos();
-        FiltrarProyectos();
+        await CargarEstadoCursos();
+        FiltrarCursos();
         await JSRuntime.InvokeVoidAsync("alert", "Estados actualizados");
     }
 
     private async Task VerResumen()
     {
-        var completados = Proyectos.Count(p => p.Estado == "Completo");
-        var pendientes = Proyectos.Count(p => p.Estado == "Pendiente");
+        var aprobados = Cursos.Count(c => c.Estado == "Aprobado");
+        var rechazados = Cursos.Count(c => c.Estado == "Rechazado");
+        var enProceso = Cursos.Count(c => c.Estado == "En Proceso");
+        var totalHoras = Cursos.Sum(c => c.DuracionHoras);
 
         await JSRuntime.InvokeVoidAsync("alert",
-            $"📊 Resumen de Investigación\n\n" +
-            $"✅ Proyectos Evaluados: {completados}\n" +
-            $"⏳ Proyectos Pendientes: {pendientes}\n" +
-            $"🔬 Total de Proyectos: {Proyectos.Count}");
+            $"📊 Resumen de Cursos/Capacitaciones\n\n" +
+            $"✅ Cursos Aprobados: {aprobados}\n" +
+            $"❌ Cursos Rechazados: {rechazados}\n" +
+            $"⏳ En Proceso: {enProceso}\n" +
+            $"📚 Total de Cursos: {Cursos.Count}\n" +
+            $"⏰ Total de Horas: {totalHoras}");
     }
 
     private void Volver()
@@ -977,26 +1147,21 @@
         Navigation.NavigateTo("/administrador");
     }
 
-    public class ProyectoModel
+    public class CursoModel
     {
         public int Id { get; set; }
         public string Nombre { get; set; } = "";
-        public string Estado { get; set; } = "Pendiente";
+        public string Estado { get; set; } = "En Proceso";
         public string Descripcion { get; set; } = "";
+        public string Institucion { get; set; } = "";
         public bool Seleccionado { get; set; } = false;
-        public DateTime FechaInicio { get; set; }
-        public int Duracion { get; set; }
+        public DateTime FechaRealizacion { get; set; }
+        public int DuracionHoras { get; set; }
     }
 
     public class EvaluacionModel
     {
-        public EstadoEvaluacion Estado { get; set; }
+        public string DecisionSeleccionada { get; set; } = ""; // CAMBIO: Usar string en lugar de enum
         public string Comentarios { get; set; } = "";
-    }
-
-    public enum EstadoEvaluacion
-    {
-        Aprobado,
-        Rechazado
     }
 }
