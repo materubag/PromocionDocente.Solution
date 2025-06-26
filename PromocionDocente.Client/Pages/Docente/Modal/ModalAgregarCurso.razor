@@ -1,0 +1,71 @@
+﻿@inject IJSRuntime JS
+@inject HttpClient Http
+@using PromocionDocente.Application.DTOs
+
+<EditForm Model="@nuevoCurso" OnValidSubmit="GuardarCurso">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Agregar Curso o Capacitación</h5>
+                    <button type="button" class="btn-close" @onclick="CerrarModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Título</label>
+                        <InputText class="form-control" @bind-Value="nuevoCurso.Titulo" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Institución</label>
+                        <InputText class="form-control" @bind-Value="nuevoCurso.Institucion" />
+                    </div>
+                    <div class="mb-3">
+                        <label>Fecha de Certificación</label>
+                        <InputDate class="form-control" @bind-Value="nuevoCurso.FechaCertificado" />
+                    </div>
+                    <div class="mb-3">
+                        <label>PDF</label>
+                        <InputFile OnChange="OnInputFileChange" class="form-control" />
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-success">Guardar</button>
+                    <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</EditForm>
+
+@code {
+    [Parameter] public string CedulaDocente { get; set; }
+    [Parameter] public EventCallback OnCursoGuardado { get; set; }
+
+    private CursoCapacitacionDto nuevoCurso = new();
+    private IBrowserFile archivoPdf;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        archivoPdf = e.File;
+        using var stream = archivoPdf.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        nuevoCurso.PdfCertificado = ms.ToArray();
+    }
+
+    private async Task GuardarCurso()
+    {
+        nuevoCurso.CedulaDocente = CedulaDocente;
+        await Http.PostAsJsonAsync("api/cursoscapacitaciones", nuevoCurso);
+        await OnCursoGuardado.InvokeAsync();
+        CerrarModal();
+    }
+
+    private void CerrarModal()
+    {
+        JS.InvokeVoidAsync("eval", "document.querySelector('.modal').remove()");
+    }
+}

@@ -1,0 +1,96 @@
+﻿@inject IJSRuntime JS
+@inject HttpClient Http
+@using PromocionDocente.Application.DTOs
+
+@if (mostrar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <EditForm Model="@cursoEditado" OnValidSubmit="ActualizarCurso">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Curso o Capacitación</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Título</label>
+                            <InputText class="form-control" @bind-Value="cursoEditado.Titulo" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Institución</label>
+                            <InputText class="form-control" @bind-Value="cursoEditado.Institucion" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Certificación</label>
+                            <InputDate class="form-control" @bind-Value="cursoEditado.FechaCertificado" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reemplazar PDF (opcional)</label>
+                            <InputFile OnChange="OnInputFileChange" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public CursoCapacitacionDto Curso { get; set; }
+    [Parameter] public EventCallback OnCursoActualizado { get; set; }
+
+    private CursoCapacitacionDto cursoEditado = new();
+    private IBrowserFile archivoPdf;
+    private bool mostrar = true;
+
+    protected override void OnInitialized()
+    {
+        cursoEditado = new CursoCapacitacionDto
+        {
+            Id = Curso.Id,
+            Titulo = Curso.Titulo,
+            Institucion = Curso.Institucion,
+            FechaCertificado = Curso.FechaCertificado,
+            PdfCertificado = Curso.PdfCertificado,
+            CedulaDocente = Curso.CedulaDocente
+        };
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        archivoPdf = e.File;
+        using var stream = archivoPdf.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        cursoEditado.PdfCertificado = ms.ToArray();
+    }
+
+    private async Task ActualizarCurso()
+    {
+        var response = await Http.PutAsJsonAsync($"api/cursoscapacitaciones/{cursoEditado.Id}", cursoEditado);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnCursoActualizado.InvokeAsync();
+            mostrar = false;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Error al actualizar el curso.");
+        }
+    }
+
+    private void CerrarModal()
+    {
+        mostrar = false;
+    }
+}

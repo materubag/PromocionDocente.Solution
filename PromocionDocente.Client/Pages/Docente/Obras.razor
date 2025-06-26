@@ -27,6 +27,7 @@
 						<span class="btn-icon">➕</span>
 						Agregar
 					</button>
+
 					<button class="btn btn-secondary" @onclick="ImportarObras" disabled="@isImporting">
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
@@ -137,6 +138,12 @@
 
 	</div>
 </div>
+@if (mostrarModalAgregarObra)
+{
+	<ModalAgregarObras CedulaDocente="@cedulaUsuario"
+					   OnObraGuardada="OnObraGuardada"
+					   OnCancelar="CerrarModal" />
+}
 
 <style>
 	.obras-container {
@@ -674,12 +681,6 @@
 		return Math.Min(100, (obras.Count * 100) / metaObras);
 	}
 
-	// Métodos de acción
-	private async Task AgregarObra()
-	{
-		await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Obra\n\n• Se abrirá el formulario para registrar una nueva obra\n• Complete todos los campos requeridos\n• Adjunte el documento PDF si está disponible\n• Guarde los cambios para continuar");
-	}
-
 	private async Task ImportarObras()
 	{
 		if (isImporting) return;
@@ -766,6 +767,7 @@
 	}
 
 
+
 	public class ObraInfo
 	{
 		public int IdObra { get; set; }
@@ -792,4 +794,23 @@
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
+
+	// Métodos de acción
+	private bool mostrarModalAgregarObra = false;
+
+	private async Task AgregarObra()
+	{
+		mostrarModalAgregarObra = true;
+	}
+	private async Task OnObraGuardada()
+	{
+		mostrarModalAgregarObra = false;
+		await ConsultarObras(); // Recarga la lista después de agregar
+	}
+
+	private void CerrarModal()
+	{
+		mostrarModalAgregarObra = false;
+	}
+
 }

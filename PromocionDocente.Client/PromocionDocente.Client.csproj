@@ -13,4 +13,12 @@
 		<PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="9.0.5" PrivateAssets="all" />
 	</ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PromocionDocente.Application\PromocionDocente.Application.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\archivos\" />
+  </ItemGroup>
+
 </Project>

@@ -1,0 +1,115 @@
+﻿@inject IJSRuntime JS
+@inject HttpClient Http
+@using PromocionDocente.Application.DTOs
+
+@if (mostrar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <EditForm Model="@obraEditada" OnValidSubmit="ActualizarObra">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Obra</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Título</label>
+                            <InputText class="form-control" @bind-Value="obraEditada.Titulo" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Obra</label>
+                            <InputText class="form-control" @bind-Value="obraEditada.TipoObra" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Publicación</label>
+                            <InputDate class="form-control" @bind-Value="obraEditada.FechaPublicacion" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Área de Conocimiento</label>
+                            <InputText class="form-control" @bind-Value="obraEditada.AreaConocimiento" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">DOI o URL</label>
+                            <InputText class="form-control" @bind-Value="obraEditada.DoiUrl" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Observaciones</label>
+                            <InputTextArea class="form-control" @bind-Value="obraEditada.Observaciones" />
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Reemplazar PDF (opcional)</label>
+                            <InputFile OnChange="OnInputFileChange" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    </div>
+                </EditForm>
+
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ObraDto obra { get; set; }
+    [Parameter] public EventCallback OnObraActualizada { get; set; }
+    [Parameter] public EventCallback OnCancelar { get; set; }
+
+    private ObraDto obraEditada = new();
+    private IBrowserFile archivoPdf;
+    private bool mostrar = true;
+
+    protected override void OnInitialized()
+    {
+        obraEditada = new ObraDto
+        {
+            IdObra = obra.IdObra,
+            CedulaDocente = obra.CedulaDocente,
+            TipoObra = obra.TipoObra,
+            Titulo = obra.Titulo,
+            FechaPublicacion = obra.FechaPublicacion,
+            AreaConocimiento = obra.AreaConocimiento,
+            DoiUrl = obra.DoiUrl,
+            Observaciones = obra.Observaciones,
+            PdfProduccion = obra.PdfProduccion
+        };
+
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        archivoPdf = e.File;
+        using var stream = archivoPdf.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        obraEditada.PdfProduccion = ms.ToArray();
+    }
+
+    private async Task ActualizarObra()
+    {
+        var response = await Http.PutAsJsonAsync($"api/obras/{obraEditada.IdObra}", obraEditada);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnObraActualizada.InvokeAsync();
+            mostrar = false;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Error al actualizar la obra.");
+        }
+    }
+
+    private async Task CerrarModal()
+    {
+        mostrar = false;
+        await OnCancelar.InvokeAsync();
+    }
+}
