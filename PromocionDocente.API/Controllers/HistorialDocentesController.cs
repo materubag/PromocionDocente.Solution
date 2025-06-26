@@ -119,6 +119,21 @@ namespace PromocionDocente.API.Controllers
             }
 
             var fechaInicio = historial.FecIni;
+            var idNivelActual = historial.IdCat;
+
+            var categoriaActual = await _context.Categorias
+            .Where(c => c.IdCat == idNivelActual)
+            .Select(c => new { c.NomCat, c.NivCat })
+            .FirstOrDefaultAsync();
+
+            string nombreNivelActual = categoriaActual.NomCat;
+
+            var categoriaSiguiente = await _context.Categorias
+                .Where(c => c.NivCat == categoriaActual.NivCat + 1)
+                .Select(c => new { c.IdCat,c.NomCat })
+                .FirstOrDefaultAsync();
+
+            string nombreSiguienteNivel = categoriaSiguiente?.NomCat;
 
             var obras = await _context.Obras
                 .Where(o => o.CedDoc == cedula && o.FechaPublicacion >= fechaInicio)
@@ -160,7 +175,11 @@ namespace PromocionDocente.API.Controllers
                 HorasCursos = horasCursos,
                 MesesInvestigacion = mesesInvestigacion,
                 PromedioEvaluacion = Math.Round(promedioEvaluacion, 2),
-                AniosServicio = aniosServicio
+                AniosServicio = aniosServicio,
+                Nivel = nombreNivelActual,
+                categoriaSiguiente = nombreSiguienteNivel,
+                Cat1 = idNivelActual,
+                Cat2 = categoriaSiguiente?.IdCat ?? ""
             });
         }
     }

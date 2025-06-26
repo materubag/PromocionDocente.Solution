@@ -5,6 +5,7 @@
 @layout AdminLayout
 @inject HttpClient Http
 @inject UserSessionService UserSessionService
+
 @inject NavigationManager NavigationManager
 @inject IToastService ToastService
 
@@ -422,35 +423,52 @@
         }
     }
 
-    private async Task ValidarSolicitud(int solicitudId)
+   private async Task ValidarSolicitud(int solicitudId)
+{
+    try
     {
-        try
+        // Buscar la solicitud en el dashboard para obtener el código
+        var respuestaDashboard = await Http.GetAsync("api/Postulaciones/dashboard");
+        
+        if (respuestaDashboard.IsSuccessStatusCode)
         {
-            // Crear datos para validación con el usuario actual
-            var validacion = new ValidacionDto
-            {
-                Usuario = $"{UserSessionService.Usuario?.Nombre1} {UserSessionService.Usuario?.Apellido1} ({DateTime.UtcNow:yyyy-MM-dd HH:mm:ss})"
-            };
-
-            // Llamar al endpoint de validación
-            var response = await Http.PostAsJsonAsync($"/api/Postulaciones/ValidarSolicitud/{solicitudId}", validacion);
+            var dashboardData = await respuestaDashboard.Content.ReadFromJsonAsync<DashboardDataDto>();
             
-            if (response.IsSuccessStatusCode)
+            // Buscar la solicitud por ID
+            var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Id == solicitudId);
+            
+            if (solicitud != null && !string.IsNullOrEmpty(solicitud.Codigo))
             {
-                ToastService.ShowSuccess("Solicitud validada con éxito");
-                await CargarDatosAsync(); // Recargar los datos
+                // Crear datos para validación con el usuario actual
+                var validacion = new ValidacionDto
+                {
+                    Usuario = $"{UserSessionService.Usuario?.Nombre1} {UserSessionService.Usuario?.Apellido1} ({DateTime.UtcNow:yyyy-MM-dd HH:mm:ss})"
+                };
+
+                // Redirigir a la página de administrador con el código del docente
+                NavigationManager.NavigateTo($"/administrador?codigo={solicitud.Codigo}");
+                
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Redirigiendo a administrador con código: {solicitud.Codigo}");
             }
             else
             {
-                var errorMsg = await response.Content.ReadAsStringAsync();
-                ToastService.ShowError($"Error: {errorMsg}");
+                ToastService.ShowError("No se encontró la solicitud o no tiene código asociado");
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se encontró la solicitud ID: {solicitudId}");
             }
         }
-        catch (Exception ex)
+        else
         {
-            ToastService.ShowError($"Error al validar: {ex.Message}");
+            var errorMsg = await respuestaDashboard.Content.ReadAsStringAsync();
+            ToastService.ShowError($"Error al obtener datos del dashboard: {errorMsg}");
+            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error dashboard: {errorMsg}");
         }
     }
+    catch (Exception ex)
+    {
+        ToastService.ShowError($"Error al procesar la solicitud: {ex.Message}");
+        Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error: {ex.Message}");
+    }
+}
 
     private void VerDetalles(int solicitudId)
     {

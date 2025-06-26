@@ -182,12 +182,11 @@ namespace PromocionDocente.API.Controllers
         }
 
         // PUT: api/Postulaciones/evaluar
-        // Evaluar postulación por cédula
         [HttpPut("evaluar")]
         public async Task<IActionResult> AprobarRechazarPostulacionPorCedula(PostulacionAprobacionDto dto)
         {
             // Fecha actual para el registro (usando el formato proporcionado)
-            var fechaActual = DateOnly.FromDateTime(DateTime.UtcNow); // 2025-06-25 según el timestamp proporcionado
+            var fechaActual = DateOnly.FromDateTime(DateTime.UtcNow); 
 
             // Usar el usuario que viene en el JSON
             var usuarioActual = dto.Usuario;
