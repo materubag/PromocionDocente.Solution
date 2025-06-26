@@ -1,0 +1,802 @@
+﻿@page "/administrador"
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="container-fluid">
+
+    <div class="row align-items-center mb-4 border-bottom pb-3">
+        <div class="col-auto">
+            <button class="btn btn-link text-muted p-0" @onclick="Volver">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </button>
+        </div>
+        <div class="col">
+            <h2 class="mb-1">Evaluación de Promoción Docente</h2>
+            <p class="text-muted mb-0">Dr. María González - 099234678</p>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5 class="mb-0">
+                <i class="fas fa-user me-2"></i>Información General
+            </h5>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Cargo Actual</label>
+                        <p class="mb-0">@CargoActual</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Fecha de Solicitud</label>
+                        <p class="mb-0">@FechaSolicitud.ToString("yyyy-MM-dd")</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Cargo Solicitado</label>
+                        <p class="mb-0">@CargoSolicitado</p>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted">Tiempo en Proceso</label>
+                        <p class="mb-0">@TiempoEnProceso</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="mb-0">
+                <i class="fas fa-file-alt me-2"></i>Documentos adjuntos
+            </h5>
+            @foreach (var documento in Documentos)
+            {
+                <div class="d-flex justify-content-between align-items-center py-3 border-bottom">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-file-alt @GetIconoEstado(documento.Estado) me-3"></i>
+                        <div>
+                            <h6 class="mb-1">@documento.Nombre</h6>
+                            <span class="badge @GetClaseBadgeEstado(documento.Estado)">
+                                @documento.Estado
+                            </span>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button class="btn @GetClaseBotonDocumento(documento.Estado) btn-sm"
+                                @onclick="() => IrAEvaluacion(documento.Id, documento.Nombre)">
+                            @GetTextoBotonDocumento(documento.Estado)
+                        </button>
+                        <!-- BOTÓN TEMPORAL PARA MARCAR COMO EVALUADO -->
+                        @if (documento.Estado == "Pendiente")
+                        {
+                            <button class="btn btn-success btn-sm" @onclick="() => MarcarComoEvaluado(documento)">
+                                ✓ Marcar Evaluado
+                            </button>
+                        }
+                    </div>
+                </div>
+            }
+
+            <!-- INFORMACIÓN DE DEBUG -->
+            <div class="mt-3 p-3 bg-light rounded">
+                <small class="text-muted">
+                    <strong>Estado de evaluación:</strong><br>
+                    Documentos evaluados: @Documentos.Count(d => d.Estado == "Aprobado" || d.Estado == "Rechazado") de @Documentos.Count<br>
+                    Todos evaluados: @(TodosEvaluados() ? "Sí" : "No")
+                </small>
+            </div>
+        </div>
+    </div>
+
+    <!-- CAMBIO: Mostrar siempre la sección de decisión para debug -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Tomar Decisión Final</h5>
+            @if (!TodosEvaluados())
+            {
+                <small class="text-warning">⚠️ Primero debe evaluar todos los documentos</small>
+            }
+        </div>
+        <div class="card-body">
+            <!-- Deshabilitar el formulario si no todos están evaluados -->
+            <div class="@(!TodosEvaluados() ? "disabled-form" : "")">
+                <EditForm Model="@decision" OnValidSubmit="@GuardarDecision">
+                    <div class="mb-4">
+                        <label class="form-label">Decisión</label>
+                        <div class="decision-container">
+                            <!-- Opción Aprobar -->
+                            <div class="decision-option @(decision.DecisionSeleccionada == "Aprobar" ? "selected" : "") @(!TodosEvaluados() ? "disabled" : "")">
+                                <input type="radio"
+                                       name="decision-final"
+                                       id="aprobar-final"
+                                       value="Aprobar"
+                                       @onchange="@((args) => CambiarDecisionFinal(args))"
+                                       checked="@(decision.DecisionSeleccionada == "Aprobar")"
+                                       disabled="@(!TodosEvaluados())" />
+                                <label class="decision-label" for="aprobar-final">
+                                    <div class="decision-content">
+                                        <i class="fas fa-check-circle text-success me-3"></i>
+                                        <div class="decision-text">
+                                            <h6 class="mb-1">Aprobar Promoción</h6>
+                                            <small class="text-muted">El docente cumple con todos los requisitos</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+
+                            <!-- Opción Rechazar -->
+                            <div class="decision-option @(decision.DecisionSeleccionada == "Rechazar" ? "selected" : "") @(!TodosEvaluados() ? "disabled" : "")">
+                                <input type="radio"
+                                       name="decision-final"
+                                       id="rechazar-final"
+                                       value="Rechazar"
+                                       @onchange="@((args) => CambiarDecisionFinal(args))"
+                                       checked="@(decision.DecisionSeleccionada == "Rechazar")"
+                                       disabled="@(!TodosEvaluados())" />
+                                <label class="decision-label" for="rechazar-final">
+                                    <div class="decision-content">
+                                        <i class="fas fa-times-circle text-danger me-3"></i>
+                                        <div class="decision-text">
+                                            <h6 class="mb-1">Rechazar Promoción</h6>
+                                            <small class="text-muted">El docente no cumple con los requisitos</small>
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="observaciones" class="form-label">Observaciones</label>
+                        <InputTextArea @bind-Value="decision.Observaciones"
+                                       class="form-control"
+                                       id="observaciones"
+                                       rows="6"
+                                       disabled="@(!TodosEvaluados())"
+                                       placeholder="Ingrese sus observaciones sobre la evaluación..." />
+                    </div>
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg" disabled="@(isLoading || !TodosEvaluados())">
+                            @if (isLoading)
+                            {
+                                <span class="loading-dots me-2">●●●</span>
+                                <text>Guardando...</text>
+                            }
+                            else if (!TodosEvaluados())
+                            {
+                                <text>Complete todas las evaluaciones</text>
+                            }
+                            else
+                            {
+                                <text>Guardar Decisión</text>
+                            }
+                        </button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Estilos para las decisiones */
+    .decision-container {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .decision-option {
+        position: relative;
+        border: 2px solid #dee2e6;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        cursor: pointer;
+    }
+
+        .decision-option:hover:not(.disabled) {
+            border-color: #adb5bd;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .decision-option.selected {
+            border-color: #0d6efd;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .decision-option.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            background-color: #f8f9fa;
+        }
+
+        .decision-option input[type="radio"] {
+            position: absolute;
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .decision-label {
+        display: block;
+        padding: 1.5rem;
+        cursor: pointer;
+        margin: 0;
+        width: 100%;
+    }
+
+    .disabled .decision-label {
+        cursor: not-allowed;
+    }
+
+    .decision-content {
+        display: flex;
+        align-items: center;
+    }
+
+    .decision-text h6 {
+        margin: 0;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    .decision-text small {
+        color: #6c757d;
+    }
+
+    .disabled-form {
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    /* Loading dots simple sin keyframes */
+    .loading-dots {
+        display: inline-block;
+        font-size: 1.2rem;
+        color: currentColor;
+        opacity: 0.7;
+    }
+
+    /* Utilidades de spacing y colores */
+    .gap-2 {
+        gap: 0.5rem !important;
+    }
+
+    /* Estados de documentos */
+    .bg-success-subtle {
+        background-color: rgba(25, 135, 84, 0.1) !important;
+    }
+
+    .bg-danger-subtle {
+        background-color: rgba(220, 53, 69, 0.1) !important;
+    }
+
+    .bg-info-subtle {
+        background-color: rgba(13, 202, 240, 0.1) !important;
+    }
+
+    .bg-warning-subtle {
+        background-color: rgba(255, 193, 7, 0.1) !important;
+    }
+
+    .bg-light {
+        background-color: #f8f9fa !important;
+    }
+
+    .text-success {
+        color: #198754 !important;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .text-info {
+        color: #0dcaf0 !important;
+    }
+
+    .text-warning {
+        color: #ffc107 !important;
+    }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
+    .me-2 {
+        margin-right: 0.5rem !important;
+    }
+
+    .me-3 {
+        margin-right: 1rem !important;
+    }
+
+    .mb-1 {
+        margin-bottom: 0.25rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .mt-3 {
+        margin-top: 1rem !important;
+    }
+
+    .p-3 {
+        padding: 1rem !important;
+    }
+
+    .d-grid {
+        display: grid !important;
+    }
+
+    .d-flex {
+        display: flex !important;
+    }
+
+    .justify-content-between {
+        justify-content: space-between !important;
+    }
+
+    .align-items-center {
+        align-items: center !important;
+    }
+
+    .border-bottom {
+        border-bottom: 1px solid #dee2e6 !important;
+    }
+
+    .py-3 {
+        padding-top: 1rem !important;
+        padding-bottom: 1rem !important;
+    }
+
+    .rounded {
+        border-radius: 0.375rem !important;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus {
+            color: #212529;
+            background-color: #fff;
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+        .form-control:disabled {
+            background-color: #e9ecef;
+            opacity: 1;
+        }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .btn {
+        display: inline-block;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        text-align: center;
+        text-decoration: none;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        background-color: transparent;
+        border: 1px solid transparent;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        border-radius: 0.375rem;
+        transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+    .btn-sm {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.875rem;
+        border-radius: 0.25rem;
+    }
+
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 1.25rem;
+        border-radius: 0.5rem;
+    }
+
+    .btn-primary {
+        color: #fff;
+        background-color: #0d6efd;
+        border-color: #0d6efd;
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            color: #fff;
+            background-color: #0b5ed7;
+            border-color: #0a58ca;
+        }
+
+        .btn-primary:disabled {
+            color: #fff;
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+            opacity: 0.65;
+        }
+
+    .btn-success {
+        color: #fff;
+        background-color: #198754;
+        border-color: #198754;
+    }
+
+        .btn-success:hover {
+            color: #fff;
+            background-color: #157347;
+            border-color: #146c43;
+        }
+
+    .btn-outline-success {
+        color: #198754;
+        border-color: #198754;
+        background-color: transparent;
+    }
+
+        .btn-outline-success:hover {
+            color: #fff;
+            background-color: #198754;
+            border-color: #198754;
+        }
+
+    .btn-outline-danger {
+        color: #dc3545;
+        border-color: #dc3545;
+        background-color: transparent;
+    }
+
+        .btn-outline-danger:hover {
+            color: #fff;
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+    .btn-outline-info {
+        color: #0dcaf0;
+        border-color: #0dcaf0;
+        background-color: transparent;
+    }
+
+        .btn-outline-info:hover {
+            color: #000;
+            background-color: #0dcaf0;
+            border-color: #0dcaf0;
+        }
+
+    .btn-link {
+        font-weight: 400;
+        color: #0d6efd;
+        text-decoration: underline;
+        background-color: transparent;
+        border: 0;
+    }
+
+        .btn-link:hover {
+            color: #0a58ca;
+        }
+
+    .card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+        word-wrap: break-word;
+        background-color: #fff;
+        background-clip: border-box;
+        border: 1px solid rgba(0,0,0,.125);
+        border-radius: 0.375rem;
+    }
+
+    .card-header {
+        padding: 0.5rem 1rem;
+        margin-bottom: 0;
+        background-color: rgba(0,0,0,.03);
+        border-bottom: 1px solid rgba(0,0,0,.125);
+        border-radius: 0.375rem 0.375rem 0 0;
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: 1rem 1rem;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 0.35em 0.65em;
+        font-size: 0.75em;
+        font-weight: 700;
+        line-height: 1;
+        color: #fff;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: baseline;
+        border-radius: 0.375rem;
+    }
+
+    .container-fluid {
+        width: 100%;
+        padding-right: 0.75rem;
+        padding-left: 0.75rem;
+        margin-right: auto;
+        margin-left: auto;
+    }
+
+    .row {
+        display: flex;
+        flex-wrap: wrap;
+        margin-right: -0.75rem;
+        margin-left: -0.75rem;
+    }
+
+    .col {
+        flex: 1 0 0%;
+    }
+
+    .col-auto {
+        flex: 0 0 auto;
+        width: auto;
+    }
+
+    .col-md-6 {
+        flex: 0 0 auto;
+        width: 50%;
+    }
+
+    .p-0 {
+        padding: 0 !important;
+    }
+
+    .pb-3 {
+        padding-bottom: 1rem !important;
+    }
+</style>
+
+@code {
+    private DecisionModel decision = new();
+    private bool isLoading = false;
+
+    private string CargoActual = "Profesor Auxiliar";
+    private string CargoSolicitado = "Profesor Agregado";
+    private DateTime FechaSolicitud = new DateTime(2024, 12, 15);
+    private string TiempoEnProceso = "183 días";
+
+    private List<DocumentoModel> Documentos = new()
+    {
+        new DocumentoModel { Id = 1, Nombre = "Investigacion", Estado = "Pendiente" },
+        new DocumentoModel { Id = 2, Nombre = "Evaluacion", Estado = "Pendiente" },
+        new DocumentoModel { Id = 3, Nombre = "Cursos/Capacitaciones", Estado = "Pendiente" },
+        new DocumentoModel { Id = 4, Nombre = "Obras/Papers", Estado = "Pendiente" },
+        new DocumentoModel { Id = 5, Nombre = "Años Docencia", Estado = "Pendiente" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEstadoDocumentos();
+    }
+
+    // MÉTODO TEMPORAL PARA TESTING
+    private async Task MarcarComoEvaluado(DocumentoModel documento)
+    {
+        documento.Estado = "Aprobado";
+        await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"documento_{documento.Id}_estado", "Aprobado");
+        StateHasChanged();
+    }
+
+    private async Task CargarEstadoDocumentos()
+    {
+        try
+        {
+            foreach (var documento in Documentos)
+            {
+                var estado = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"documento_{documento.Id}_estado");
+                if (!string.IsNullOrEmpty(estado))
+                {
+                    documento.Estado = estado;
+                    documento.Evaluado = estado != "En Proceso" && estado != "Pendiente";
+                }
+                else
+                {
+                    if (documento.Id == 3) // Cursos/Capacitaciones
+                    {
+                        var hayEvaluaciones = false;
+                        for (int i = 1; i <= 4; i++)
+                        {
+                            var estadoCurso = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"curso_{i}_estado");
+                            if (!string.IsNullOrEmpty(estadoCurso) && estadoCurso != "En Proceso")
+                            {
+                                hayEvaluaciones = true;
+                                break;
+                            }
+                        }
+
+                        if (hayEvaluaciones)
+                        {
+                            documento.Estado = "En Evaluación";
+                            documento.Evaluado = false;
+                        }
+                    }
+                }
+            }
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando estado de documentos: {ex.Message}");
+        }
+    }
+
+    private bool TodosEvaluados()
+    {
+        return Documentos.All(d => d.Estado == "Aprobado" || d.Estado == "Rechazado");
+    }
+
+    private void CambiarDecisionFinal(ChangeEventArgs e)
+    {
+        if (TodosEvaluados())
+        {
+            decision.DecisionSeleccionada = e.Value?.ToString() ?? "";
+            Console.WriteLine($"Decisión final cambiada a: {decision.DecisionSeleccionada}");
+            StateHasChanged();
+        }
+    }
+
+    private string GetIconoEstado(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "text-success",
+            "Rechazado" => "text-danger",
+            "En Proceso" => "text-info",
+            "En Evaluación" => "text-info",
+            _ => "text-warning"
+        };
+    }
+
+    private string GetClaseBadgeEstado(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "bg-success-subtle text-success",
+            "Rechazado" => "bg-danger-subtle text-danger",
+            "En Proceso" => "bg-info-subtle text-info",
+            "En Evaluación" => "bg-info-subtle text-info",
+            _ => "bg-warning-subtle text-warning"
+        };
+    }
+
+    private string GetClaseBotonDocumento(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "btn-outline-success",
+            "Rechazado" => "btn-outline-danger",
+            "En Proceso" => "btn-outline-info",
+            "En Evaluación" => "btn-outline-info",
+            _ => "btn-primary"
+        };
+    }
+
+    private string GetTextoBotonDocumento(string estado)
+    {
+        return estado switch
+        {
+            "Aprobado" => "Ver Evaluación",
+            "Rechazado" => "Ver Evaluación",
+            "En Proceso" => "Ver Evaluación",
+            "En Evaluación" => "Continuar Evaluación",
+            _ => "Ir a Evaluar"
+        };
+    }
+
+    private void IrAEvaluacion(int documentoId, string nombreDocumento)
+    {
+        string ruta = documentoId switch
+        {
+            1 => "/evaluar-investigacion",
+            2 => "/evaluar-evaluacion",
+            3 => "/evaluar-cursos",
+            4 => "/evaluar-obras",
+            5 => "/evaluar-docencia",
+            _ => "/evaluar-documento/1"
+        };
+
+        Navigation.NavigateTo(ruta);
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/");
+    }
+
+    private async Task GuardarDecision()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            if (string.IsNullOrEmpty(decision.DecisionSeleccionada))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione una decisión");
+                return;
+            }
+
+            await Task.Delay(2000);
+
+            var decisionData = new
+            {
+                TipoDecision = decision.DecisionSeleccionada,
+                Observaciones = decision.Observaciones ?? "",
+                Fecha = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                Usuario = "Cuadrado1224",
+                Docente = "Dr. María González",
+                CargoActual = CargoActual,
+                CargoSolicitado = CargoSolicitado
+            };
+
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem", "ultima_decision",
+                System.Text.Json.JsonSerializer.Serialize(decisionData));
+
+            await JSRuntime.InvokeVoidAsync("alert", $"✅ Decisión '{decision.DecisionSeleccionada}' guardada exitosamente");
+            decision = new DecisionModel();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error al guardar la decisión: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    public class DocumentoModel
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Estado { get; set; } = "Pendiente";
+        public bool Evaluado { get; set; } = false;
+    }
+
+    public class DecisionModel
+    {
+        public string DecisionSeleccionada { get; set; } = "";
+        public string Observaciones { get; set; } = "";
+    }
+}

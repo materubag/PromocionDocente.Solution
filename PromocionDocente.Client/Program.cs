@@ -15,4 +15,6 @@ builder.Services.AddBlazoredLocalStorage();
 builder.Services.AddScoped<UserSessionService>();
 builder.Services.AddBlazoredToast();
 
+builder.Services.AddScoped<IDocumentoService, DocumentoService>();
+
 await builder.Build().RunAsync();

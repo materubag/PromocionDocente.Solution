@@ -1,0 +1,1185 @@
+﻿@page "/evaluar-documento/{DocumentoId:int}"
+@using Microsoft.AspNetCore.Components.Forms
+@inject NavigationManager Navigation
+@inject IJSRuntime JSRuntime
+
+<div class="obras-container">
+    <div class="header-container">
+        <div class="header-content">
+            <button class="btn-volver" @onclick="Volver">
+                <i class="fas fa-arrow-left me-2"></i>Volver
+            </button>
+            <h1 class="titulo-principal">Evaluación de Documentos</h1>
+            <div class="docente-info">
+                <div class="info-text">
+                    <div class="nombre">Dr. María González</div>
+                    <div class="cargo">099234678 - Evaluación en Proceso</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <div class="contenido-principal">
+        <div class="tabla-container">
+            <!-- Barra de herramientas -->
+            <div class="toolbar">
+                <div class="search-container">
+                    <input type="text" class="search-input" placeholder="Buscar documentos..." @bind="filtroTexto" @oninput="FiltrarDocumentos" />
+                    <span class="search-icon">🔍</span>
+                </div>
+                <div class="action-buttons">
+                    <button class="btn btn-secondary" @onclick="ActualizarEstados">
+                        <span class="btn-icon">🔄</span>
+                        Actualizar
+                    </button>
+                    <button class="btn btn-primary" @onclick="VerResumen">
+                        <span class="btn-icon">📊</span>
+                        Resumen
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tabla de documentos -->
+            <div class="tabla-obras">
+                <table class="obras-table">
+                    <thead>
+                        <tr>
+                            <th class="col-checkbox">
+                                <input type="checkbox" @onchange="SeleccionarTodos" />
+                            </th>
+                            <th class="col-tipo">Documento</th>
+                            <th class="col-estado">Estado</th>
+                            <th class="col-fecha">Fecha Evaluación</th>
+                            <th class="col-evaluador">Evaluador</th>
+                            <th class="col-documento">Ver PDF</th>
+                            <th class="col-accion">Evaluar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (documentosFiltrados != null && documentosFiltrados.Any())
+                        {
+                            @foreach (var documento in documentosFiltrados)
+                            {
+                                <tr class="@(documento.Seleccionado ? "selected" : "") @(documento.Estado == "Completo" ? "completed" : "pending")">
+                                    <td>
+                                        <input type="checkbox" @bind="documento.Seleccionado" />
+                                    </td>
+                                    <td>
+                                        <div class="documento-info">
+                                            <i class="fas fa-file-alt @(documento.Estado == "Completo" ? "text-success" : "text-warning") me-2"></i>
+                                            <div class="titulo-info">
+                                                <span class="titulo-texto">@documento.Nombre</span>
+                                                @if (!string.IsNullOrEmpty(documento.Descripcion))
+                                                {
+                                                    <small class="observaciones">@documento.Descripcion</small>
+                                                }
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-estado @GetClaseEstado(documento.Estado)">
+                                            @documento.Estado
+                                        </span>
+                                    </td>
+                                    <td>
+                                        @if (documento.FechaEvaluacion.HasValue)
+                                        {
+                                            <span>@documento.FechaEvaluacion.Value.ToString("dd/MM/yyyy HH:mm")</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-fecha">Sin evaluar</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (!string.IsNullOrEmpty(documento.Evaluador))
+                                        {
+                                            <span class="area-badge">@documento.Evaluador</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-evaluador">Sin asignar</span>
+                                        }
+                                    </td>
+                                    <td class="documento">
+                                        <button class="btn-documento" @onclick="() => VerDocumento(documento)" title="Ver PDF">
+                                            <span class="documento-icon">📄</span>
+                                            <span class="documento-text">PDF</span>
+                                        </button>
+                                    </td>
+                                    <td class="doi-cell">
+                                        <button class="btn-evaluar @(documento.Estado == "Completo" ? "btn-reevaluar" : "btn-pendiente")"
+                                                @onclick="() => EvaluarDocumento(documento)" title="Evaluar documento">
+                                            <span class="evaluar-icon">@(documento.Estado == "Completo" ? "✓" : "⏳")</span>
+                                            <span class="evaluar-text">@(documento.Estado == "Completo" ? "Re-evaluar" : "Evaluar")</span>
+                                        </button>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="no-data">No se encontraron documentos</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginación -->
+            <div class="pagination-container">
+                <div class="pagination-info">
+                    Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos documentos
+                </div>
+                <div class="pagination-controls">
+                    <button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
+                    <span class="page-info">Página @paginaActual de @totalPaginas</span>
+                    <button class="btn-page" @onclick="PaginaSiguiente" disabled="@(paginaActual >= totalPaginas)">▶</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal para visualizar documento y evaluar -->
+@if (mostrarModal && documentoSeleccionado != null)
+{
+    <div class="modal-overlay" @onclick="CerrarModal">
+        <div class="modal-content" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h5>@documentoSeleccionado.Nombre</h5>
+                <button class="btn-close" @onclick="CerrarModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="documento-viewer">
+                    <div class="pdf-container">
+                        <div class="pdf-placeholder">
+                            <i class="fas fa-file-pdf fa-3x text-danger mb-3"></i>
+                            <h4>@documentoSeleccionado.Nombre</h4>
+                            <p class="text-muted">Vista previa del documento</p>
+
+                            @if (documentoSeleccionado.Id == 1)
+                            {
+                                <div class="documento-content">
+                                    <h5>Dr. María González</h5>
+                                    <p><strong>Cédula:</strong> 099234678</p>
+                                    <p><strong>Cargo Actual:</strong> Profesor Auxiliar</p>
+                                    <p><strong>Facultad:</strong> Ciencias de la Educación</p>
+                                    <p><strong>Experiencia:</strong> 8 años en docencia universitaria</p>
+                                    <p><strong>Formación:</strong> Doctorado en Educación, Maestría en Pedagogía</p>
+                                </div>
+                            }
+                            else if (documentoSeleccionado.Id == 2)
+                            {
+                                <div class="documento-content">
+                                    <h6>Títulos Obtenidos:</h6>
+                                    <ul class="text-start">
+                                        <li>Doctorado en Educación - Universidad Nacional (2018)</li>
+                                        <li>Maestría en Pedagogía - Universidad Central (2015)</li>
+                                        <li>Licenciatura en Educación - Universidad Pedagógica (2012)</li>
+                                    </ul>
+                                </div>
+                            }
+                            else if (documentoSeleccionado.Id == 3)
+                            {
+                                <div class="documento-content">
+                                    <h6>Capacitaciones Recientes:</h6>
+                                    <ul class="text-start">
+                                        <li>Metodologías Activas de Aprendizaje (2024)</li>
+                                        <li>Tecnologías Educativas (2023)</li>
+                                        <li>Evaluación por Competencias (2023)</li>
+                                        <li>Investigación Pedagógica (2022)</li>
+                                    </ul>
+                                </div>
+                            }
+                            else if (documentoSeleccionado.Id == 4)
+                            {
+                                <div class="documento-content">
+                                    <h6>Evaluaciones Estudiantiles:</h6>
+                                    <p><strong>Promedio General:</strong> 4.7/5.0</p>
+                                    <p><strong>Comentarios Destacados:</strong></p>
+                                    <ul class="text-start">
+                                        <li>"Excelente profesora, muy clara en sus explicaciones"</li>
+                                        <li>"Metodología innovadora y participativa"</li>
+                                        <li>"Siempre disponible para consultas"</li>
+                                    </ul>
+                                </div>
+                            }
+                            else if (documentoSeleccionado.Id == 5)
+                            {
+                                <div class="documento-content">
+                                    <h6>Publicaciones Científicas:</h6>
+                                    <ul class="text-start">
+                                        <li>"Innovación Pedagógica en la Era Digital" - Revista Educación (2024)</li>
+                                        <li>"Metodologías Activas en Educación Superior" - Congreso Nacional (2023)</li>
+                                        <li>"Evaluación Formativa y Competencias" - Revista Pedagógica (2023)</li>
+                                    </ul>
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="evaluacion-panel">
+                        <h6>Evaluación del Documento</h6>
+                        <EditForm Model="@evaluacion" OnValidSubmit="@GuardarEvaluacion">
+                            <div class="mb-4">
+                                <label class="form-label">Decisión</label>
+                                <div class="decision-group">
+                                    <InputRadioGroup @bind-Value="evaluacion.Estado" class="form-check-group">
+                                        <div class="decision-option aprobar">
+                                            <InputRadio Value="EstadoDocumento.Aprobado" class="form-check-input" id="aprobado" />
+                                            <label class="form-check-label" for="aprobado">
+                                                <i class="fas fa-check-circle"></i>
+                                                <span>Aprobar Documento</span>
+                                            </label>
+                                        </div>
+                                        <div class="decision-option rechazar">
+                                            <InputRadio Value="EstadoDocumento.Rechazado" class="form-check-input" id="rechazado" />
+                                            <label class="form-check-label" for="rechazado">
+                                                <i class="fas fa-times-circle"></i>
+                                                <span>Rechazar Documento</span>
+                                            </label>
+                                        </div>
+                                    </InputRadioGroup>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="comentarios" class="form-label">Comentarios</label>
+                                <InputTextArea @bind-Value="evaluacion.Comentarios"
+                                               class="form-control"
+                                               id="comentarios"
+                                               rows="4"
+                                               placeholder="Ingrese sus comentarios sobre el documento..." />
+                            </div>
+
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
+                                    @if (isLoading)
+                                    {
+                                        <span class="spinner-loading me-2" role="status" aria-hidden="true"></span>
+                                        <text>Guardando...</text>
+                                    }
+                                    else
+                                    {
+                                        <text>Guardar Evaluación</text>
+                                    }
+                                </button>
+                                <button type="button" class="btn btn-secondary" @onclick="CerrarModal">
+                                    Cancelar
+                                </button>
+                            </div>
+                        </EditForm>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<style>
+    .obras-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .btn-volver {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn-volver:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .docente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .info-text {
+        color: white;
+    }
+
+    .nombre {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cargo {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .contenido-principal {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+    .btn-icon {
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background: #0D47A1;
+        color: white;
+    }
+
+        .btn-primary:hover:not(:disabled) {
+            background: #1565C0;
+        }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+        .btn-secondary:hover:not(:disabled) {
+            background: #5a6268;
+        }
+
+    .tabla-obras {
+        overflow-x: auto;
+    }
+
+    .obras-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .obras-table th,
+        .obras-table td {
+            padding: 0.75rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+
+        .obras-table th {
+            background: #f8f9fa;
+            font-weight: 600;
+            color: #495057;
+            font-size: 0.9rem;
+        }
+
+        .obras-table tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        .obras-table tbody tr.selected {
+            background: #e3f2fd;
+        }
+
+        .obras-table tbody tr.completed {
+            background: #f8fff8;
+        }
+
+        .obras-table tbody tr.pending {
+            background: #fffdf8;
+        }
+
+    .col-checkbox {
+        width: 40px;
+    }
+
+    .col-tipo {
+        width: 250px;
+    }
+
+    .col-estado {
+        width: 100px;
+    }
+
+    .col-fecha {
+        width: 150px;
+    }
+
+    .col-evaluador {
+        width: 120px;
+    }
+
+    .col-documento {
+        width: 80px;
+    }
+
+    .col-accion {
+        width: 100px;
+    }
+
+    .documento-info {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .titulo-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .titulo-texto {
+        font-weight: 500;
+        color: #2c3e50;
+        line-height: 1.3;
+    }
+
+    .observaciones {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .badge-estado {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .estado-completo {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .estado-pendiente {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .area-badge {
+        background: #f8f9fa;
+        color: #495057;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .documento {
+        text-align: center;
+    }
+
+    .btn-documento {
+        background: #e8f5e8;
+        border: 1px solid #28a745;
+        color: #28a745;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+    }
+
+        .btn-documento:hover {
+            background: #28a745;
+            color: white;
+        }
+
+    .documento-icon {
+        font-size: 0.9rem;
+    }
+
+    .documento-text {
+        font-weight: 600;
+    }
+
+    .btn-evaluar {
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+        border: 1px solid;
+    }
+
+    .btn-pendiente {
+        background: #fff3e0;
+        border-color: #f57c00;
+        color: #f57c00;
+    }
+
+        .btn-pendiente:hover {
+            background: #f57c00;
+            color: white;
+        }
+
+    .btn-reevaluar {
+        background: #e3f2fd;
+        border-color: #2196f3;
+        color: #2196f3;
+    }
+
+        .btn-reevaluar:hover {
+            background: #2196f3;
+            color: white;
+        }
+
+    .evaluar-icon {
+        font-size: 0.9rem;
+    }
+
+    .evaluar-text {
+        font-weight: 600;
+    }
+
+    .no-fecha, .no-evaluador {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        padding: 2rem;
+    }
+
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-page {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+        .btn-page:hover:not([disabled]) {
+            background: #e9ecef;
+        }
+
+        .btn-page[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+    .page-info {
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    /* Modal Styles */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .modal-content {
+        background: white;
+        border-radius: 8px;
+        width: 90%;
+        max-width: 1200px;
+        max-height: 90vh;
+        overflow: hidden;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+    }
+
+    .modal-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+        .modal-header h5 {
+            margin: 0;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+    .btn-close {
+        background: none;
+        border: none;
+        font-size: 1.5rem;
+        cursor: pointer;
+        color: #6c757d;
+        padding: 0;
+        width: 30px;
+        height: 30px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-close:hover {
+            color: #dc3545;
+        }
+
+    .modal-body {
+        padding: 0;
+        height: 70vh;
+    }
+
+    .documento-viewer {
+        display: flex;
+        height: 100%;
+    }
+
+    .pdf-container {
+        flex: 2;
+        background: #f8f9fa;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-right: 1px solid #dee2e6;
+    }
+
+    .pdf-placeholder {
+        text-align: center;
+        padding: 2rem;
+        max-width: 500px;
+    }
+
+    .documento-content {
+        background: white;
+        padding: 1.5rem;
+        border-radius: 8px;
+        margin-top: 1rem;
+        text-align: left;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .evaluacion-panel {
+        flex: 1;
+        padding: 1.5rem;
+        background: white;
+        min-width: 350px;
+    }
+
+        .evaluacion-panel h6 {
+            margin-bottom: 1rem;
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+    .decision-group {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1rem;
+    }
+
+    .decision-option {
+        position: relative;
+    }
+
+        .decision-option input {
+            display: none;
+        }
+
+        .decision-option label {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 2px solid #dee2e6;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+        }
+
+            .decision-option label i {
+                font-size: 1.25rem;
+            }
+
+        .decision-option.aprobar label {
+            color: #28a745;
+        }
+
+        .decision-option.rechazar label {
+            color: #dc3545;
+        }
+
+        .decision-option input:checked + label {
+            border-color: currentColor;
+            background: rgba(0, 0, 0, 0.05);
+        }
+
+    .text-muted {
+        color: #6c757d !important;
+    }
+
+    .text-start {
+        text-align: left !important;
+    }
+
+    .text-success {
+        color: #28a745 !important;
+    }
+
+    .text-warning {
+        color: #ffc107 !important;
+    }
+
+    .text-danger {
+        color: #dc3545 !important;
+    }
+
+    .me-2 {
+        margin-right: 0.5rem !important;
+    }
+
+    .mb-3 {
+        margin-bottom: 1rem !important;
+    }
+
+    .mb-4 {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .d-grid {
+        display: grid !important;
+    }
+
+    .gap-2 {
+        gap: 0.5rem !important;
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-image: none;
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+    }
+
+        .form-control:focus {
+            color: #212529;
+            background-color: #fff;
+            border-color: #86b7fe;
+            outline: 0;
+            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+        }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+        font-weight: 600;
+        color: #495057;
+    }
+
+    .spinner-loading {
+        display: inline-block;
+        width: 1rem;
+        height: 1rem;
+        vertical-align: -0.125em;
+        border: 0.125em solid currentcolor;
+        border-right-color: transparent;
+        border-radius: 50%;
+        animation: spin 0.75s linear infinite;
+    }
+
+    /* CSS Animation */
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+</style>
+
+@code {
+    [Parameter] public int DocumentoId { get; set; }
+
+    private EvaluacionModel evaluacion = new();
+    private bool isLoading = false;
+    private bool mostrarModal = false;
+    private DocumentoModel? documentoSeleccionado = null;
+
+    // Filtros y paginación
+    private string filtroTexto = "";
+    private List<DocumentoModel> documentosFiltrados = new();
+    private int paginaActual = 1;
+    private int elementosPorPagina = 10;
+    private int totalElementos = 0;
+    private int totalPaginas = 0;
+
+    // Lista de documentos
+    private List<DocumentoModel> Documentos = new()
+    {
+        new DocumentoModel { Id = 1, Nombre = "Hoja de Vida", Estado = "Pendiente", Descripcion = "Información personal y profesional completa" },
+        new DocumentoModel { Id = 2, Nombre = "Títulos Académicos", Estado = "Pendiente", Descripcion = "Certificados de títulos universitarios" },
+        new DocumentoModel { Id = 3, Nombre = "Certificados de Capacitación", Estado = "Pendiente", Descripcion = "Cursos y capacitaciones realizadas" },
+        new DocumentoModel { Id = 4, Nombre = "Evaluaciones Estudiantiles", Estado = "Pendiente", Descripcion = "Evaluaciones de desempeño docente" },
+        new DocumentoModel { Id = 5, Nombre = "Publicaciones", Estado = "Pendiente", Descripcion = "Artículos y trabajos de investigación" }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await CargarEstadoDocumentos();
+        FiltrarDocumentos();
+    }
+
+    private async Task CargarEstadoDocumentos()
+    {
+        try
+        {
+            foreach (var documento in Documentos)
+            {
+                var estado = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"documento_{documento.Id}_estado");
+                if (!string.IsNullOrEmpty(estado))
+                {
+                    documento.Estado = estado;
+                    documento.Evaluado = estado == "Completo";
+
+                    var evaluacionJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"evaluacion_{documento.Id}");
+                    if (!string.IsNullOrEmpty(evaluacionJson))
+                    {
+                        try
+                        {
+                            var evaluacionData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, object>>(evaluacionJson);
+                            if (evaluacionData != null)
+                            {
+                                if (evaluacionData.ContainsKey("Fecha"))
+                                {
+                                    if (DateTime.TryParse(evaluacionData["Fecha"].ToString(), out DateTime fecha))
+                                    {
+                                        documento.FechaEvaluacion = fecha;
+                                    }
+                                }
+                                if (evaluacionData.ContainsKey("Evaluador"))
+                                {
+                                    documento.Evaluador = evaluacionData["Evaluador"].ToString();
+                                }
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Error deserializando evaluación: {ex.Message}");
+                        }
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando estado de documentos: {ex.Message}");
+        }
+    }
+
+    private void FiltrarDocumentos()
+    {
+        var documentosFiltro = Documentos.Where(d =>
+            string.IsNullOrEmpty(filtroTexto) ||
+            d.Nombre.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            d.Estado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+            (d.Descripcion?.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ?? false)
+        ).ToList();
+
+        totalElementos = documentosFiltro.Count;
+        totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
+
+        documentosFiltrados = documentosFiltro
+            .Skip((paginaActual - 1) * elementosPorPagina)
+            .Take(elementosPorPagina)
+            .ToList();
+
+        StateHasChanged();
+    }
+
+    private string GetClaseEstado(string estado)
+    {
+        return estado.ToLower() switch
+        {
+            "completo" => "estado-completo",
+            "pendiente" => "estado-pendiente",
+            _ => "estado-pendiente"
+        };
+    }
+
+    private void SeleccionarTodos(ChangeEventArgs e)
+    {
+        bool seleccionar = (bool)e.Value;
+        foreach (var documento in documentosFiltrados)
+        {
+            documento.Seleccionado = seleccionar;
+        }
+    }
+
+    private void PaginaAnterior()
+    {
+        if (paginaActual > 1)
+        {
+            paginaActual--;
+            FiltrarDocumentos();
+        }
+    }
+
+    private void PaginaSiguiente()
+    {
+        if (paginaActual < totalPaginas)
+        {
+            paginaActual++;
+            FiltrarDocumentos();
+        }
+    }
+
+    private void VerDocumento(DocumentoModel documento)
+    {
+        documentoSeleccionado = documento;
+        evaluacion = new EvaluacionModel();
+        mostrarModal = true;
+        StateHasChanged();
+    }
+
+    private void EvaluarDocumento(DocumentoModel documento)
+    {
+        VerDocumento(documento);
+    }
+
+    private void CerrarModal()
+    {
+        mostrarModal = false;
+        documentoSeleccionado = null;
+        evaluacion = new EvaluacionModel();
+        StateHasChanged();
+    }
+
+    private async Task GuardarEvaluacion()
+    {
+        try
+        {
+            isLoading = true;
+            StateHasChanged();
+
+            if (documentoSeleccionado == null)
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Error: No hay documento seleccionado");
+                return;
+            }
+
+            if (evaluacion.Estado == default(EstadoDocumento))
+            {
+                await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione el estado del documento");
+                return;
+            }
+
+            await Task.Delay(1500);
+
+            documentoSeleccionado.Estado = "Completo";
+            documentoSeleccionado.Evaluado = true;
+            documentoSeleccionado.FechaEvaluacion = DateTime.UtcNow;
+            documentoSeleccionado.Evaluador = "Cuadrado1224";
+
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem",
+                $"documento_{documentoSeleccionado.Id}_estado", "Completo");
+
+            var evaluacionData = new
+            {
+                DocumentoId = documentoSeleccionado.Id,
+                DocumentoNombre = documentoSeleccionado.Nombre,
+                Estado = evaluacion.Estado.ToString(),
+                Comentarios = evaluacion.Comentarios ?? "",
+                Fecha = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
+                Evaluador = "Cuadrado1224"
+            };
+
+            await JSRuntime.InvokeVoidAsync("localStorage.setItem",
+                $"evaluacion_{documentoSeleccionado.Id}", System.Text.Json.JsonSerializer.Serialize(evaluacionData));
+
+            await JSRuntime.InvokeVoidAsync("alert", "✅ Evaluación guardada exitosamente");
+            CerrarModal();
+            FiltrarDocumentos();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error al guardar la evaluación: {ex.Message}");
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ActualizarEstados()
+    {
+        await CargarEstadoDocumentos();
+        FiltrarDocumentos();
+        await JSRuntime.InvokeVoidAsync("alert", "Estados actualizados");
+    }
+
+    private async Task VerResumen()
+    {
+        var completados = Documentos.Count(d => d.Estado == "Completo");
+        var pendientes = Documentos.Count(d => d.Estado == "Pendiente");
+
+        await JSRuntime.InvokeVoidAsync("alert",
+            $"📊 Resumen de Evaluación\n\n" +
+            $"✅ Documentos Evaluados: {completados}\n" +
+            $"⏳ Documentos Pendientes: {pendientes}\n" +
+            $"📄 Total de Documentos: {Documentos.Count}\n\n" +
+            $"Progreso: {(completados * 100 / Documentos.Count)}%");
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo("/administrador");
+    }
+
+    public class DocumentoModel
+    {
+        public int Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Estado { get; set; } = "Pendiente";
+        public string? Descripcion { get; set; }
+        public bool Evaluado { get; set; } = false;
+        public bool Seleccionado { get; set; } = false;
+        public DateTime? FechaEvaluacion { get; set; }
+        public string? Evaluador { get; set; }
+    }
+
+    public class EvaluacionModel
+    {
+        public EstadoDocumento Estado { get; set; }
+        public string Comentarios { get; set; } = "";
+    }
+
+    public enum EstadoDocumento
+    {
+        Aprobado,
+        Rechazado
+    }
+}
