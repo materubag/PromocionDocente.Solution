@@ -192,13 +192,26 @@ namespace PromocionDocente.API.Controllers
         // POST: api/CursosCapacitacions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CursosCapacitacion>> PostCursosCapacitacion(CursosCapacitacion cursosCapacitacion)
+        public async Task<ActionResult> PostCursosCapacitacion([FromBody] CursoCapacitacionDto dto)
         {
-            _context.CursosCapacitacions.Add(cursosCapacitacion);
+            // Mapear DTO -> Entidad
+            var curso = new CursosCapacitacion
+            {
+                CedDoc = dto.CedulaDocente,
+                NombreCurso = dto.NombreCurso,
+                FechaCurso = DateOnly.FromDateTime(dto.FechaCurso),
+                Horas = dto.Horas,
+                PdfCurso = dto.PdfCurso,
+                Estado = "PENDIENTE",
+                Observacion = dto.Observacion
+            };
+
+            _context.CursosCapacitacions.Add(curso);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCursosCapacitacion", new { id = cursosCapacitacion.IdCurso }, cursosCapacitacion);
+            return CreatedAtAction(nameof(GetCursosCapacitacion), new { id = curso.IdCurso }, curso);
         }
+
 
         // DELETE: api/CursosCapacitacions/5
         [HttpDelete("{id}")]

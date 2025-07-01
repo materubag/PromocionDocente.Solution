@@ -137,12 +137,7 @@
 
 	</div>
 </div>
-@if (mostrarModalAgregarObra)
-{
-	<ModalAgregarObras CedulaDocente="@cedulaUsuario"
-					   OnObraGuardada="OnObraGuardada"
-					   OnCancelar="CerrarModal" />
-}
+
 
 <style>
 	.obras-container {
@@ -793,22 +788,12 @@
 		public string Cargo { get; set; } = "";
 	}
 
-	// Métodos de acción
-	private bool mostrarModalAgregarObra = false;
+	@inject NavigationManager NavManager
 
-	private async Task AgregarObra()
+	private void AgregarObra()
 	{
-		mostrarModalAgregarObra = true;
-	}
-	private async Task OnObraGuardada()
-	{
-		mostrarModalAgregarObra = false;
-		await ConsultarObras(); // Recarga la lista después de agregar
+		NavManager.NavigateTo("/obras/agregar");
 	}
 
-	private void CerrarModal()
-	{
-		mostrarModalAgregarObra = false;
-	}
 
 }

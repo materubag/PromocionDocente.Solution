@@ -3,6 +3,7 @@
 @using Models
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject NavigationManager NavManager
 
 
 <div class="capacitaciones-container">
@@ -538,6 +539,7 @@
 	}
 </style>
 
+
 @code {
 	private DocenteInfo docenteInfo;
 	private List<CursoCapacitacionInfo> cursos = new List<CursoCapacitacionInfo>();
@@ -553,6 +555,11 @@
 	private int cursosCompletados = 0;
 	private string mensajeError = string.Empty;
 	private string? cedulaUsuario;
+	@inject NavigationManager NavManager
+
+
+	private CursoCapacitacionInfo cursoEditar = new();
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -679,12 +686,14 @@
 			FiltrarCursos();
 		}
 	}
+	@inject NavigationManager NavManager
 
-	// Métodos de acción
-	private async Task AgregarCurso()
+	private void AgregarCurso()
 	{
-		await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nuevo Curso de Capacitación\n\n• Se abrirá el formulario para registrar un nuevo curso\n• Complete los datos: nombre, fecha, horas y documento PDF\n• Guarde los cambios para continuar");
+		NavManager.NavigateTo("/docente/agregar/agregarcurso");
 	}
+
+
 
 	private async Task ImportarCursos()
 	{
@@ -736,7 +745,12 @@
 			await CargarCursos();
 		}
 	}
-
+	private async Task GuardarCurso(CursoCapacitacionInfo curso)
+	{
+		// Asumiendo que tienes un DTO compatible en backend
+		await Http.PostAsJsonAsync("/api/CursosCapacitacions", curso);
+		await CargarCursos();
+	}
 
 
 	private async Task EditarSeleccionado()
@@ -831,4 +845,6 @@
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
+	
+
 }
