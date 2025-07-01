@@ -6,15 +6,18 @@ using System.Threading.Tasks;
 
 namespace PromocionDocente.Application.DTOs
 {
-    
-        public class EvaluacionDto
-        {
-            public int IdEvaluacion { get; set; }
-            public DateTime FechaEvaluacion { get; set; }
-            public decimal Calificacion { get; set; }
-            public byte[]? PdfEvaluacion { get; set; }
-            public string CedulaDocente { get; set; } = string.Empty;
-            public string TipoEvaluacion { get; set; } = string.Empty;
-            public string PeriodoEvaluacion { get; set; } = string.Empty;
-        }
+
+    public class EvaluacionDto
+    {
+        public string CedDoc { get; set; } = string.Empty;
+        public string PeriodoEvaluado { get; set; } = string.Empty;
+        public string TipoEvaluacion { get; set; } = string.Empty;
+        public DateTime FechaEvaluacion { get; set; }
+        public decimal Resultado { get; set; }
+        public string? Observaciones { get; set; }
+        public byte[]? PdfEvaluacion { get; set; }
+        public string Estado { get; set; } = "PENDIENTE";
+        public string? Observacion { get; set; }
     }
+
+}
