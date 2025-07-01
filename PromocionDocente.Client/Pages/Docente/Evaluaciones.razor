@@ -555,7 +555,7 @@
 		}
 	}
 
-		private string GetClaseResultado(decimal resultado)
+	private string GetClaseResultado(decimal resultado)
 		{
 	if (resultado >= 4.5m) return "resultado-excelente";
 	if (resultado >= 4.0m) return "resultado-bueno";
@@ -601,11 +601,11 @@
 	}
 		}
 
+	@inject NavigationManager NavManager
 
-		private async Task AgregarEvaluacion()
+		private void AgregarEvaluacion()
 		{
-	await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Evaluación\n\n• Se abrirá el formulario para crear una nueva evaluación\n• Complete todos los campos requeridos\n• Guarde los cambios para continuar");
-	// Lógica para agregar nueva evaluación
+		NavManager.NavigateTo("/docente/agregar/agregarevaluacion");
 		}
 
 		private async Task ImportarEvaluaciones()

@@ -645,9 +645,10 @@
 	}
 
 	// Métodos de acción
-	private async Task AgregarInvestigacion()
+	@inject NavigationManager NavManager
+	private void AgregarInvestigacion()
 	{
-		await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Investigación\n\n• Se abrirá el formulario para crear una nueva investigación\n• Complete todos los campos requeridos\n• Guarde los cambios para continuar");
+        NavManager.NavigateTo("/docente/agregar/agregarinvestigacion");
 	}
 
 	private async Task ImportarInvestigaciones()
