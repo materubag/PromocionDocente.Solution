@@ -78,13 +78,26 @@ namespace PromocionDocente.API.Controllers
         // POST: api/Evaluaciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Evaluacione>> PostEvaluacione(Evaluacione evaluacione)
+        public async Task<ActionResult> PostEvaluacion([FromBody] EvaluacionDto dto)
         {
-            _context.Evaluaciones.Add(evaluacione);
+            var evaluacion = new Evaluacione
+            {
+                CedDoc = dto.CedDoc,
+                PeriodoEvaluado = dto.PeriodoEvaluado,
+                TipoEvaluacion = dto.TipoEvaluacion,
+                FechaEvaluacion = DateOnly.FromDateTime(dto.FechaEvaluacion),
+                Resultado = dto.Resultado,
+                Observacion = dto.Observacion,
+                PdfEvaluacion = dto.PdfEvaluacion,
+                Estado = "PENDIENTE"
+            };
+
+            _context.Evaluaciones.Add(evaluacion);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEvaluacione", new { id = evaluacione.IdEvaluacion }, evaluacione);
+            return CreatedAtAction(nameof(GetEvaluacione), new { id = evaluacion.IdEvaluacion }, evaluacion);
         }
+
 
         // DELETE: api/Evaluaciones/5
         [HttpDelete("{id}")]

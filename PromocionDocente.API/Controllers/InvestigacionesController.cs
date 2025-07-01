@@ -107,13 +107,28 @@ namespace PromocionDocente.API.Controllers
         // POST: api/Investigaciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Investigacione>> PostInvestigacione(Investigacione investigacione)
+        public async Task<ActionResult> PostInvestigacion([FromBody] InvestigacionDto dto)
         {
-            _context.Investigaciones.Add(investigacione);
+            var investigacion = new Investigacione
+            {
+                CedDoc = dto.CedDoc,
+                TituloInvestigacion = dto.TituloInvestigacion,
+                DuracionMeses = dto.DuracionMeses,
+                FechaInicio = DateOnly.FromDateTime(dto.FechaInicio),
+                FechaFin = DateOnly.FromDateTime(dto.FechaFin),
+                ArchivoPdf = dto.ArchivoPdf,
+                TipoInvestigacion = dto.TipoInvestigacion,
+                CampoAplicacion = dto.CampoAplicacion,
+                Observacion = dto.Observacion,
+                Estado = "PENDIENTE"
+            };
+
+            _context.Investigaciones.Add(investigacion);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetInvestigacione", new { id = investigacione.IdInvestigacion }, investigacione);
+            return CreatedAtAction(nameof(GetInvestigacione), new { id = investigacion.IdInvestigacion }, investigacion);
         }
+
 
         // DELETE: api/Investigaciones/5
         [HttpDelete("{id}")]

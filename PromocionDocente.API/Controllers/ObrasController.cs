@@ -77,13 +77,28 @@ namespace PromocionDocente.API.Controllers
         // POST: api/Obras
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Obra>> PostObra(Obra obra)
+        public async Task<ActionResult> PostObra([FromBody] ObraDto dto)
         {
+            var obra = new Obra
+            {
+                CedDoc = dto.CedDoc,
+                TipoObra = dto.TipoObra,
+                Titulo = dto.Titulo,
+                FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion),
+                DoiUrl = dto.DoiUrl,
+                AreaConocimiento = dto.AreaConocimiento,
+                Observaciones = dto.Observaciones,
+                PdfProduccion = dto.PdfProduccion,
+                Estado = "PENDIENTE",
+            };
+
             _context.Obras.Add(obra);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetObra", new { id = obra.IdObra }, obra);
+            return CreatedAtAction(nameof(GetObra), new { id = obra.IdObra }, obra);
         }
+
+
 
         // DELETE: api/Obras/5
         [HttpDelete("{id}")]
