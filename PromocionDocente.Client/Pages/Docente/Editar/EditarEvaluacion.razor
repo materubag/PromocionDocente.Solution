@@ -1,0 +1,115 @@
+﻿@page "/docente/editar/evaluacion/{Id:int}"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
+@using PromocionDocente.Application.DTOs
+@using PromocionDocente.Application.DTOs.Update
+
+<h3>Editar Evaluación</h3>
+
+@if (isLoading)
+{
+    <p>Cargando datos...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else
+{
+    <EditForm Model="evaluacion" OnValidSubmit="GuardarCambios">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label>Periodo Evaluado</label>
+            <InputText class="form-control" @bind-Value="evaluacion.PeriodoEvaluado" />
+        </div>
+        <div class="mb-3">
+            <label>Tipo Evaluación</label>
+            <InputText class="form-control" @bind-Value="evaluacion.TipoEvaluacion" />
+        </div>
+        <div class="mb-3">
+            <label>Fecha Evaluación</label>
+            <InputDate class="form-control" @bind-Value="evaluacion.FechaEvaluacion" />
+        </div>
+        <div class="mb-3">
+            <label>Resultado</label>
+            <InputNumber class="form-control" @bind-Value="evaluacion.Resultado" />
+        </div>
+        <div class="mb-3">
+            <label>Observaciones</label>
+            <InputTextArea class="form-control" @bind-Value="evaluacion.Observaciones" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
+    </EditForm>
+}
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private EvaluacionUpdateDto evaluacion = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<EvaluacionDto>($"api/Evaluaciones/{Id}");
+            if (result == null)
+            {
+                errorMessage = "No se encontró la evaluación.";
+                return;
+            }
+
+            evaluacion = new EvaluacionUpdateDto
+            {
+                PeriodoEvaluado = result.PeriodoEvaluado,
+                TipoEvaluacion = result.TipoEvaluacion,
+                FechaEvaluacion = result.FechaEvaluacion,
+                Resultado = result.Resultado,
+                Observaciones = result.Observaciones,
+                PdfEvaluacion = result.PdfEvaluacion
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al cargar evaluación: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task GuardarCambios()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/Evaluaciones/{Id}", evaluacion);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Evaluación actualizada correctamente.");
+                NavManager.NavigateTo("/docente/evaluaciones");
+            }
+            else
+            {
+                var errorText = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {response.ReasonPhrase}\n{errorText}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al guardar cambios: " + ex.Message;
+        }
+    }
+
+    private void Volver()
+    {
+        NavManager.NavigateTo("/docente/evaluaciones");
+    }
+}

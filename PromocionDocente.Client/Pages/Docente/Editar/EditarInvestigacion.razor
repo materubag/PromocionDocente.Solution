@@ -1,0 +1,121 @@
+﻿@page "/docente/editar/investigacion/{Id:int}"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@inject IJSRuntime JS
+@using PromocionDocente.Application.DTOs
+@using PromocionDocente.Application.DTOs.Update
+
+
+<h3>Editar Investigación</h3>
+
+@if (isLoading)
+{
+    <p>Cargando datos...</p>
+}
+else if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger">@errorMessage</div>
+}
+else
+{
+    <EditForm Model="investigacion" OnValidSubmit="GuardarCambios">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-3">
+            <label>Título Investigación</label>
+            <InputText class="form-control" @bind-Value="investigacion.TituloInvestigacion" />
+        </div>
+        <div class="mb-3">
+            <label>Duración (meses)</label>
+            <InputNumber class="form-control" @bind-Value="investigacion.DuracionMeses" />
+        </div>
+        <div class="mb-3">
+            <label>Fecha Inicio</label>
+            <InputDate class="form-control" @bind-Value="investigacion.FechaInicio" />
+        </div>
+        <div class="mb-3">
+            <label>Fecha Fin</label>
+            <InputDate class="form-control" @bind-Value="investigacion.FechaFin" />
+        </div>
+        <div class="mb-3">
+            <label>Tipo Investigación</label>
+            <InputText class="form-control" @bind-Value="investigacion.TipoInvestigacion" />
+        </div>
+        <div class="mb-3">
+            <label>Campo Aplicación</label>
+            <InputText class="form-control" @bind-Value="investigacion.CampoAplicacion" />
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
+    </EditForm>
+}
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    private InvestigacionUpdateDto investigacion = new();
+    private bool isLoading = true;
+    private string? errorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var result = await Http.GetFromJsonAsync<InvestigacionDto>($"api/Investigaciones/{Id}");
+            if (result == null)
+            {
+                errorMessage = "No se encontró la investigación.";
+                return;
+            }
+
+            investigacion = new InvestigacionUpdateDto
+            {
+                TituloInvestigacion = result.TituloInvestigacion,
+                DuracionMeses = result.DuracionMeses,
+                FechaInicio = result.FechaInicio,
+                FechaFin = result.FechaFin,
+                TipoInvestigacion = result.TipoInvestigacion,
+                CampoAplicacion = result.CampoAplicacion,
+                ArchivoPdf = result.ArchivoPdf
+            };
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al cargar investigación: " + ex.Message;
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task GuardarCambios()
+    {
+        try
+        {
+            var response = await Http.PutAsJsonAsync($"api/Investigaciones/{Id}", investigacion);
+
+            if (response.IsSuccessStatusCode)
+            {
+                await JS.InvokeVoidAsync("alert", "Investigación actualizada correctamente.");
+                NavManager.NavigateTo("/docente/investigaciones");
+            }
+            else
+            {
+                var errorText = await response.Content.ReadAsStringAsync();
+                errorMessage = $"Error al guardar: {response.ReasonPhrase}\n{errorText}";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = "Error al guardar cambios: " + ex.Message;
+        }
+    }
+
+    private void Volver()
+    {
+        NavManager.NavigateTo("/docente/investigaciones");
+    }
+}
