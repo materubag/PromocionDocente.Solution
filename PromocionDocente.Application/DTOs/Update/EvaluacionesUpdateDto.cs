@@ -10,7 +10,7 @@ namespace PromocionDocente.Application.DTOs.Update
     {
         public string PeriodoEvaluado { get; set; } = "";
         public string TipoEvaluacion { get; set; } = "";
-        public DateTime FechaEvaluacion { get; set; }
+        public DateTime FechaEvaluacion { get; set; }   // <-- USA DateTime aquí
         public decimal Resultado { get; set; }
         public string? Observaciones { get; set; }
         public byte[]? PdfEvaluacion { get; set; }

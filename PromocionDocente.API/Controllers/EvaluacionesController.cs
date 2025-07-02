@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.DTOs.Update;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
@@ -43,37 +44,60 @@ namespace PromocionDocente.API.Controllers
 
             return evaluacione;
         }
+        //Obtener por cedula docente
+
+        [HttpGet("docente/{cedula}")]
+        public async Task<IActionResult> GetPorCedula(string cedula)
+        {
+            var evaluaciones = await _context.Evaluaciones
+                    .Where(e => e.CedDoc == cedula)
+                    .ToListAsync();
+
+            if (evaluaciones == null || evaluaciones.Count == 0)
+                return NotFound();
+
+            var resultado = evaluaciones.Select(e => new
+            {
+                e.IdEvaluacion,
+                e.FechaEvaluacion,
+                e.Resultado,
+                e.CedDoc,
+                e.TipoEvaluacion,
+                e.PeriodoEvaluado,
+                PdfEvaluacion = e.PdfEvaluacion != null
+                    ? PdfHelper.GuardarBinarioComoPdf(
+                        e.PdfEvaluacion,
+                        e.CedDoc,
+                        $"{e.TipoEvaluacion}_{e.PeriodoEvaluado}",
+                        "Evaluaciones")
+                    : ""
+            }).ToList();
+
+            return Ok(resultado);
+        }
+
+
 
         // PUT: api/Evaluaciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEvaluacione(int id, Evaluacione evaluacione)
+        public async Task<IActionResult> PutEvaluacione(int id, [FromBody] EvaluacionUpdateDto dto)
         {
-            if (id != evaluacione.IdEvaluacion)
-            {
-                return BadRequest();
-            }
+            var evaluacion = await _context.Evaluaciones.FindAsync(id);
+            if (evaluacion == null)
+                return NotFound();
 
-            _context.Entry(evaluacione).State = EntityState.Modified;
+            evaluacion.PeriodoEvaluado = dto.PeriodoEvaluado;
+            evaluacion.TipoEvaluacion = dto.TipoEvaluacion;
+            evaluacion.FechaEvaluacion = DateOnly.FromDateTime(dto.FechaEvaluacion); // aquí conviertes
+            evaluacion.Resultado = dto.Resultado;
+            evaluacion.Observacion = dto.Observaciones;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EvaluacioneExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
 
         // POST: api/Evaluaciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -191,6 +215,7 @@ namespace PromocionDocente.API.Controllers
                     new SqlParameter("@tablaOrigen", "EVALUACIONES"),
                     new SqlParameter("@idOrigen", id.ToString())
                 };
+
 
                         await _context.Database.ExecuteSqlRawAsync(sqlInsert, parametrosInsert);
                     }

@@ -5,6 +5,7 @@
 @using static PromocionDocente.Client.Pages.Evaluaciones_docente
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
 
 <div class="evaluaciones-container">
 
@@ -33,10 +34,7 @@
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
 					</button>
-					<button class="btn btn-secondary" @onclick="EditarSeleccionada">
-						<span class="btn-icon">✏️</span>
-						Editar
-					</button>
+					
 					<button class="btn btn-secondary" @onclick="EnviarSeleccionada">
 						<span class="btn-icon">📤</span>
 						Enviar
@@ -57,6 +55,7 @@
 							<th class="col-fecha">Fecha</th>
 							<th class="col-resultado">Resultado</th>
 							<th class="col-documento">Documento</th>
+							<th class="col-documento">Editar</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -88,6 +87,13 @@
 										{
 											<span class="no-documento">Sin documento</span>
 										}
+									</td>
+									<td>
+										<button @onclick="() => EditarEvaluacion(evaluacion.IdEvaluacion)">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
 									</td>
 								</tr>
 							}
@@ -524,7 +530,7 @@
 		mensajeError = string.Empty;
 		try
 		{
-			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluacion/{cedulaUsuario}");
+			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluaciones/docente/{cedulaUsuario}");
 		}
 		catch (Exception ex)
 		{
@@ -652,27 +658,7 @@
 	}
 		}
 
-		private async Task EditarSeleccionada()
-		{
-	var seleccionada = evaluacionesFiltradas.FirstOrDefault(e => e.Seleccionada);
-	if (seleccionada != null)
-	{
-		await JSRuntime.InvokeVoidAsync("alert",
-			$"Editar Evaluación Seleccionada\n\n" +
-			$"• Periodo: {seleccionada.PeriodoEvaluacion}\n" +
-			$"• Tipo: {seleccionada.TipoEvaluacion}\n" +
-			$"Se abrirá el formulario de edición...");
-
-		EditarEvaluacion(seleccionada);
-	}
-	else
-	{
-		await JSRuntime.InvokeVoidAsync("alert",
-			"⚠️ Atención\n\n" +
-			"No hay ninguna evaluación seleccionada.\n" +
-			"Por favor, seleccione una evaluación de la lista para editarla.");
-	}
-		}
+		
 
 		private async Task EnviarSeleccionada()
 		{
@@ -712,16 +698,7 @@
 	}
 		}
 
-		private async Task EditarEvaluacion(EvaluacionInfo evaluacion)
-		{
-	await JSRuntime.InvokeVoidAsync("alert",
-		$"Editando Evaluación\n\n" +
-		$"• ID: {evaluacion.Id}\n" +
-		$"• Periodo: {evaluacion.PeriodoEvaluacion}\n" +
-		$"• Tipo: {evaluacion.TipoEvaluacion}\n" +
-		$"Redirigiendo al formulario de edición...");
-	// Lógica para editar evaluación
-		}
+		
 
 		private async Task VerPDF(EvaluacionInfo evaluacion)
 		{
@@ -732,21 +709,27 @@
 		}
 
 
-		public class EvaluacionInfo
-		{
-	public int Id { get; set; }
-	public DateTime FechaEvaluacion { get; set; }
-	public decimal Calificacion { get; set; }
-	public string PdfEvaluacion { get; set; }
-	public string PeriodoEvaluacion { get; set; }
-	public string CedulaDocente { get; set; }
-	public string TipoEvaluacion { get; set; }
-	public bool Seleccionada { get; set; }
-		}
+	public class EvaluacionInfo
+	{
+		public int IdEvaluacion { get; set; } // Este es el que necesitas para navegar
+		public DateTime FechaEvaluacion { get; set; }
+		public decimal Calificacion { get; set; }
+		public string PdfEvaluacion { get; set; }
+		public string PeriodoEvaluacion { get; set; }
+		public string CedulaDocente { get; set; }
+		public string TipoEvaluacion { get; set; }
+		public bool Seleccionada { get; set; }
+	}
+
 
 		public class DocenteInfo
 		{
 	public string Nombre { get; set; } = "";
 	public string Cargo { get; set; } = "";
 		}
+	private void EditarEvaluacion(int id)
+	{
+		NavManager.NavigateTo($"/docente/editar/evaluacion/{id}");
+	}
+
 }

@@ -110,13 +110,6 @@
 											<span class="no-doi">Sin enlace</span>
 										}
 									</td>
-									<td>
-										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)">
-											<span class="btn-icon">✏️</span>
-											Editar
-										</button>
-
-									</td>
 								</tr>
 							}
 						}
@@ -801,10 +794,6 @@
 	private void AgregarObra()
 	{
 		NavManager.NavigateTo("/docente/agregar/agregarobra");
-	}
-	private void EditarObra(int id)
-	{
-		NavManager.NavigateTo($"/docente/editar/editarobra/{id}");
 	}
 
 
