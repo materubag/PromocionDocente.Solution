@@ -92,6 +92,13 @@
 											<span class="no-documento">Sin documento</span>
 										}
 									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarCurso(curso.IdCurso)">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
+									</td>
 								</tr>
 							}
 						}
@@ -845,6 +852,10 @@
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
-	
+	private void EditarCurso(int id)
+	{
+		NavManager.NavigateTo($"docente/editar/curso/{id}");
+	}
+
 
 }

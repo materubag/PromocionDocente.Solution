@@ -77,11 +77,25 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/CursosCapacitacions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarCurso(int id, [FromBody] CursoCapacitacionUpdateDto dto)
+        public async Task<IActionResult> PutCurso(int id, [FromBody] CursoCapacitacionUpdateDto dto)
         {
-            await _cursoService.ActualizarCursoAsync(id, dto);
+            if (dto == null)
+                return BadRequest("Datos inválidos.");
+
+            var curso = await _context.CursosCapacitacions.FindAsync(id);
+            if (curso == null)
+                return NotFound($"No se encontró el curso con ID {id}.");
+
+            curso.NombreCurso = dto.NombreCurso;
+            curso.Horas = dto.Horas;
+            curso.FechaCurso = DateOnly.FromDateTime(dto.FechaCurso);
+            curso.PdfCurso = dto.PdfCurso;
+            curso.Observacion = dto.Observacion;
+
+            await _context.SaveChangesAsync();
             return NoContent();
         }
+
 
 
         [HttpPut("estado/{id}")]

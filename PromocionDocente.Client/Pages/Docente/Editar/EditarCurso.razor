@@ -51,7 +51,7 @@ else
     {
         try
         {
-            var result = await Http.GetFromJsonAsync<CursoCapacitacionDto>($"api/CursosCapacitacion/{Id}");
+            var result = await Http.GetFromJsonAsync<CursoCapacitacionDto>($"api/CursosCapacitacions/{Id}");
             if (result == null)
             {
                 errorMessage = "No se encontró el curso.";
@@ -76,16 +76,17 @@ else
         }
     }
 
+
     private async Task GuardarCambios()
     {
         try
         {
-            var response = await Http.PutAsJsonAsync($"api/CursosCapacitacion/{Id}", curso);
+            var response = await Http.PutAsJsonAsync($"api/CursosCapacitacions/{Id}", curso);
 
             if (response.IsSuccessStatusCode)
             {
                 await JS.InvokeVoidAsync("alert", "Curso actualizado correctamente.");
-                NavManager.NavigateTo("/docente/cursoscapacitaciones");
+                NavManager.NavigateTo("/docente/capacitaciones");
             }
             else
             {
@@ -99,8 +100,9 @@ else
         }
     }
 
+
     private void Volver()
     {
-        NavManager.NavigateTo("/docente/cursoscapacitaciones");
+        NavManager.NavigateTo("/docente/capacitaciones");
     }
 }

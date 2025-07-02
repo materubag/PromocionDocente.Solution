@@ -51,9 +51,23 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/Obras/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarObra(int id, [FromBody] ObraUpdateDto dto)
+        public async Task<IActionResult> PutObra(int id, [FromBody] ObraUpdateDto dto)
         {
-            await _obraService.ActualizarObraAsync(id, dto);
+            if (dto == null)
+                return BadRequest("Datos inválidos.");
+
+            var obra = await _context.Obras.FindAsync(id);
+            if (obra == null)
+                return NotFound($"No se encontró la obra con ID {id}.");
+
+            obra.Titulo = dto.Titulo;
+            obra.TipoObra = dto.TipoObra;
+            obra.FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion);
+            obra.AreaConocimiento = dto.AreaConocimiento; // Corregido aquí
+            obra.PdfProduccion = dto.PdfProduccion;
+            obra.Observaciones = dto.Observaciones;
+
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 

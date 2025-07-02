@@ -99,6 +99,13 @@
 											<span class="no-documento">Sin documento</span>
 										}
 									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarInvestigacion(investigacion.IdInvestigacion)">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
+									</td>
 								</tr>
 							}
 						}
@@ -108,6 +115,7 @@
 								<td colspan="8" class="no-data">No se encontraron investigaciones</td>
 							</tr>
 						}
+						
 					</tbody>
 				</table>
 			</div>
@@ -791,4 +799,9 @@
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
+	private void EditarInvestigacion(int id)
+	{
+		NavManager.NavigateTo($"/docente/editar/investigacion/{id}");
+	}
+
 }

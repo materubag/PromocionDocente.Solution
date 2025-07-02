@@ -83,11 +83,25 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/Investigaciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> ActualizarInvestigacion(int id, [FromBody] InvestigacionUpdateDto dto)
+        public async Task ActualizarInvestigacionAsync(int id, InvestigacionUpdateDto dto)
         {
-            await _investigacionService.ActualizarInvestigacionAsync(id, dto);
-            return NoContent();
+            var investigacion = await _context.Investigaciones.FindAsync(id);
+            if (investigacion == null)
+                throw new Exception("No se encontró la investigación.");
+
+            investigacion.TituloInvestigacion = dto.TituloInvestigacion;
+            investigacion.DuracionMeses = dto.DuracionMeses;
+            investigacion.FechaInicio = DateOnly.FromDateTime(dto.FechaInicio);
+            investigacion.FechaFin = DateOnly.FromDateTime(dto.FechaFin);
+            investigacion.ArchivoPdf = dto.ArchivoPdf;
+            investigacion.TipoInvestigacion = dto.TipoInvestigacion;
+            investigacion.CampoAplicacion = dto.CampoAplicacion;
+            investigacion.Observacion = dto.Observacion;
+
+            await _context.SaveChangesAsync();
         }
+
+
 
 
         // POST: api/Investigaciones
