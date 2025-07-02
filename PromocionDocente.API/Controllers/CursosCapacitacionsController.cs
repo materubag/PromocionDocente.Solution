@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.DTOs.Update;
 using PromocionDocente.Application.Services;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
@@ -18,10 +19,12 @@ namespace PromocionDocente.API.Controllers
     public class CursosCapacitacionsController : ControllerBase
     {
         private readonly PromocionDocenteContext _context;
+        private readonly CursoCapacitacionService _cursoService;
 
-        public CursosCapacitacionsController(PromocionDocenteContext context)
+        public CursosCapacitacionsController(PromocionDocenteContext context,CursoCapacitacionService cursoCapacitacionService)
         {
             _context = context;
+            _cursoService = cursoCapacitacionService;
         }
 
         // GET: api/CursosCapacitacions
@@ -74,33 +77,12 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/CursosCapacitacions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCursosCapacitacion(int id, CursosCapacitacion cursosCapacitacion)
+        public async Task<IActionResult> ActualizarCurso(int id, [FromBody] CursoCapacitacionUpdateDto dto)
         {
-            if (id != cursosCapacitacion.IdCurso)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(cursosCapacitacion).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CursosCapacitacionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _cursoService.ActualizarCursoAsync(id, dto);
             return NoContent();
         }
+
 
         [HttpPut("estado/{id}")]
         public async Task<IActionResult> UpdateEstadoCurso(int id, EstadoUpdateDto cursoDto)

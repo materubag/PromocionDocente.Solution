@@ -17,6 +17,24 @@
             await _context.SaveChangesAsync();
             return obra.IdObra;
         }
+        public async Task ActualizarObraAsync(int id, ObraUpdateDto dto)
+        {
+            var obra = await _context.Obras.FindAsync(id);
+            if (obra == null)
+                throw new Exception("No se encontró la obra.");
+
+            obra.Titulo = dto.Titulo;
+            obra.TipoObra = dto.TipoObra;
+            obra.FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion);
+            obra.DoiUrl = dto.DoiUrl;
+            obra.AreaConocimiento = dto.AreaConocimiento;
+            obra.Observaciones = dto.Observaciones;
+            obra.PdfProduccion = dto.PdfProduccion;
+
+            await _context.SaveChangesAsync();
+        }
+
+
     }
 
 }

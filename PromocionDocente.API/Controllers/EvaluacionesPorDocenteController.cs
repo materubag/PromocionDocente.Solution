@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Infrastructure.Contexts;
+using PromocionDocente.Application.DTOs.Update;
 using PromocionDocente.Domain.Entities;
+using PromocionDocente.Infrastructure.Contexts;
+using PromocionDocente.Infrastructure.Services;
 using PromocionDocente.Infrastructure.Utils;
 
 namespace PromocionDocente.API.Controllers
@@ -11,10 +13,15 @@ namespace PromocionDocente.API.Controllers
     public class EvaluacionesPorDocenteController : ControllerBase
     {
         private readonly PromocionDocenteDbContext _context;
+        private readonly EvaluacionService _evaluacionService;
 
-        public EvaluacionesPorDocenteController(PromocionDocenteDbContext context)
+
+        public EvaluacionesPorDocenteController(PromocionDocenteDbContext context,
+            EvaluacionService evaluacionService)
+
         {
             _context = context;
+            _evaluacionService = evaluacionService;
         }
 
         [HttpGet("{cedula}")]
@@ -42,6 +49,13 @@ namespace PromocionDocente.API.Controllers
 
             return Ok(resultado);
         }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> ActualizarEvaluacion(int id, [FromBody] EvaluacionUpdateDto dto)
+        {
+            await _evaluacionService.ActualizarEvaluacionAsync(id, dto);
+            return NoContent();
+        }
+
 
     }
 }

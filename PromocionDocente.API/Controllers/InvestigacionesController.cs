@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.DTOs.Update;
+using PromocionDocente.Infrastructure.Services;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
@@ -17,11 +19,16 @@ namespace PromocionDocente.API.Controllers
     public class InvestigacionesController : ControllerBase
     {
         private readonly PromocionDocenteContext _context;
+        private readonly InvestigacionService _investigacionService;
 
-        public InvestigacionesController(PromocionDocenteContext context)
+        public InvestigacionesController(
+     PromocionDocenteContext context,
+     InvestigacionService investigacionService)
         {
             _context = context;
+            _investigacionService = investigacionService;
         }
+
 
         // GET: api/Investigaciones
         [HttpGet]
@@ -76,33 +83,12 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/Investigaciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutInvestigacione(int id, Investigacione investigacione)
+        public async Task<IActionResult> ActualizarInvestigacion(int id, [FromBody] InvestigacionUpdateDto dto)
         {
-            if (id != investigacione.IdInvestigacion)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(investigacione).State = EntityState.Modified;
-
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!InvestigacioneExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
+            await _investigacionService.ActualizarInvestigacionAsync(id, dto);
             return NoContent();
         }
+
 
         // POST: api/Investigaciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
