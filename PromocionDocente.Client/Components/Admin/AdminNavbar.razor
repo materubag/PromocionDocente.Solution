@@ -8,6 +8,10 @@
         <button class="menu-toggle" @onclick="ToggleSidebar">
             <span class="hamburger-icon">☰</span>
         </button>
+        <div class="logo-container">
+            <img src="/images/logo.png" alt="Logo" class="logo" />
+        </div>
+
         <h1 class="page-title">Sistema de Promoción Docente</h1>
     </div>
 
@@ -23,9 +27,7 @@
                 @if (showUserMenu)
                 {
                     <div class="user-dropdown">
-                        <a href="/profile" class="dropdown-item">Mi Perfil</a>
-                        <a href="/settings" class="dropdown-item">Configuración</a>
-                        <div class="dropdown-divider"></div>
+                       
                         <button class="dropdown-item logout-btn" @onclick="Logout">
                             Cerrar Sesión
                         </button>
@@ -37,18 +39,27 @@
 </div>
 
 <style>
-    .navbar-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        width: 100%;
-        height: 100%;
-    }
+ .navbar-content {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100vw; 
+    height: 100px;
+    padding: 0 20px;
+    background-color: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    position: fixed; 
+    top: 0;
+    left: 0;
+    z-index: 1000;
+}
 
-    .navbar-left {
-        display: flex;
-        align-items: center;
-    }
+.navbar-left {
+    display: flex;
+    align-items: center;
+    flex: 1;
+}
 
     .menu-toggle {
         display: none;
@@ -65,17 +76,35 @@
         display: block;
     }
 
-    .page-title {
-        margin: 0;
-        font-size: 1.5rem;
-        font-weight: 600;
-        color: #1e293b;
-    }
-
-    .navbar-right {
+    .logo-container {
         display: flex;
         align-items: center;
+        margin-right: 16px;
     }
+
+    .logo {
+      
+        height: 100px; 
+        width: auto; 
+        object-fit: contain;
+    }
+
+    .page-title {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+}
+
+.navbar-right {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    justify-content: flex-end;
+}
 
     .user-info {
         display: flex;
@@ -163,7 +192,24 @@
             background-color: #fef2f2;
         }
 
-  
+    /* Responsive design para el logo */
+    @@media (max-width: 768px) {
+        .logo
+
+    {
+        height: 32px;
+        max-width: 80px;
+    }
+
+    .page-title {
+        font-size: 1.2rem;
+    }
+
+    .menu-toggle {
+        display: block;
+    }
+
+    }
 </style>
 
 @code {
@@ -189,7 +235,7 @@
     private async Task Logout()
     {
         await UserSession.CargarUsuarioAsync();
-        Navigation.NavigateTo("/login");
+        Navigation.NavigateTo("/");
     }
 
     // Cerrar el menú de usuario cuando se hace clic fuera

@@ -1,399 +1,233 @@
 ﻿@page "/evaluar-obras"
-@using Microsoft.AspNetCore.Components.Forms
-@inject NavigationManager Navigation
+@using System.Net.Http.Json
+@using System.Web
+@using Microsoft.JSInterop
 @inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<!-- Font Awesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
 
 <div class="obras-container">
+    <!-- Alerta de éxito/error -->
+    @if (mostrarAlerta)
+    {
+        <div class="toast-alert @(tipoAlerta == "success" ? "toast-success" : tipoAlerta == "error" ? "toast-error" : "toast-info")">
+            <div class="toast-icon">
+                @if (tipoAlerta == "success")
+                {
+                    <i class="fas fa-check-circle"></i>
+                }
+                else if (tipoAlerta == "error")
+                {
+                    <i class="fas fa-exclamation-triangle"></i>
+                }
+                else
+                {
+                    <i class="fas fa-info-circle"></i>
+                }
+            </div>
+            <div class="toast-content">
+                <h6 class="toast-title">@tituloAlerta</h6>
+                <p class="toast-message">@mensajeAlerta</p>
+            </div>
+            <button class="toast-close" @onclick="CerrarAlerta">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+
     <div class="header-container">
         <div class="header-content">
-            <button class="btn-volver" @onclick="Volver">
-                <i class="fas fa-arrow-left me-2"></i>Volver
-            </button>
-            <h1 class="titulo-principal">Cursos y Capacitaciones</h1>
-            <div class="docente-info">
-                <div class="info-text">
-                    <div class="nombre">Dr. María González</div>
-                    <div class="cargo">Cursos/Capacitaciones - Evaluación en Proceso</div>
-                </div>
-            </div>
+            <button class="btn-volver" @onclick="Volver">← Volver</button>
+            <h1 class="titulo-principal">Sistema de Gestión de Obras</h1>
+            <div class="spacer"></div>
         </div>
     </div>
-
     <div class="contenido-principal">
         <div class="tabla-container">
-            <div class="toolbar">
-                <div class="search-container">
-                    <input type="text" class="search-input" placeholder="Buscar cursos..." @bind="filtroTexto" @oninput="FiltrarCursos" />
-                    <span class="search-icon">🔍</span>
-                </div>
-                <div class="action-buttons">
-                    <button class="btn btn-secondary" @onclick="ActualizarEstados">
-                        <span class="btn-icon">🔄</span>
-                        Actualizar
-                    </button>
-                    <button class="btn btn-primary" @onclick="VerResumen">
-                        <span class="btn-icon">📊</span>
-                        Resumen
-                    </button>
-                </div>
-            </div>
-
             <div class="tabla-obras">
                 <table class="obras-table">
                     <thead>
                         <tr>
-                            <th class="col-checkbox">
-                                <input type="checkbox" @onchange="SeleccionarTodos" />
+                            <th>
+                                <input type="checkbox" @onchange="SeleccionarTodas" />
                             </th>
-                            <th class="col-tipo">Curso/Capacitación</th>
+                            <th class="col-tipo">Tipo Obra</th>
+                            <th class="col-titulo">Título</th>
+                            <th class="col-fecha">Fecha Publicación</th>
+                            <th class="col-area">Área Conocimiento</th>
+                            <th class="col-documento">Documento</th>
                             <th class="col-estado">Estado</th>
-                            <th class="col-fecha">Fecha Realización</th>
-                            <th class="col-evaluador">Duración</th>
-                            <th class="col-documento">Ver PDF</th>
-                            <th class="col-accion">Evaluar</th>
+                            <th class="col-acciones">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @if (cursosFiltrados != null && cursosFiltrados.Any())
+                        @if (obrasFiltradas != null && obrasFiltradas.Any())
                         {
-                            @foreach (var curso in cursosFiltrados)
+                            @foreach (var obra in obrasFiltradas)
                             {
-                                <tr class="@(curso.Seleccionado ? "selected" : "") @GetClaseFilaEstado(curso.Estado)">
+                                <tr>
                                     <td>
-                                        <input type="checkbox" @bind="curso.Seleccionado" />
+                                        <input type="checkbox" @bind="obra.Seleccionada" />
                                     </td>
                                     <td>
-                                        <div class="documento-info">
-                                            <i class="fas fa-graduation-cap @GetIconoEstado(curso.Estado) me-2"></i>
-                                            <div class="titulo-info">
-                                                <span class="titulo-texto">@curso.Nombre</span>
-                                                <small class="observaciones">@curso.Descripcion</small>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge-estado @GetClaseBadgeEstado(curso.Estado)">
-                                            @curso.Estado
+                                        <span class="badge-tipo @GetClaseTipo(obra.TipoObra)">
+                                            @obra.TipoObra
                                         </span>
                                     </td>
-                                    <td>@curso.FechaRealizacion.ToString("dd/MM/yyyy")</td>
+                                    <td class="titulo-cell">
+                                        <div class="titulo-info">
+                                            <span class="titulo-texto">@obra.Titulo</span>
+                                            @if (!string.IsNullOrEmpty(obra.Observaciones))
+                                            {
+                                                <small class="observaciones">@obra.Observaciones</small>
+                                            }
+                                        </div>
+                                    </td>
+                                    <td>@obra.FechaPublicacion.ToString("dd/MM/yyyy")</td>
                                     <td>
-                                        <span class="area-badge">@curso.DuracionHoras hrs</span>
+                                        <span class="area-badge">@(obra.AreaConocimiento ?? "Sin especificar")</span>
                                     </td>
                                     <td class="documento">
-                                        <button class="btn-documento" @onclick="() => VerDocumento(curso)" title="Ver PDF">
-                                            <span class="documento-icon">📄</span>
-                                            <span class="documento-text">PDF</span>
-                                        </button>
+                                        @if (obra.TienePDF())
+                                        {
+                                            <button class="btn-documento" @onclick="() => VerPDF(obra)" title="Ver PDF">
+                                                <span class="documento-icon">📄</span>
+                                                <span class="documento-text">PDF</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-documento">Sin documento</span>
+                                        }
                                     </td>
-                                    <td class="doi-cell">
-                                        <button class="btn-evaluar @GetClaseBotonEvaluar(curso.Estado)"
-                                                @onclick="() => EvaluarCurso(curso)" title="Evaluar curso">
-                                            <span class="evaluar-icon">@GetIconoBotonEvaluar(curso.Estado)</span>
-                                            <span class="evaluar-text">@GetTextoBotonEvaluar(curso.Estado)</span>
-                                        </button>
+                                    <td>
+                                        <span class="badge-estado @GetClaseEstado(obra.Estado)">
+                                            @obra.Estado
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-revisar" @onclick="() => RevisarObra(obra)">Revisar</button>
+                                        @if ((obra.Estado ?? "").ToLower() == "rechazado" && !string.IsNullOrEmpty(obra.Observaciones))
+                                        {
+                                            <span title="@obra.Observaciones" class="obs-icon">🛈 Obs.</span>
+                                        }
                                     </td>
                                 </tr>
+                                @if (obra.MostrandoRevision)
+                                {
+                                    <tr>
+                                        <td colspan="8">
+                                            <div class="revisar-panel">
+                                                <textarea @bind="obra.Observaciones"
+                                                          placeholder="Ingrese observación (opcional para aprobar, obligatoria para rechazar)"
+                                                          class="obs-textarea"></textarea>
+                                                <div class="revisar-buttons">
+                                                    <button class="btn-aprobar" @onclick="() => AprobarObra(obra)">Aprobar</button>
+                                                    <button class="btn-rechazar" @onclick="() => RechazarObra(obra)">Rechazar</button>
+                                                    <button class="btn-cancelar-revision" @onclick="() => OcultarRevision(obra)">Cancelar</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
                             }
                         }
                         else
                         {
                             <tr>
-                                <td colspan="7" class="no-data">No se encontraron cursos o capacitaciones</td>
+                                <td colspan="8" class="no-data">No se encontraron obras</td>
                             </tr>
                         }
                     </tbody>
                 </table>
             </div>
-
-            <div class="pagination-container">
-                <div class="pagination-info">
-                    Mostrando @cursosFiltrados.Count de @Cursos.Count cursos
-                </div>
-                <div class="pagination-controls">
-                    <span class="page-info">Cursos y Capacitaciones</span>
-                </div>
-            </div>
         </div>
     </div>
 </div>
 
-<!-- Modal para evaluar -->
-@if (mostrarModal && cursoSeleccionado != null)
-{
-    <div class="modal-overlay" @onclick="CerrarModal">
-        <div class="modal-content" @onclick:stopPropagation="true">
-            <div class="modal-header">
-                <h5>@cursoSeleccionado.Nombre</h5>
-                <button class="btn-close" @onclick="CerrarModal">&times;</button>
-            </div>
-            <div class="modal-body">
-                <div class="documento-viewer">
-                    <div class="pdf-container">
-                        <div class="pdf-placeholder">
-                            <i class="fas fa-graduation-cap fa-3x text-primary mb-3"></i>
-                            <h4>@cursoSeleccionado.Nombre</h4>
-                            <p class="text-muted">Curso de Capacitación</p>
-
-                            <div class="documento-content">
-                                <h6>Detalles del Curso:</h6>
-                                <p><strong>Nombre:</strong> @cursoSeleccionado.Nombre</p>
-                                <p><strong>Descripción:</strong> @cursoSeleccionado.Descripcion</p>
-                                <p><strong>Fecha de Realización:</strong> @cursoSeleccionado.FechaRealizacion.ToString("dd/MM/yyyy")</p>
-                                <p><strong>Duración:</strong> @cursoSeleccionado.DuracionHoras horas</p>
-                                <p><strong>Institución:</strong> @cursoSeleccionado.Institucion</p>
-                                <p><strong>Estado Actual:</strong> @cursoSeleccionado.Estado</p>
-
-                                @if (cursoSeleccionado.Id == 1)
-                                {
-                                    <div class="mt-3">
-                                        <h6>Contenido del Curso:</h6>
-                                        <ul class="text-start">
-                                            <li>Fundamentos de metodologías activas</li>
-                                            <li>Implementación práctica en el aula</li>
-                                            <li>Evaluación de resultados de aprendizaje</li>
-                                            <li>Casos de estudio y mejores prácticas</li>
-                                        </ul>
-                                    </div>
-                                }
-                                else if (cursoSeleccionado.Id == 2)
-                                {
-                                    <div class="mt-3">
-                                        <h6>Módulos Completados:</h6>
-                                        <ul class="text-start">
-                                            <li>Herramientas digitales para la educación</li>
-                                            <li>Plataformas de aprendizaje virtual</li>
-                                            <li>Gamificación en el aula</li>
-                                            <li>Evaluación digital</li>
-                                        </ul>
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="mt-3">
-                                        <h6>Competencias Desarrolladas:</h6>
-                                        <p>Desarrollo profesional continuo en el área de especialización académica y pedagógica.</p>
-                                    </div>
-                                }
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="evaluacion-panel">
-                        <h6>Evaluación del Curso</h6>
-                        <EditForm Model="@evaluacion" OnValidSubmit="@GuardarEvaluacion">
-                            <div class="mb-4">
-                                <label class="form-label">Decisión</label>
-                                <div class="decision-group">
-                                    <!-- CAMBIO: Usar string en lugar de enum -->
-                                    <div class="decision-option aprobar">
-                                        <input type="radio" name="decision" id="aprobado-curso" value="Aprobado" @onchange="@((args) => CambiarDecision(args))" />
-                                        <label class="form-check-label" for="aprobado-curso">
-                                            <i class="fas fa-check-circle"></i>
-                                            <span>Aprobar Curso</span>
-                                        </label>
-                                    </div>
-                                    <div class="decision-option rechazar">
-                                        <input type="radio" name="decision" id="rechazado-curso" value="Rechazado" @onchange="@((args) => CambiarDecision(args))" />
-                                        <label class="form-check-label" for="rechazado-curso">
-                                            <i class="fas fa-times-circle"></i>
-                                            <span>Rechazar Curso</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="mb-4">
-                                <label for="comentarios" class="form-label">Comentarios</label>
-                                <InputTextArea @bind-Value="evaluacion.Comentarios"
-                                               class="form-control"
-                                               id="comentarios"
-                                               rows="4"
-                                               placeholder="Ingrese sus comentarios sobre el curso..." required />
-                            </div>
-
-                            <div class="d-grid gap-2">
-                                <button type="submit" class="btn btn-primary btn-lg" disabled="@isLoading">
-                                    @if (isLoading)
-                                    {
-                                        <span class="spinner-loading me-2"></span>
-                                        <text>Guardando...</text>
-                                    }
-                                    else
-                                    {
-                                        <text>Guardar Evaluación</text>
-                                    }
-                                </button>
-                                <button type="button" class="btn btn-secondary" @onclick="CerrarModal">
-                                    Cancelar
-                                </button>
-                            </div>
-                        </EditForm>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-}
-
 <style>
     .obras-container {
         min-height: 100vh;
-        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
     .header-container {
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+        box-shadow: 0 4px 20px rgba(88, 21, 23, 0.15);
+        padding: 1.5rem 2rem;
     }
 
     .header-content {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 0 auto;
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
 
-    .btn-volver {
-        background: rgba(255, 255, 255, 0.2);
-        border: 1px solid rgba(255, 255, 255, 0.3);
+    .titulo-principal {
         color: white;
-        padding: 0.5rem 1rem;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+        flex: 1;
+        text-align: center;
+        letter-spacing: -0.3px;
+    }
+
+    .btn-volver {
+        background: #ffffff !important;
+        color: #581517 !important;
+        border: 2px solid #581517 !important;
+        border-radius: 8px !important;
+        padding: 0.7rem 1.4rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        text-decoration: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        min-width: 140px !important;
+        text-align: center !important;
+        box-shadow: 0 3px 10px rgba(88, 21, 23, 0.25) !important;
+        z-index: 1000 !important;
+        position: relative !important;
     }
 
         .btn-volver:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: #581517 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 15px rgba(88, 21, 23, 0.4) !important;
         }
 
-    .titulo-principal {
-        color: white;
-        font-size: 2rem;
-        font-weight: 300;
-        margin: 0;
-    }
+        .btn-volver:active {
+            transform: translateY(0) !important;
+        }
 
-    .docente-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        backdrop-filter: blur(10px);
-    }
-
-    .info-text {
-        color: white;
-    }
-
-    .nombre {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
-
-    .cargo {
-        font-size: 0.8rem;
-        opacity: 0.8;
+    .spacer {
+        width: 140px;
     }
 
     .contenido-principal {
-        max-width: 1200px;
+        max-width: 1400px;
         margin: 2rem auto;
         padding: 0 2rem;
     }
 
     .tabla-container {
         background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
         overflow: hidden;
         margin-bottom: 2rem;
     }
-
-    .toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .search-container {
-        position: relative;
-        flex: 1;
-        max-width: 300px;
-    }
-
-    .search-input {
-        width: 100%;
-        padding: 0.5rem 2.5rem 0.5rem 1rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
-
-    .search-icon {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #666;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-        .btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-    .btn-icon {
-        font-size: 0.8rem;
-    }
-
-    .btn-primary {
-        background: #0D47A1;
-        color: white;
-    }
-
-        .btn-primary:hover:not(:disabled) {
-            background: #1565C0;
-        }
-
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-    }
-
-        .btn-secondary:hover:not(:disabled) {
-            background: #5a6268;
-        }
 
     .tabla-obras {
         overflow-x: auto;
@@ -402,75 +236,95 @@
     .obras-table {
         width: 100%;
         border-collapse: collapse;
+        font-size: 0.9rem;
     }
 
-        .obras-table th,
+        .obras-table th {
+            background: #581517;
+            font-weight: 600;
+            color: white;
+            font-size: 0.85rem;
+            padding: 1rem 0.75rem;
+            text-align: left;
+            border-bottom: 2px solid #dee2e6;
+            white-space: nowrap;
+        }
+
         .obras-table td {
             padding: 0.75rem;
             text-align: left;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid #f1f3f4;
+            vertical-align: middle;
         }
 
-        .obras-table th {
-            background: #f8f9fa;
-            font-weight: 600;
-            color: #495057;
-            font-size: 0.9rem;
+        .obras-table tbody tr {
+            transition: all 0.2s ease;
         }
 
         .obras-table tbody tr:hover {
             background: #f8f9fa;
+            transform: translateY(-1px);
         }
 
         .obras-table tbody tr.selected {
             background: #e3f2fd;
+            box-shadow: inset 3px 0 0 #1976d2;
         }
 
-    /* Estados de fila */
-    .fila-aprobado {
-        background: #f8fff8;
+    /* Columnas responsivas */
+    .col-tipo { width: 10%; }
+    .col-titulo { width: 25%; }
+    .col-fecha { width: 12%; }
+    .col-area { width: 15%; }
+    .col-documento { width: 10%; }
+    .col-estado { width: 10%; }
+    .col-acciones { width: 18%; }
+
+    .badge-tipo {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        min-width: 80px;
+        text-align: center;
     }
 
-    .fila-rechazado {
-        background: #fff8f8;
+    .tipo-articulo {
+        background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+        color: #1976d2;
+        border: 1px solid #90caf9;
     }
 
-    .fila-proceso {
-        background: #fffdf8;
+    .tipo-libro {
+        background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+        color: #7b1fa2;
+        border: 1px solid #ce93d8;
     }
 
-    .col-checkbox {
-        width: 40px;
+    .tipo-capitulo {
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c8 100%);
+        color: #388e3c;
+        border: 1px solid #a5d6a7;
     }
 
-    .col-tipo {
-        width: 250px;
+    .tipo-tesis {
+        background: linear-gradient(135deg, #fff3e0 0%, #ffcc02 100%);
+        color: #f57c00;
+        border: 1px solid #ffb74d;
     }
 
-    .col-estado {
-        width: 120px;
+    .tipo-ponencia {
+        background: linear-gradient(135deg, #fce4ec 0%, #f8bbd9 100%);
+        color: #c2185b;
+        border: 1px solid #f48fb1;
     }
 
-    .col-fecha {
-        width: 130px;
-    }
-
-    .col-evaluador {
-        width: 100px;
-    }
-
-    .col-documento {
-        width: 80px;
-    }
-
-    .col-accion {
-        width: 100px;
-    }
-
-    .documento-info {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
+    .titulo-cell {
+        max-width: 250px;
+        padding: 0.75rem !important;
     }
 
     .titulo-info {
@@ -480,9 +334,13 @@
     }
 
     .titulo-texto {
-        font-weight: 500;
+        font-weight: 600;
         color: #2c3e50;
         line-height: 1.3;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .observaciones {
@@ -490,678 +348,646 @@
         font-style: italic;
         font-size: 0.75rem;
         line-height: 1.2;
-    }
-
-    .badge-estado {
-        padding: 0.25rem 0.75rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-
-    /* Badge Estados */
-    .estado-aprobado {
-        background: #d4edda;
-        color: #155724;
-    }
-
-    .estado-rechazado {
-        background: #f8d7da;
-        color: #721c24;
-    }
-
-    .estado-proceso {
-        background: #fff3cd;
-        color: #856404;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
     }
 
     .area-badge {
-        background: #f8f9fa;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
         color: #495057;
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
         border: 1px solid #dee2e6;
+        font-weight: 500;
+        display: inline-block;
+        max-width: 120px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     .documento {
         text-align: center;
+        padding: 0.5rem !important;
     }
 
     .btn-documento {
-        background: #e8f5e8;
+        background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c8 100%);
         border: 1px solid #28a745;
         color: #28a745;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
+        padding: 0.4rem 0.8rem;
+        border-radius: 8px;
         cursor: pointer;
-        font-size: 0.8rem;
-        display: flex;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-flex;
         align-items: center;
-        gap: 0.25rem;
-        transition: all 0.2s;
+        gap: 0.4rem;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        min-width: 70px;
+        justify-content: center;
     }
 
         .btn-documento:hover {
-            background: #28a745;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
         }
 
     .documento-icon {
-        font-size: 0.9rem;
+        font-size: 1rem;
     }
 
-    .documento-text {
-        font-weight: 600;
+    .badge-estado {
+        padding: 0.4rem 0.8rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        display: inline-block;
+        min-width: 90px;
+        text-align: center;
     }
 
-    .btn-evaluar {
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        transition: all 0.2s;
-        border: 1px solid;
-    }
-
-    /* Botones Evaluar Estados */
-    .btn-proceso {
-        background: #fff3cd;
-        border-color: #ffc107;
-        color: #856404;
-    }
-
-        .btn-proceso:hover {
-            background: #ffc107;
-            color: white;
-        }
-
-    .btn-aprobado {
-        background: #d4edda;
-        border-color: #28a745;
+    .estado-completado {
+        background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
         color: #155724;
+        border: 1px solid #b8daff;
     }
 
-        .btn-aprobado:hover {
-            background: #28a745;
-            color: white;
-        }
-
-    .btn-rechazado {
-        background: #f8d7da;
-        border-color: #dc3545;
-        color: #721c24;
+    .estado-pendiente {
+        background: linear-gradient(135deg, #fff3cd 0%, #ffeaa7 100%);
+        color: #856404;
+        border: 1px solid #ffeaa7;
     }
 
-        .btn-rechazado:hover {
-            background: #dc3545;
-            color: white;
-        }
-
-    .evaluar-icon {
-        font-size: 0.9rem;
+    .estado-en-progreso, .estado-en-validacion {
+        background: linear-gradient(135deg, #d1ecf1 0%, #b8daff 100%);
+        color: #0c5460;
+        border: 1px solid #b8daff;
     }
 
-    .evaluar-text {
-        font-weight: 600;
+    .estado-validado {
+        background: linear-gradient(135deg, #e2e3e5 0%, #ced4da 100%);
+        color: #383d41;
+        border: 1px solid #ced4da;
+    }
+
+    .estado-aprobado {
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: #ffffff;
+        border: 1px solid #27ae60;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .estado-rechazado {
+        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+        color: #ffffff;
+        border: 1px solid #581517;
+        font-weight: 700;
+        text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+    }
+
+    .no-documento {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.75rem;
+        padding: 0.4rem;
     }
 
     .no-data {
         text-align: center;
+        padding: 3rem;
         color: #6c757d;
         font-style: italic;
-        padding: 2rem;
+        font-size: 1.1rem;
     }
 
-    .pagination-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        background: #f8f9fa;
-        border-top: 1px solid #dee2e6;
-    }
-
-    .pagination-info {
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
-
-    .pagination-controls {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .page-info {
-        color: #495057;
-        font-size: 0.9rem;
-    }
-
-    /* Modal Styles */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.7);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        z-index: 9999;
-    }
-
-    .modal-content {
-        background: white;
+    .btn-revisar {
+        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+        color: #fff;
+        border: none;
         border-radius: 8px;
-        width: 90%;
-        max-width: 1200px;
-        max-height: 90vh;
-        overflow: hidden;
-        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+        padding: 0.5rem 1rem;
+        margin-right: 0.5rem;
+        cursor: pointer;
+        font-size: 0.8rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
     }
 
-    .modal-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-        .modal-header h5 {
-            margin: 0;
-            font-weight: 600;
-            color: #2c3e50;
+        .btn-revisar:hover {
+            background: linear-gradient(135deg, #6d1b1e 0%, #8b1e1e 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(88, 21, 23, 0.3);
         }
 
-    .btn-close {
+    .obs-icon {
+        color: #581517;
+        font-size: 1.2rem;
+        cursor: pointer;
+        margin-left: 0.5rem;
+        transition: all 0.2s ease;
+    }
+
+        .obs-icon:hover {
+            color: #6d1b1e;
+            transform: scale(1.1);
+        }
+
+    .revisar-panel {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        padding: 1.5rem;
+        border-radius: 12px;
+        margin: 1rem 0;
+        border: 1px solid #dee2e6;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .obs-textarea {
+        width: 100%;
+        min-height: 100px;
+        border-radius: 8px;
+        border: 2px solid #dee2e6;
+        padding: 0.75rem;
+        font-size: 0.95rem;
+        margin-bottom: 1rem;
+        resize: vertical;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        transition: border-color 0.3s ease;
+    }
+
+        .obs-textarea:focus {
+            border-color: #581517;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(88, 21, 23, 0.1);
+        }
+
+    .revisar-buttons {
+        display: flex;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .btn-aprobar {
+        background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 100px;
+    }
+
+        .btn-aprobar:hover {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(39, 174, 96, 0.3);
+        }
+
+    .btn-rechazar {
+        background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 100px;
+    }
+
+        .btn-rechazar:hover {
+            background: linear-gradient(135deg, #c0392b 0%, #a93226 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+        }
+
+    .btn-cancelar-revision {
+        background: linear-gradient(135deg, #6c757d 0%, #5a6268 100%);
+        color: #fff;
+        border: none;
+        border-radius: 8px;
+        padding: 0.6rem 1.2rem;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        min-width: 100px;
+    }
+
+        .btn-cancelar-revision:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #495057 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+    /* Estilos para la alerta tipo toast */
+    .toast-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        min-width: 350px;
+        max-width: 400px;
+        z-index: 9999;
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem;
+        gap: 0.75rem;
+        animation: slideInRight 0.4s ease-out;
+        border-left: 4px solid;
+    }
+
+    .toast-success {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+    }
+
+    .toast-error {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%);
+    }
+
+    .toast-info {
+        border-left-color: #17a2b8;
+        background: linear-gradient(135deg, #ffffff 0%, #f0fcff 100%);
+    }
+
+    .toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+    }
+
+    .toast-success .toast-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .toast-error .toast-icon {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    }
+
+    .toast-info .toast-icon {
+        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    }
+
+    .toast-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .toast-title {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #212529;
+        line-height: 1.3;
+    }
+
+    .toast-message {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+        line-height: 1.4;
+    }
+
+    .toast-close {
         background: none;
         border: none;
-        font-size: 1.5rem;
+        color: #adb5bd;
         cursor: pointer;
-        color: #6c757d;
-        padding: 0;
-        width: 30px;
-        height: 30px;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        font-size: 0.9rem;
+        width: 24px;
+        height: 24px;
         display: flex;
         align-items: center;
         justify-content: center;
     }
 
-        .btn-close:hover {
-            color: #dc3545;
+        .toast-close:hover {
+            color: #6c757d;
+            background: #f8f9fa;
         }
 
-    .modal-body {
-        padding: 0;
-        height: 70vh;
-    }
-
-    .documento-viewer {
-        display: flex;
-        height: 100%;
-    }
-
-    .pdf-container {
-        flex: 2;
-        background: #f8f9fa;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border-right: 1px solid #dee2e6;
-    }
-
-    .pdf-placeholder {
-        text-align: center;
-        padding: 2rem;
-        max-width: 500px;
-    }
-
-    .documento-content {
-        background: white;
-        padding: 1.5rem;
-        border-radius: 8px;
-        margin-top: 1rem;
-        text-align: left;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    .evaluacion-panel {
-        flex: 1;
-        padding: 1.5rem;
-        background: white;
-        min-width: 350px;
-    }
-
-        .evaluacion-panel h6 {
-            margin-bottom: 1rem;
-            color: #2c3e50;
-            font-weight: 600;
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
         }
 
-    .decision-group {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-        margin-bottom: 1rem;
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
     }
 
-    .decision-option {
-        position: relative;
-    }
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .header-content {
+            flex-direction: column;
+            gap: 1rem;
+            text-align: center;
+        }
 
-        .decision-option input {
+        .titulo-principal {
+            font-size: 1.5rem;
+        }
+
+        .btn-volver {
+            margin-bottom: 1rem !important;
+        }
+
+        .spacer {
             display: none;
         }
 
-        .decision-option label {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            padding: 1rem;
-            border: 2px solid #dee2e6;
-            border-radius: 8px;
-            cursor: pointer;
-            transition: all 0.2s;
+        .obras-table {
+            min-width: 800px;
+        }
+
+        .revisar-buttons {
+            flex-direction: column;
+        }
+
+        .revisar-buttons button {
             width: 100%;
         }
-
-            .decision-option label i {
-                font-size: 1.25rem;
-            }
-
-        .decision-option.aprobar label {
-            color: #28a745;
+        
+        .col-titulo {
+            width: 30%;
         }
-
-        .decision-option.rechazar label {
-            color: #dc3545;
-        }
-
-        .decision-option input:checked + label {
-            border-color: currentColor;
-            background: rgba(0, 0, 0, 0.05);
-        }
-
-    .text-muted {
-        color: #6c757d !important;
-    }
-
-    .text-primary {
-        color: #0D47A1 !important;
-    }
-
-    .text-success {
-        color: #28a745 !important;
-    }
-
-    .text-warning {
-        color: #ffc107 !important;
-    }
-
-    .text-danger {
-        color: #dc3545 !important;
-    }
-
-    .me-2 {
-        margin-right: 0.5rem !important;
-    }
-
-    .mb-3 {
-        margin-bottom: 1rem !important;
-    }
-
-    .mb-4 {
-        margin-bottom: 1.5rem !important;
-    }
-
-    .mt-3 {
-        margin-top: 1rem !important;
-    }
-
-    .d-grid {
-        display: grid !important;
-    }
-
-    .gap-2 {
-        gap: 0.5rem !important;
-    }
-
-    .text-start {
-        text-align: left !important;
-    }
-
-    .form-control {
-        display: block;
-        width: 100%;
-        padding: 0.375rem 0.75rem;
-        font-size: 1rem;
-        font-weight: 400;
-        line-height: 1.5;
-        color: #212529;
-        background-color: #fff;
-        background-image: none;
-        border: 1px solid #ced4da;
-        border-radius: 0.25rem;
-        transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
-    }
-
-        .form-control:focus {
-            color: #212529;
-            background-color: #fff;
-            border-color: #86b7fe;
-            outline: 0;
-            box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
-        }
-
-    .form-label {
-        margin-bottom: 0.5rem;
-        font-weight: 600;
-        color: #495057;
-    }
-
-    .spinner-loading {
-        display: inline-block;
-        width: 1rem;
-        height: 1rem;
-        vertical-align: -0.125em;
-        border: 0.125em solid currentcolor;
-        border-right-color: transparent;
-        border-radius: 50%;
-        animation: spin 0.75s linear infinite;
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
+        
+        .col-acciones {
+            width: 20%;
         }
     }
 </style>
 
 @code {
-    private EvaluacionModel evaluacion = new();
-    private bool isLoading = false;
-    private bool mostrarModal = false;
-    private CursoModel? cursoSeleccionado = null;
-
-    private string filtroTexto = "";
-    private List<CursoModel> cursosFiltrados = new();
-
-    private List<CursoModel> Cursos = new()
-    {
-        new CursoModel { Id = 1, Nombre = "Metodologías Activas de Aprendizaje", Estado = "En Proceso", Descripcion = "Curso sobre técnicas pedagógicas innovadoras", FechaRealizacion = new DateTime(2024, 3, 15), DuracionHoras = 40, Institucion = "Universidad Pedagógica Nacional" },
-        new CursoModel { Id = 2, Nombre = "Tecnologías Educativas Digitales", Estado = "En Proceso", Descripcion = "Capacitación en herramientas digitales", FechaRealizacion = new DateTime(2024, 1, 20), DuracionHoras = 60, Institucion = "Instituto de Tecnología Educativa" },
-        new CursoModel { Id = 3, Nombre = "Evaluación por Competencias", Estado = "En Proceso", Descripcion = "Seminario sobre sistemas de evaluación", FechaRealizacion = new DateTime(2023, 11, 10), DuracionHoras = 30, Institucion = "Centro de Desarrollo Docente" },
-        new CursoModel { Id = 4, Nombre = "Investigación Pedagógica", Estado = "En Proceso", Descripcion = "Workshop sobre metodología de investigación", FechaRealizacion = new DateTime(2023, 9, 5), DuracionHoras = 50, Institucion = "Academia de Investigación Educativa" }
-    };
+    private List<ObraInfo> obras = new();
+    private List<ObraInfo> obrasFiltradas = new();
+    private string cedulaDocente = "";
+    
+    // Variables para el sistema de alertas/toast
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
 
     protected override async Task OnInitializedAsync()
     {
-        await CargarEstadoCursos();
-        FiltrarCursos();
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        cedulaDocente = query["cedula"] ?? "";
+
+        await CargarObras();
     }
 
-    private async Task CargarEstadoCursos()
+    private async Task CargarObras()
     {
         try
         {
-            // Cargar estado individual de cada curso
-            foreach (var curso in Cursos)
-            {
-                var estadoCurso = await JSRuntime.InvokeAsync<string>("localStorage.getItem",
-                    $"curso_{curso.Id}_estado");
-
-                if (!string.IsNullOrEmpty(estadoCurso))
-                {
-                    curso.Estado = estadoCurso;
-                }
-            }
-
-            StateHasChanged();
+            // Usar el endpoint correcto para obtener obras por cédula
+            var obrasResponse = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/Obras/cedula/{cedulaDocente}");
+            obras = obrasResponse ?? new();
+            obrasFiltradas = obras;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error cargando estado: {ex.Message}");
+            Console.WriteLine($"Error cargando obras: {ex.Message}");
+            obras = new();
+            obrasFiltradas = new();
+            MostrarAlerta("error", "Error al cargar obras", 
+                "No se pudieron cargar las obras. Inténtalo de nuevo.");
         }
     }
 
-    private void FiltrarCursos()
+    private void SeleccionarTodas(ChangeEventArgs e)
     {
-        cursosFiltrados = Cursos.Where(c =>
-            string.IsNullOrEmpty(filtroTexto) ||
-            c.Nombre.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
-            c.Descripcion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
-            c.Institucion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
-        ).ToList();
-
+        var seleccionar = (bool)(e.Value ?? false);
+        foreach (var obra in obrasFiltradas)
+        {
+            obra.Seleccionada = seleccionar;
+        }
         StateHasChanged();
     }
 
-    // NUEVO: Método para cambiar la decisión usando radio buttons manuales
-    private void CambiarDecision(ChangeEventArgs e)
+    private string GetClaseTipo(string? tipo)
     {
-        evaluacion.DecisionSeleccionada = e.Value?.ToString() ?? "";
-        Console.WriteLine($"Decisión cambiada a: {evaluacion.DecisionSeleccionada}");
-        StateHasChanged();
-    }
-
-    // Métodos para obtener clases CSS según el estado
-    private string GetClaseFilaEstado(string estado)
-    {
-        return estado switch
+        return tipo?.ToLower() switch
         {
-            "Aprobado" => "fila-aprobado",
-            "Rechazado" => "fila-rechazado",
-            "En Proceso" => "fila-proceso",
-            _ => "fila-proceso"
+            "artículo" => "tipo-articulo",
+            "libro" => "tipo-libro",
+            "capítulo" => "tipo-capitulo",
+            "tesis" => "tipo-tesis",
+            "ponencia" => "tipo-ponencia",
+            _ => "tipo-articulo"
         };
     }
 
-    private string GetClaseBadgeEstado(string estado)
+    private string GetClaseEstado(string? estado)
     {
-        return estado switch
+        return estado?.ToLower() switch
         {
-            "Aprobado" => "estado-aprobado",
-            "Rechazado" => "estado-rechazado",
-            "En Proceso" => "estado-proceso",
-            _ => "estado-proceso"
+            "completado" => "estado-completado",
+            "pendiente" => "estado-pendiente",
+            "en progreso" => "estado-en-progreso",
+            "en validación" => "estado-en-validacion",
+            "validado" => "estado-validado",
+            "aprobado" or "APROBADO" => "estado-aprobado",
+            "rechazado" or "RECHAZADO" => "estado-rechazado",
+            _ => "estado-pendiente"
         };
     }
 
-    private string GetIconoEstado(string estado)
+    private async Task VerPDF(ObraInfo obra)
     {
-        return estado switch
+        if (string.IsNullOrEmpty(obra.PdfUrl))
         {
-            "Aprobado" => "text-success",
-            "Rechazado" => "text-danger",
-            "En Proceso" => "text-warning",
-            _ => "text-warning"
-        };
-    }
+            MostrarAlerta("info", "PDF no disponible", 
+                "No hay documento PDF asociado a esta obra.");
+            return;
+        }
 
-    private string GetClaseBotonEvaluar(string estado)
-    {
-        return estado switch
+        try
         {
-            "Aprobado" => "btn-aprobado",
-            "Rechazado" => "btn-rechazado",
-            "En Proceso" => "btn-proceso",
-            _ => "btn-proceso"
-        };
-    }
-
-    private string GetIconoBotonEvaluar(string estado)
-    {
-        return estado switch
+            await JSRuntime.InvokeVoidAsync("window.open", obra.PdfUrl, "_blank");
+        }
+        catch (Exception ex)
         {
-            "Aprobado" => "✓",
-            "Rechazado" => "✗",
-            "En Proceso" => "⏳",
-            _ => "⏳"
-        };
-    }
-
-    private string GetTextoBotonEvaluar(string estado)
-    {
-        return estado switch
-        {
-            "Aprobado" => "Re-evaluar",
-            "Rechazado" => "Re-evaluar",
-            "En Proceso" => "Evaluar",
-            _ => "Evaluar"
-        };
-    }
-
-    private void SeleccionarTodos(ChangeEventArgs e)
-    {
-        bool seleccionar = (bool)e.Value;
-        foreach (var curso in cursosFiltrados)
-        {
-            curso.Seleccionado = seleccionar;
+            Console.WriteLine($"Error al abrir PDF: {ex.Message}");
+            MostrarAlerta("error", "Error al abrir PDF", 
+                "No se pudo abrir el documento PDF. Verifique que la URL sea válida.");
         }
     }
 
-    private void VerDocumento(CursoModel curso)
+    private void RevisarObra(ObraInfo obra)
     {
-        cursoSeleccionado = curso;
-        evaluacion = new EvaluacionModel(); // Reiniciar evaluación
-        mostrarModal = true;
+        foreach (var o in obrasFiltradas)
+            o.MostrandoRevision = false;
+        obra.MostrandoRevision = true;
         StateHasChanged();
     }
 
-    private void EvaluarCurso(CursoModel curso)
+    private void OcultarRevision(ObraInfo obra)
     {
-        VerDocumento(curso);
-    }
-
-    private void CerrarModal()
-    {
-        mostrarModal = false;
-        cursoSeleccionado = null;
-        evaluacion = new EvaluacionModel();
+        obra.MostrandoRevision = false;
+        obra.Observaciones = "";
         StateHasChanged();
     }
 
-    private async Task GuardarEvaluacion()
+    private async Task AprobarObra(ObraInfo obra)
     {
         try
         {
-            isLoading = true;
-            StateHasChanged();
-
-            if (string.IsNullOrEmpty(evaluacion.DecisionSeleccionada))
+            obra.Estado = "APROBADO";
+            obra.MostrandoRevision = false;
+            var dto = new EstadoUpdateDto
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione el estado de la evaluación");
-                return;
-            }
-
-            await Task.Delay(1500);
-
-            string nuevoEstado = evaluacion.DecisionSeleccionada;
-
-            // CORRECCIÓN: Solo actualizar el curso seleccionado, no todos
-            if (cursoSeleccionado != null)
-            {
-                cursoSeleccionado.Estado = nuevoEstado;
-
-                // Guardar estado individual del curso en localStorage
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem",
-                    $"curso_{cursoSeleccionado.Id}_estado", nuevoEstado);
-            }
-
-            // OPCIONAL: Solo marcar el documento como evaluado si TODOS los cursos están evaluados
-            var todosEvaluados = Cursos.All(c => c.Estado == "Aprobado" || c.Estado == "Rechazado");
-            if (todosEvaluados)
-            {
-                // Determinar el estado general basado en la mayoría
-                var aprobados = Cursos.Count(c => c.Estado == "Aprobado");
-                var rechazados = Cursos.Count(c => c.Estado == "Rechazado");
-                var estadoGeneral = aprobados >= rechazados ? "Aprobado" : "Rechazado";
-
-                await JSRuntime.InvokeVoidAsync("localStorage.setItem", "documento_3_estado", estadoGeneral);
-            }
-
-            var evaluacionData = new
-            {
-                CursoId = cursoSeleccionado?.Id,
-                CursoNombre = cursoSeleccionado?.Nombre,
-                Estado = evaluacion.DecisionSeleccionada,
-                Comentarios = evaluacion.Comentarios ?? "",
-                Fecha = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
-                Evaluador = "Cuadrado1224"
+                Estado = "APROBADO",
+                Observacion = string.IsNullOrEmpty(obra.Observaciones) ? "Cumple con todos los requisitos" : obra.Observaciones
             };
-
-            // Guardar evaluación específica del curso
-            await JSRuntime.InvokeVoidAsync("localStorage.setItem",
-                $"evaluacion_curso_{cursoSeleccionado?.Id}",
-                System.Text.Json.JsonSerializer.Serialize(evaluacionData));
-
-            await JSRuntime.InvokeVoidAsync("alert",
-                $"✅ Curso '{cursoSeleccionado?.Nombre}' evaluado como {nuevoEstado}");
-
-            CerrarModal();
-            FiltrarCursos();
+            await Http.PutAsJsonAsync($"/api/Obras/estado/{obra.IdObra}", dto);
+            
+            // Mostrar alerta de éxito
+            MostrarAlerta("success", "¡Obra aprobada!", 
+                $"'{obra.Titulo}' ha sido aprobada exitosamente.");
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error al guardar la evaluación: {ex.Message}");
+            Console.WriteLine($"Error al aprobar obra: {ex.Message}");
+            // Mostrar alerta de error
+            MostrarAlerta("error", "Error al aprobar", 
+                "No se pudo aprobar la obra. Inténtalo de nuevo.");
         }
-        finally
+        StateHasChanged();
+    }
+
+    private async Task RechazarObra(ObraInfo obra)
+    {
+        if (string.IsNullOrWhiteSpace(obra.Observaciones))
         {
-            isLoading = false;
-            StateHasChanged();
+            MostrarAlerta("error", "Observación requerida", 
+                "Debe ingresar una observación para rechazar.");
+            return;
         }
+        
+        try
+        {
+            obra.Estado = "RECHAZADO";
+            obra.MostrandoRevision = false;
+            var dto = new EstadoUpdateDto
+            {
+                Estado = "RECHAZADO",
+                Observacion = obra.Observaciones
+            };
+            await Http.PutAsJsonAsync($"/api/Obras/estado/{obra.IdObra}", dto);
+            
+            // Mostrar alerta de éxito
+            MostrarAlerta("success", "Obra rechazada", 
+                $"'{obra.Titulo}' ha sido rechazada.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al rechazar obra: {ex.Message}");
+            // Mostrar alerta de error
+            MostrarAlerta("error", "Error al rechazar", 
+                "No se pudo rechazar la obra. Inténtalo de nuevo.");
+        }
+        StateHasChanged();
     }
-
-    private async Task ActualizarEstados()
+    
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
     {
-        await CargarEstadoCursos();
-        FiltrarCursos();
-        await JSRuntime.InvokeVoidAsync("alert", "Estados actualizados");
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+        StateHasChanged();
+        
+        // Auto-cerrar después de 4 segundos
+        _ = Task.Delay(4000).ContinueWith(_ => 
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
     }
-
-    private async Task VerResumen()
+    
+    private void CerrarAlerta()
     {
-        var aprobados = Cursos.Count(c => c.Estado == "Aprobado");
-        var rechazados = Cursos.Count(c => c.Estado == "Rechazado");
-        var enProceso = Cursos.Count(c => c.Estado == "En Proceso");
-        var totalHoras = Cursos.Sum(c => c.DuracionHoras);
-
-        await JSRuntime.InvokeVoidAsync("alert",
-            $"📊 Resumen de Cursos/Capacitaciones\n\n" +
-            $"✅ Cursos Aprobados: {aprobados}\n" +
-            $"❌ Cursos Rechazados: {rechazados}\n" +
-            $"⏳ En Proceso: {enProceso}\n" +
-            $"📚 Total de Cursos: {Cursos.Count}\n" +
-            $"⏰ Total de Horas: {totalHoras}");
+        mostrarAlerta = false;
+        StateHasChanged();
     }
 
     private void Volver()
     {
-        Navigation.NavigateTo("/administrador");
+        // Navega de vuelta incluyendo la cédula
+        Navigation.NavigateTo($"/administrador?codigo={cedulaDocente}");
     }
 
-    public class CursoModel
+    public class ObraInfo
     {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = "";
-        public string Estado { get; set; } = "En Proceso";
-        public string Descripcion { get; set; } = "";
-        public string Institucion { get; set; } = "";
-        public bool Seleccionado { get; set; } = false;
-        public DateTime FechaRealizacion { get; set; }
-        public int DuracionHoras { get; set; }
+        public int IdObra { get; set; }
+        public string TipoObra { get; set; } = "";
+        public string Titulo { get; set; } = "";
+        public DateTime FechaPublicacion { get; set; }
+        public string? DoiUrl { get; set; }
+        public string? AreaConocimiento { get; set; }
+        public string? Observaciones { get; set; }
+        public string? PdfUrl { get; set; }
+        public string? CedDoc { get; set; }
+        public string? Estado { get; set; }
+        public bool Seleccionada { get; set; }
+        public bool MostrandoRevision { get; set; } = false;
+
+        public bool TienePDF()
+        {
+            return !string.IsNullOrEmpty(PdfUrl);
+        }
     }
 
-    public class EvaluacionModel
+    public class EstadoUpdateDto
     {
-        public string DecisionSeleccionada { get; set; } = ""; // CAMBIO: Usar string en lugar de enum
-        public string Comentarios { get; set; } = "";
+        public string Estado { get; set; } = "";
+        public string Observacion { get; set; } = "";
     }
 }

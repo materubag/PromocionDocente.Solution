@@ -13,7 +13,6 @@
             public DateTime FechaInicio { get; set; }
             public DateTime? FechaFin { get; set; }
             public string? Certificado { get; set; }
-            
         }
 
         public enum EstadoCapacitacion
