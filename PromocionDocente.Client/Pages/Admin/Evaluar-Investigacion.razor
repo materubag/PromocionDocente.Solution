@@ -2,113 +2,118 @@
 
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <div class="investigaciones-container">
-    <div class="header-container">
-        <div class="header-content">
-            <h1 class="titulo-principal">Sistema de Gestión de Investigaciones</h1>
-        </div>
-    </div>
-    <div class="contenido-principal">
-        <div class="tabla-container">
-            <div class="tabla-investigaciones">
-                <table class="investigaciones-table">
-                    <thead>
-                        <tr>
-                            <th>
-                                <input type="checkbox" @onchange="SeleccionarTodas" />
-                            </th>
-                            <th class="col-titulo">Título</th>
-                            <th class="col-tipo">Tipo</th>
-                            <th class="col-campo">Campo de Aplicación</th>
-                            <th class="col-duracion">Duración</th>
-                            <th class="col-fechas">Fechas</th>
-                            <th class="col-documento">Documento</th>
-                            <th class="col-estado">Estado</th>
-                            <th class="col-acciones">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @if (investigacionesFiltradas != null && investigacionesFiltradas.Any())
-                        {
-                            @foreach (var investigacion in investigacionesFiltradas)
-                            {
-                                <tr>
-                                    <td>
-                                        <input type="checkbox" @bind="investigacion.Seleccionada" />
-                                    </td>
-                                    <td class="titulo-cell">
-                                        <div class="titulo-investigacion" title="@investigacion.TituloInvestigacion">
-                                            @(investigacion.TituloInvestigacion.Length > 50 ?
-                                                                                investigacion.TituloInvestigacion.Substring(0, 50) + "..." :
-                                                                                investigacion.TituloInvestigacion)
-                                </div>
-                            </td>
-                            <td>@investigacion.TipoInvestigacion</td>
-                            <td>@investigacion.CampoAplicacion</td>
-                            <td class="duracion">
-                                <span class="badge-duracion @GetClaseDuracion(investigacion.DuracionMeses)">
-                                    @investigacion.DuracionMeses meses
-                                </span>
-                            </td>
-                            <td class="fechas">
-                                <div class="fecha-inicio">Inicio: @investigacion.FechaInicio.ToString("dd/MM/yyyy")</div>
-                                <div class="fecha-fin">Fin: @investigacion.FechaFin.ToString("dd/MM/yyyy")</div>
-                            </td>
-                            <td class="documento">
-                                @if (!string.IsNullOrEmpty(investigacion.archivoPdf))
-                                        {
-                                            <button class="btn-documento" @onclick="() => VerPDF(investigacion)" title="Ver PDF">
-                                                <span class="documento-icon">📄</span>
-                                                <span class="documento-text">PDF</span>
-                                            </button>
-                                        }
-                                        else
-                                        {
-                                            <span class="no-documento">Sin documento</span>
-                                        }
-                                    </td>
-                                    <td>
-                                        <span class="badge-estado @GetClaseEstado(investigacion.Estado)">
-                                            @investigacion.Estado
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <button class="btn-revisar" @onclick="() => RevisarInvestigacion(investigacion)">Revisar</button>
-                                        @if ((investigacion.Estado ?? "").ToLower() == "rechazado" && !string.IsNullOrEmpty(investigacion.Observacion))
-                                        {
-                                            <span title="@investigacion.Observacion" class="obs-icon">🛈 Obs.</span>
-                                        }
-                                    </td>
-                                </tr>
-                                @if (investigacion.MostrandoRevision)
-                                {
-                                    <tr>
-                                        <td colspan="9">
-                                            <div class="revisar-panel">
-                                                <textarea @bind="investigacion.Observacion"
-                                                          placeholder="Ingrese observación (opcional para aprobar, obligatoria para rechazar)"
-                                                          class="obs-textarea"></textarea>
-                                                <button class="btn-aprobar" @onclick="() => AprobarInvestigacion(investigacion)">Aprobar</button>
-                                                <button class="btn-rechazar" @onclick="() => RechazarInvestigacion(investigacion)">Rechazar</button>
-                                                <button class="btn-cancelar-revision" @onclick="() => OcultarRevision(investigacion)">Cancelar</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                }
-                            }
-                        }
-                        else
-                        {
-                            <tr>
-                                <td colspan="9" class="no-data">No se encontraron investigaciones</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
+	<div class="header-container">
+		<div class="header-content">
+			<button class="btn-volver" @onclick="Volver">← Volver</button>
+			<h1 class="titulo-principal">Sistema de Gestión de Investigaciones</h1>
+			<div class="spacer"></div>
+		</div>
+	</div>
+	<div class="contenido-principal">
+		<div class="tabla-container">
+			<div class="tabla-investigaciones">
+				<table class="investigaciones-table">
+					<thead>
+						<tr>
+							<th>
+								<input type="checkbox" @onchange="SeleccionarTodas" />
+							</th>
+							<th class="col-titulo">Título</th>
+							<th class="col-tipo">Tipo</th>
+							<th class="col-campo">Campo de Aplicación</th>
+							<th class="col-duracion">Duración</th>
+							<th class="col-fechas">Fechas</th>
+							<th class="col-documento">Documento</th>
+							<th class="col-estado">Estado</th>
+							<th class="col-acciones">Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (investigacionesFiltradas != null && investigacionesFiltradas.Any())
+						{
+							@foreach (var investigacion in investigacionesFiltradas)
+							{
+								<tr>
+									<td>
+										<input type="checkbox" @bind="investigacion.Seleccionada" />
+									</td>
+									<td class="titulo-cell">
+										<div class="titulo-investigacion" title="@investigacion.TituloInvestigacion">
+											@(investigacion.TituloInvestigacion.Length > 50 ?
+																				investigacion.TituloInvestigacion.Substring(0, 50) + "..." :
+																				investigacion.TituloInvestigacion)
+								</div>
+							</td>
+							<td>@investigacion.TipoInvestigacion</td>
+							<td>@investigacion.CampoAplicacion</td>
+							<td class="duracion">
+								<span class="badge-duracion @GetClaseDuracion(investigacion.DuracionMeses)">
+									@investigacion.DuracionMeses meses
+								</span>
+							</td>
+							<td class="fechas">
+								<div class="fecha-inicio">Inicio: @investigacion.FechaInicio.ToString("dd/MM/yyyy")</div>
+								<div class="fecha-fin">Fin: @investigacion.FechaFin.ToString("dd/MM/yyyy")</div>
+							</td>
+							<td class="documento">
+								@if (!string.IsNullOrEmpty(investigacion.archivoPdf))
+										{
+											<button class="btn-documento" @onclick="() => VerPDF(investigacion)" title="Ver PDF">
+												<span class="documento-icon">📄</span>
+												<span class="documento-text">PDF</span>
+											</button>
+										}
+										else
+										{
+											<span class="no-documento">Sin documento</span>
+										}
+									</td>
+									<td>
+										<span class="badge-estado @GetClaseEstado(investigacion.Estado)">
+											@investigacion.Estado
+										</span>
+									</td>
+									<td>
+										<button class="btn-revisar" @onclick="() => RevisarInvestigacion(investigacion)">Revisar</button>
+										@if ((investigacion.Estado ?? "").ToLower() == "rechazado" && !string.IsNullOrEmpty(investigacion.Observacion))
+										{
+											<span title="@investigacion.Observacion" class="obs-icon">🛈 Obs.</span>
+										}
+									</td>
+								</tr>
+								@if (investigacion.MostrandoRevision)
+								{
+									<tr>
+										<td colspan="9">
+											<div class="revisar-panel">
+												<textarea @bind="investigacion.Observacion"
+														  placeholder="Ingrese observación (opcional para aprobar, obligatoria para rechazar)"
+														  class="obs-textarea"></textarea>
+												<div class="revisar-buttons">
+													<button class="btn-aprobar" @onclick="() => AprobarInvestigacion(investigacion)">Aprobar</button>
+													<button class="btn-rechazar" @onclick="() => RechazarInvestigacion(investigacion)">Rechazar</button>
+													<button class="btn-cancelar-revision" @onclick="() => OcultarRevision(investigacion)">Cancelar</button>
+												</div>
+											</div>
+										</td>
+									</tr>
+								}
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="9" class="no-data">No se encontraron investigaciones</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
 </div>
 
 <style>
@@ -138,6 +143,44 @@
 		font-size: 2rem;
 		font-weight: 300;
 		margin: 0;
+		flex: 1;
+		text-align: center;
+	}
+
+	.btn-volver {
+		background: #ffffff !important;
+		color: #1565C0 !important;
+		border: 2px solid #1565C0 !important;
+		border-radius: 6px !important;
+		padding: 0.6rem 1.2rem !important;
+		font-size: 1rem !important;
+		font-weight: 600 !important;
+		cursor: pointer !important;
+		transition: all 0.3s ease !important;
+		text-decoration: none !important;
+		display: flex !important;
+		align-items: center !important;
+		gap: 0.5rem !important;
+		min-width: 120px !important;
+		text-align: center !important;
+		box-shadow: 0 3px 10px rgba(21, 101, 192, 0.25) !important;
+		z-index: 1000 !important;
+		position: relative !important;
+	}
+
+		.btn-volver:hover {
+			background: #1565C0 !important;
+			color: #ffffff !important;
+			transform: translateY(-2px) !important;
+			box-shadow: 0 5px 15px rgba(21, 101, 192, 0.4) !important;
+		}
+
+		.btn-volver:active {
+			transform: translateY(0) !important;
+		}
+
+	.spacer {
+		width: 120px;
 	}
 
 	.docente-info {
@@ -177,7 +220,6 @@
 		overflow: hidden;
 	}
 
-	/* Toolbar */
 	.toolbar {
 		display: flex;
 		justify-content: space-between;
@@ -253,7 +295,6 @@
 			background: #5a6268;
 		}
 
-	/* Tabla */
 	.tabla-investigaciones {
 		overflow-x: auto;
 	}
@@ -401,6 +442,16 @@
 		color: #383d41;
 	}
 
+	.estado-aprobado {
+		background: #c8e6c9;
+		color: #256029;
+	}
+
+	.estado-rechazado {
+		background: #ffcccc;
+		color: #c0392b;
+	}
+
 	.documento {
 		text-align: center;
 	}
@@ -445,7 +496,97 @@
 		padding: 2rem;
 	}
 
-	/* Paginación */
+	.btn-revisar {
+		background: #1565C0;
+		color: #fff;
+		border: none;
+		border-radius: 4px;
+		padding: 0.3rem 0.9rem;
+		margin-right: 0.5rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: background 0.2s;
+	}
+
+		.btn-revisar:hover {
+			background: #0D47A1;
+		}
+
+	.obs-icon {
+		color: #c0392b;
+		font-size: 1.1rem;
+		cursor: pointer;
+	}
+
+	.revisar-panel {
+		background: #f8f9fa;
+		padding: 1rem;
+		border-radius: 4px;
+		margin: 0.5rem 0;
+	}
+
+	.obs-textarea {
+		width: 100%;
+		min-height: 80px;
+		border-radius: 4px;
+		border: 1px solid #ccc;
+		padding: 0.5rem;
+		font-size: 1rem;
+		margin-bottom: 1rem;
+		resize: vertical;
+	}
+
+	.revisar-buttons {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.btn-aprobar {
+		background: #27ae60;
+		color: #fff;
+		border: none;
+		border-radius: 4px;
+		padding: 0.5rem 1rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: background 0.2s;
+	}
+
+		.btn-aprobar:hover {
+			background: #219150;
+		}
+
+	.btn-rechazar {
+		background: #e74c3c;
+		color: #fff;
+		border: none;
+		border-radius: 4px;
+		padding: 0.5rem 1rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: background 0.2s;
+	}
+
+		.btn-rechazar:hover {
+			background: #c0392b;
+		}
+
+	.btn-cancelar-revision {
+		background: #6c757d;
+		color: #fff;
+		border: none;
+		border-radius: 4px;
+		padding: 0.5rem 1rem;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: background 0.2s;
+	}
+
+		.btn-cancelar-revision:hover {
+			background: #5a6268;
+		}
+
 	.pagination-container {
 		display: flex;
 		justify-content: space-between;
@@ -487,137 +628,178 @@
 		color: #495057;
 		font-size: 0.9rem;
 	}
+
+	/* Media queries para responsive */
+	@@media (max-width: 768px) {
+		.header-content
+
+	{
+		flex-direction: column;
+		gap: 1rem;
+		text-align: center;
+	}
+
+	.titulo-principal {
+		font-size: 1.5rem;
+	}
+
+	.btn-volver {
+		margin-bottom: 1rem !important;
+	}
+
+	.spacer {
+		display: none;
+	}
+
+	.revisar-buttons {
+		flex-direction: column;
+	}
+
+		.revisar-buttons button {
+			width: 100%;
+		}
+
+	}
 </style>
 
 @code {
-    private List<InvestigacionInfoEval> investigaciones = new();
-    private List<InvestigacionInfoEval> investigacionesFiltradas = new();
+	private List<InvestigacionInfoEval> investigaciones = new();
+	private List<InvestigacionInfoEval> investigacionesFiltradas = new();
+	private string cedulaDocente = "";
 
-    protected override async Task OnInitializedAsync()
-    {
-        await CargarInvestigaciones();
-    }
+	protected override async Task OnInitializedAsync()
+	{
+		// Leer la cédula desde el querystring
+		var uri = new Uri(Navigation.Uri);
+		var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+		cedulaDocente = query["cedula"] ?? "";
 
-    private async Task CargarInvestigaciones()
-    {
-        try
-        {
-            investigaciones = await Http.GetFromJsonAsync<List<InvestigacionInfoEval>>($"/api/Investigaciones");
-            investigacionesFiltradas = investigaciones;
-        }
-        catch
-        {
-            investigacionesFiltradas = new();
-        }
-    }
+		await CargarInvestigaciones();
+	}
 
-    private void SeleccionarTodas(ChangeEventArgs e)
-    {
-        bool seleccionar = (bool)e.Value;
-        foreach (var inv in investigacionesFiltradas)
-        {
-            inv.Seleccionada = seleccionar;
-        }
-    }
+	private async Task CargarInvestigaciones()
+	{
+		try
+		{
+			investigaciones = await Http.GetFromJsonAsync<List<InvestigacionInfoEval>>($"/api/Investigaciones");
+			investigacionesFiltradas = investigaciones;
+		}
+		catch
+		{
+			investigacionesFiltradas = new();
+		}
+	}
 
-    private string GetClaseDuracion(int duracionMeses)
-    {
-        if (duracionMeses <= 6) return "duracion-corta";
-        if (duracionMeses <= 12) return "duracion-media";
-        if (duracionMeses <= 18) return "duracion-larga";
-        return "duracion-extensa";
-    }
+	private void SeleccionarTodas(ChangeEventArgs e)
+	{
+		bool seleccionar = (bool)e.Value;
+		foreach (var inv in investigacionesFiltradas)
+		{
+			inv.Seleccionada = seleccionar;
+		}
+	}
 
-    private string GetClaseEstado(string? estado)
-    {
-        return (estado ?? "").ToLower().Replace(" ", "-") switch
-        {
-            "en-curso" => "estado-en-curso",
-            "completada" => "estado-completada",
-            "planificada" => "estado-planificada",
-            "suspendida" => "estado-suspendida",
-            "borrador" => "estado-borrador",
-            "aprobado" => "estado-aprobado",
-            "rechazado" => "estado-rechazado",
-            _ => "estado-borrador"
-        };
-    }
+	private string GetClaseDuracion(int duracionMeses)
+	{
+		if (duracionMeses <= 6) return "duracion-corta";
+		if (duracionMeses <= 12) return "duracion-media";
+		if (duracionMeses <= 18) return "duracion-larga";
+		return "duracion-extensa";
+	}
 
-    private async Task VerPDF(InvestigacionInfoEval investigacion)
-    {
-        if (!string.IsNullOrEmpty(investigacion.archivoPdf))
-            await JSRuntime.InvokeVoidAsync("window.open", investigacion.archivoPdf, "_blank");
-    }
+	private string GetClaseEstado(string? estado)
+	{
+		return (estado ?? "").ToLower().Replace(" ", "-") switch
+		{
+			"en-curso" => "estado-en-curso",
+			"completada" => "estado-completada",
+			"planificada" => "estado-planificada",
+			"suspendida" => "estado-suspendida",
+			"borrador" => "estado-borrador",
+			"aprobado" => "estado-aprobado",
+			"rechazado" => "estado-rechazado",
+			_ => "estado-borrador"
+		};
+	}
 
-    private void RevisarInvestigacion(InvestigacionInfoEval investigacion)
-    {
-        foreach (var i in investigacionesFiltradas)
-            i.MostrandoRevision = false;
-        investigacion.MostrandoRevision = true;
-        StateHasChanged();
-    }
+	private async Task VerPDF(InvestigacionInfoEval investigacion)
+	{
+		if (!string.IsNullOrEmpty(investigacion.archivoPdf))
+			await JSRuntime.InvokeVoidAsync("window.open", investigacion.archivoPdf, "_blank");
+	}
 
-    private void OcultarRevision(InvestigacionInfoEval investigacion)
-    {
-        investigacion.MostrandoRevision = false;
-        investigacion.Observacion = "";
-        StateHasChanged();
-    }
+	private void RevisarInvestigacion(InvestigacionInfoEval investigacion)
+	{
+		foreach (var i in investigacionesFiltradas)
+			i.MostrandoRevision = false;
+		investigacion.MostrandoRevision = true;
+		StateHasChanged();
+	}
 
-    private async Task AprobarInvestigacion(InvestigacionInfoEval investigacion)
-    {
-        investigacion.Estado = "Aprobado";
-        investigacion.MostrandoRevision = false;
-        // Utilizando el DTO EstadoUpdateDto para la petición
-        var dto = new EstadoUpdateDto
-        {
-            Estado = investigacion.Estado,
-            Observacion = ""
-        };
-        await Http.PutAsJsonAsync($"/api/Investigaciones/estado/{investigacion.IdInvestigacion}", dto);
-        StateHasChanged();
-    }
+	private void OcultarRevision(InvestigacionInfoEval investigacion)
+	{
+		investigacion.MostrandoRevision = false;
+		investigacion.Observacion = "";
+		StateHasChanged();
+	}
 
-    private async Task RechazarInvestigacion(InvestigacionInfoEval investigacion)
-    {
-        if (string.IsNullOrWhiteSpace(investigacion.Observacion))
-        {
-            await JSRuntime.InvokeVoidAsync("alert", "Debe ingresar una observación para rechazar.");
-            return;
-        }
-        investigacion.Estado = "Rechazado";
-        investigacion.MostrandoRevision = false;
-        // Utilizando el DTO EstadoUpdateDto para la petición
-        var dto = new EstadoUpdateDto
-        {
-            Estado = investigacion.Estado,
-            Observacion = investigacion.Observacion
-        };
-        await Http.PutAsJsonAsync($"/api/Investigaciones/estado/{investigacion.IdInvestigacion}", dto);
-        StateHasChanged();
-    }
+	private async Task AprobarInvestigacion(InvestigacionInfoEval investigacion)
+	{
+		investigacion.Estado = "Aprobado";
+		investigacion.MostrandoRevision = false;
+		var dto = new EstadoUpdateDto
+		{
+			Estado = investigacion.Estado,
+			Observacion = ""
+		};
+		await Http.PutAsJsonAsync($"/api/Investigaciones/estado/{investigacion.IdInvestigacion}", dto);
+		StateHasChanged();
+	}
 
-    public class InvestigacionInfoEval
-    {
-        public int IdInvestigacion { get; set; }
-        public string TituloInvestigacion { get; set; } = "";
-        public int DuracionMeses { get; set; }
-        public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
-        public string TipoInvestigacion { get; set; } = "";
-        public string CampoAplicacion { get; set; } = "";
-        public string Estado { get; set; } = "";
-        public bool Seleccionada { get; set; }
-        public string archivoPdf { get; set; } = "";
-        public bool TieneArchivoPDF { get; set; }
-        public string Observacion { get; set; } = "";
-        public bool MostrandoRevision { get; set; } = false;
-    }
+	private async Task RechazarInvestigacion(InvestigacionInfoEval investigacion)
+	{
+		if (string.IsNullOrWhiteSpace(investigacion.Observacion))
+		{
+			await JSRuntime.InvokeVoidAsync("alert", "Debe ingresar una observación para rechazar.");
+			return;
+		}
+		investigacion.Estado = "Rechazado";
+		investigacion.MostrandoRevision = false;
+		var dto = new EstadoUpdateDto
+		{
+			Estado = investigacion.Estado,
+			Observacion = investigacion.Observacion
+		};
+		await Http.PutAsJsonAsync($"/api/Investigaciones/estado/{investigacion.IdInvestigacion}", dto);
+		StateHasChanged();
+	}
 
-    // Agregado DTO para actualizar el estado y la observación
-    public class EstadoUpdateDto
-    {
-        public string Estado { get; set; }
-        public string Observacion { get; set; }
-    }
+	private void Volver()
+	{
+		// Navega de vuelta incluyendo la cédula
+		Navigation.NavigateTo($"/administrador?codigo={cedulaDocente}");
+	}
+
+	public class InvestigacionInfoEval
+	{
+		public int IdInvestigacion { get; set; }
+		public string TituloInvestigacion { get; set; } = "";
+		public int DuracionMeses { get; set; }
+		public DateTime FechaInicio { get; set; }
+		public DateTime FechaFin { get; set; }
+		public string TipoInvestigacion { get; set; } = "";
+		public string CampoAplicacion { get; set; } = "";
+		public string Estado { get; set; } = "";
+		public bool Seleccionada { get; set; }
+		public string archivoPdf { get; set; } = "";
+		public bool TieneArchivoPDF { get; set; }
+		public string Observacion { get; set; } = "";
+		public bool MostrandoRevision { get; set; } = false;
+	}
+
+	public class EstadoUpdateDto
+	{
+		public string Estado { get; set; }
+		public string Observacion { get; set; }
+	}
 }

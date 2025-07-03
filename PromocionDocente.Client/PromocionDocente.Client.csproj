@@ -14,4 +14,8 @@
 		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="9.0.6" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\PromocionDocente.Application\PromocionDocente.Application.csproj" />
+	</ItemGroup>
+
 </Project>

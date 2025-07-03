@@ -2,11 +2,14 @@
 
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject NavigationManager Navigation
 
 <div class="capacitaciones-container">
     <div class="header-container">
         <div class="header-content">
+            <button class="btn-volver" @onclick="Volver">← Volver</button>
             <h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+            <div class="spacer"></div>
         </div>
     </div>
     <div class="contenido-principal">
@@ -61,9 +64,11 @@
                                         <td colspan="6">
                                             <div class="revisar-panel">
                                                 <textarea @bind="curso.Observacion" placeholder="Ingrese observación (opcional para aprobar, obligatoria para rechazar)" class="obs-textarea"></textarea>
-                                                <button class="btn-aprobar" @onclick="() => AprobarCurso(curso)">Aprobar</button>
-                                                <button class="btn-rechazar" @onclick="() => RechazarCurso(curso)">Rechazar</button>
-                                                <button class="btn-cancelar-revision" @onclick="() => OcultarRevision(curso)">Cancelar</button>
+                                                <div class="revisar-buttons">
+                                                    <button class="btn-aprobar" @onclick="() => AprobarCurso(curso)">Aprobar</button>
+                                                    <button class="btn-rechazar" @onclick="() => RechazarCurso(curso)">Rechazar</button>
+                                                    <button class="btn-cancelar-revision" @onclick="() => OcultarRevision(curso)">Cancelar</button>
+                                                </div>
                                             </div>
                                         </td>
                                     </tr>
@@ -110,6 +115,44 @@
         font-size: 2rem;
         font-weight: 300;
         margin: 0;
+        flex: 1;
+        text-align: center;
+    }
+
+    .btn-volver {
+        background: #ffffff !important;
+        color: #1565C0 !important;
+        border: 2px solid #1565C0 !important;
+        border-radius: 6px !important;
+        padding: 0.6rem 1.2rem !important;
+        font-size: 1rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        text-decoration: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        min-width: 120px !important;
+        text-align: center !important;
+        box-shadow: 0 3px 10px rgba(21, 101, 192, 0.25) !important;
+        z-index: 1000 !important;
+        position: relative !important;
+    }
+
+        .btn-volver:hover {
+            background: #1565C0 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 15px rgba(21, 101, 192, 0.4) !important;
+        }
+
+        .btn-volver:active {
+            transform: translateY(0) !important;
+        }
+
+    .spacer {
+        width: 120px;
     }
 
     .contenido-principal {
@@ -238,13 +281,42 @@
             background: #0D47A1;
         }
 
+    .obs-icon {
+        color: #c0392b;
+        font-size: 1.1rem;
+        cursor: pointer;
+    }
+
+    .revisar-panel {
+        background: #f8f9fa;
+        padding: 1rem;
+        border-radius: 4px;
+        margin: 0.5rem 0;
+    }
+
+    .obs-textarea {
+        width: 100%;
+        min-height: 80px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        padding: 0.5rem;
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        resize: vertical;
+    }
+
+    .revisar-buttons {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+    }
+
     .btn-aprobar {
         background: #27ae60;
         color: #fff;
         border: none;
         border-radius: 4px;
-        padding: 0.3rem 0.9rem;
-        margin-right: 0.5rem;
+        padding: 0.5rem 1rem;
         cursor: pointer;
         font-size: 0.9rem;
         transition: background 0.2s;
@@ -259,8 +331,7 @@
         color: #fff;
         border: none;
         border-radius: 4px;
-        padding: 0.3rem 0.9rem;
-        margin-right: 0.5rem;
+        padding: 0.5rem 1rem;
         cursor: pointer;
         font-size: 0.9rem;
         transition: background 0.2s;
@@ -271,49 +342,65 @@
         }
 
     .btn-cancelar-revision {
-        background: #888;
+        background: #6c757d;
         color: #fff;
         border: none;
         border-radius: 4px;
-        padding: 0.3rem 0.9rem;
+        padding: 0.5rem 1rem;
         cursor: pointer;
         font-size: 0.9rem;
         transition: background 0.2s;
     }
 
         .btn-cancelar-revision:hover {
-            background: #555;
+            background: #5a6268;
         }
 
-    .obs-icon {
-        color: #c0392b;
-        font-size: 1.1rem;
-        cursor: pointer;
-    }
+    /* Media queries para responsive */
+    @@media (max-width: 768px) {
+        .header-content
 
-    .revisar-panel {
-        display: flex;
+    {
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 1rem;
+        text-align: center;
     }
 
-    .obs-textarea {
-        width: 100%;
-        min-height: 60px;
-        border-radius: 4px;
-        border: 1px solid #ccc;
-        padding: 0.5rem;
-        font-size: 1rem;
-        margin-bottom: 0.5rem;
+    .titulo-principal {
+        font-size: 1.5rem;
+    }
+
+    .btn-volver {
+        margin-bottom: 1rem !important;
+    }
+
+    .spacer {
+        display: none;
+    }
+
+    .revisar-buttons {
+        flex-direction: column;
+    }
+
+        .revisar-buttons button {
+            width: 100%;
+        }
+
     }
 </style>
 
 @code {
     private List<CursoCapacitacionInfo> cursos = new();
     private List<CursoCapacitacionInfo> cursosFiltrados = new();
+    private string cedulaDocente = "";
 
     protected override async Task OnInitializedAsync()
     {
+        // Leer la cédula desde el querystring
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        cedulaDocente = query["cedula"] ?? "";
+
         await CargarCursos();
     }
 
@@ -397,6 +484,11 @@
         };
         await Http.PutAsJsonAsync($"/api/CursosCapacitacions/estado/{curso.IdCurso}", dto);
         StateHasChanged();
+    }
+
+    private void Volver()
+    {
+        Navigation.NavigateTo($"/administrador?codigo={cedulaDocente}");
     }
 
     public class CursoCapacitacionInfo

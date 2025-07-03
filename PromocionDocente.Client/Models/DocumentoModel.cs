@@ -2,11 +2,9 @@
 {
     public class DocumentoModel
     {
-       
-            public int Id { get; set; }
-            public string Nombre { get; set; } = "";
-            public string Estado { get; set; } = "Pendiente"; // Estado inicial
-            public bool Evaluado { get; set; } = false;
-        
+        public int Id { get; set; }
+        public string Nombre { get; set; } = "";
+        public string Estado { get; set; } = "Pendiente";
+        public bool Evaluado { get; set; } = false;
     }
 }
