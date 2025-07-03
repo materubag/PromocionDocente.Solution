@@ -1,0 +1,102 @@
+﻿@inject IJSRuntime JS
+@inject HttpClient Http
+@using PromocionDocente.Application.DTOs
+@using System.Net.Http.Json
+
+@if (mostrar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <EditForm Model="@evaluacionEditada" OnValidSubmit="ActualizarEvaluacion">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Editar Evaluación</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Periodo Evaluado</label>
+                            <InputText class="form-control" @bind-Value="evaluacionEditada.PeriodoEvaluacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Evaluación</label>
+                            <InputText class="form-control" @bind-Value="evaluacionEditada.TipoEvaluacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Evaluación</label>
+                            <InputDate class="form-control" @bind-Value="evaluacionEditada.FechaEvaluacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Calificación</label>
+                            <InputNumber class="form-control" @bind-Value="evaluacionEditada.Calificacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Reemplazar PDF (opcional)</label>
+                            <InputFile OnChange="OnInputFileChange" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EvaluacionDto Evaluacion { get; set; } = new();
+    [Parameter] public EventCallback OnEvaluacionActualizada { get; set; }
+
+    private EvaluacionDto evaluacionEditada = new();
+    private bool mostrar = true;
+
+    protected override void OnInitialized()
+    {
+        evaluacionEditada = new EvaluacionDto
+        {
+            IdEvaluacion = Evaluacion.IdEvaluacion,
+            CedulaDocente = Evaluacion.CedulaDocente,
+            PeriodoEvaluacion = Evaluacion.PeriodoEvaluacion,
+            TipoEvaluacion = Evaluacion.TipoEvaluacion,
+            FechaEvaluacion = Evaluacion.FechaEvaluacion,
+            Calificacion = Evaluacion.Calificacion,
+            PdfEvaluacion = Evaluacion.PdfEvaluacion
+        };
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var archivoPdf = e.File;
+        using var stream = archivoPdf.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        evaluacionEditada.PdfEvaluacion = ms.ToArray();
+    }
+
+    private async Task ActualizarEvaluacion()
+    {
+        var response = await Http.PutAsJsonAsync($"api/evaluaciones/{evaluacionEditada.IdEvaluacion}", evaluacionEditada);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnEvaluacionActualizada.InvokeAsync();
+            mostrar = false;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Error al actualizar la evaluación.");
+        }
+    }
+
+    private async Task CerrarModal() => mostrar = false;
+}

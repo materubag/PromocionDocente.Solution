@@ -1,0 +1,79 @@
+﻿@page "/editar-archivo/{id:int}"
+@using PromocionDocente.Application.DTOs
+@using PromocionDocente.Application.Interfaces
+@using Microsoft.AspNetCore.Components.Forms
+@inject IArchivoService ArchivoService
+
+<h3>Editar Archivo</h3>
+
+@if (archivo != null)
+{
+    <EditForm Model="@archivo" OnValidSubmit="ActualizarArchivo">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="mb-2">
+            <label>Título:</label>
+            <InputText @bind-Value="archivo.Titulo" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <label>Encargado:</label>
+            <InputText @bind-Value="archivo.Encargado" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <label>Fecha:</label>
+            <InputDate @bind-Value="archivo.Fecha" class="form-control" />
+        </div>
+        <div class="mb-2">
+            <label>Reemplazar PDF (opcional):</label>
+            <InputFile OnChange="SeleccionarArchivo" accept=".pdf" />
+        </div>
+
+        <button type="submit" class="btn btn-warning">Actualizar</button>
+    </EditForm>
+
+    @if (!string.IsNullOrEmpty(mensajeExito))
+    {
+        <div class="alert alert-success mt-3">@mensajeExito</div>
+    }
+}
+else
+{
+    <p>Cargando archivo...</p>
+}
+
+@code {
+    [Parameter] public int id { get; set; }
+
+    ArchivoDTO? archivo;
+    IBrowserFile? archivoSubido;
+    string? mensajeExito;
+
+    protected override async Task OnInitializedAsync()
+    {
+        archivo = await ArchivoService.ObtenerArchivoPorIdAsync(id);
+    }
+
+    private void SeleccionarArchivo(InputFileChangeEventArgs e)
+    {
+        archivoSubido = e.File;
+    }
+
+    private async Task ActualizarArchivo()
+    {
+        if (archivoSubido is not null)
+        {
+            using var stream = new MemoryStream();
+            await archivoSubido.OpenReadStream().CopyToAsync(stream);
+            archivo!.ContenidoArchivo = stream.ToArray();
+
+            archivo.RutaArchivo = $"archivos/{Guid.NewGuid()}_{archivoSubido.Name}";
+        }
+
+        var exito = await ArchivoService.ActualizarArchivoAsync(id, archivo!);
+
+        if (exito)
+            mensajeExito = "El archivo fue actualizado correctamente.";
+    }
+
+}

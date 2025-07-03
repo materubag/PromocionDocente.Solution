@@ -1,0 +1,93 @@
+﻿@inject IJSRuntime JS
+@inject HttpClient Http
+@using PromocionDocente.Application.DTOs
+@using Microsoft.AspNetCore.Components.Forms
+@using System.Net.Http.Json
+
+@if (mostrar)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <EditForm Model="@nuevaEvaluacion" OnValidSubmit="AgregarEvaluacion">
+                    <DataAnnotationsValidator />
+                    <ValidationSummary />
+
+                    <div class="modal-header">
+                        <h5 class="modal-title">Agregar Evaluación</h5>
+                        <button type="button" class="btn-close" @onclick="CerrarModal" aria-label="Cerrar"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label class="form-label">Cédula del Docente</label>
+                            <InputText class="form-control" @bind-Value="nuevaEvaluacion.CedulaDocente" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Periodo Evaluado</label>
+                            <InputText class="form-control" @bind-Value="nuevaEvaluacion.PeriodoEvaluacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Tipo de Evaluación</label>
+                            <InputText class="form-control" @bind-Value="nuevaEvaluacion.TipoEvaluacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Fecha de Evaluación</label>
+                            <InputDate class="form-control" @bind-Value="nuevaEvaluacion.FechaEvaluacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Calificación</label>
+                            <InputNumber class="form-control" @bind-Value="nuevaEvaluacion.Calificacion" />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Subir PDF de Evaluación</label>
+                            <InputFile OnChange="OnInputFileChange" class="form-control" />
+                        </div>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary">Agregar</button>
+                        <button type="button" class="btn btn-secondary" @onclick="CerrarModal">Cancelar</button>
+                    </div>
+                </EditForm>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public EventCallback OnEvaluacionAgregada { get; set; }
+
+    private EvaluacionDto nuevaEvaluacion = new();
+    private bool mostrar = true;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var archivoPdf = e.File;
+        using var stream = archivoPdf.OpenReadStream();
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        nuevaEvaluacion.PdfEvaluacion = ms.ToArray();
+    }
+
+    private async Task AgregarEvaluacion()
+    {
+        var response = await Http.PostAsJsonAsync("api/evaluaciones", nuevaEvaluacion);
+        if (response.IsSuccessStatusCode)
+        {
+            await OnEvaluacionAgregada.InvokeAsync();
+            mostrar = false;
+        }
+        else
+        {
+            await JS.InvokeVoidAsync("alert", "Error al agregar evaluación.");
+        }
+    }
+
+    private async Task CerrarModal() => mostrar = false;
+}
