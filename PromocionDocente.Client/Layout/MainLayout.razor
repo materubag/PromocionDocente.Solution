@@ -7,7 +7,6 @@
 
 <div class="page">
     <!-- Sidebar de navegación - Solo visible si NO es administrador -->
-
     @if (UserSession.Usuario?.Rol != "admin")
     {
         <div class="sidebar shadow">
@@ -26,9 +25,7 @@
     <!-- Contenido principal con clase condicional -->
     <main class="@GetMainContentClass()">
         <!-- Barra superior con logo y usuario - Solo visible si NO es administrador -->
-
         @if (UserSession.Usuario?.Rol != "admin")
-
         {
             <div class="top-row d-flex justify-content-between align-items-center px-4">
                 <div class="d-flex align-items-center">
