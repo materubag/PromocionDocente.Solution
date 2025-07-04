@@ -52,11 +52,6 @@ builder.Services.AddDbContext<DideContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DIDE")));
 builder.Services.AddDbContext<DiticContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DITIC")));
-// Servicios CRUD de cada entidad
-builder.Services.AddScoped<ObraService>();
-builder.Services.AddScoped<EvaluacionService>();
-builder.Services.AddScoped<InvestigacionService>();
-builder.Services.AddScoped<CursoCapacitacionService>();
 
 builder.Services.AddCors(options =>
 {
@@ -67,6 +62,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.AddControllers();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -85,6 +81,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 app.UseStaticFiles();
+app.UseCors("AllowAll");
 
 // Middleware para Swagger
 if (app.Environment.IsDevelopment())
