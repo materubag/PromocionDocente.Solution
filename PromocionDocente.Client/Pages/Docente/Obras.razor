@@ -42,15 +42,14 @@
 				<table class="obras-table">
 					<thead>
 						<tr>
-							<th class="col-checkbox">
-								<input type="checkbox" @onchange="SeleccionarTodas" />
-							</th>
 							<th class="col-tipo">Tipo Obra</th>
 							<th class="col-titulo">Título</th>
 							<th class="col-fecha">Fecha Publicación</th>
 							<th class="col-area">Área Conocimiento</th>
 							<th class="col-documento">Documento</th>
 							<th class="col-doi">DOI/URL</th>
+							<th class="col-doi">Estado</th>
+							<th class="col-doi">Acciones</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -104,6 +103,9 @@
 										{
 											<span class="no-doi">Sin enlace</span>
 										}
+									</td>
+									<td>
+										<span class="area-badge">@(obra.Estado ?? "Sin especificar")</span>
 									</td>
 									<td>
 										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)" title="Editar">
@@ -777,7 +779,7 @@
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
 		public string? PdfUrl { get; set; }
-
+        public string Estado { get; set; } 
 		public bool Seleccionada { get; set; }
 
 		public bool TienePDF()

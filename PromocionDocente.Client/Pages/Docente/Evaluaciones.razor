@@ -34,10 +34,6 @@
 						@(isImporting ? "Importando..." : "Importar")
 					</button>
 					
-					<button class="btn btn-secondary" @onclick="EnviarSeleccionada">
-						<span class="btn-icon">📤</span>
-						Enviar
-					</button>
 				</div>
 			</div>
 
@@ -46,14 +42,12 @@
 				<table class="evaluaciones-table">
 					<thead>
 						<tr>
-							<th class="col-checkbox">
-								<input type="checkbox" @onchange="SeleccionarTodas" />
-							</th>
 							<th class="col-periodo">Periodo</th>
 							<th class="col-tipo">Tipo Evaluación</th>
 							<th class="col-fecha">Fecha</th>
 							<th class="col-resultado">Resultado</th>
 							<th class="col-documento">Documento</th>
+							<th class="col-documento">Estado</th>
 							<th class="col-documento">Editar</th>
 						</tr>
 					</thead>
@@ -63,15 +57,13 @@
 							@foreach (var evaluacion in evaluacionesFiltradas)
 							{
 								<tr class="@(evaluacion.Seleccionada ? "selected" : "")">
-									<td>
-										<input type="checkbox" @bind="evaluacion.Seleccionada" />
-									</td>
-									<td>@evaluacion.PeriodoEvaluacion</td>
+									
+									<td>@evaluacion.PeriodoEvaluado</td>
 									<td>@evaluacion.TipoEvaluacion</td>
 									<td>@evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy")</td>
 									<td class="resultado">
-										<span class="badge-resultado @GetClaseResultado(evaluacion.Calificacion)">
-											@evaluacion.Calificacion.ToString("0.00")
+										<span class="badge-resultado @GetClaseResultado(evaluacion.Resultado)">
+											@evaluacion.Resultado.ToString("0.00")
 										</span>
 									</td>
 									<td class="documento">
@@ -88,11 +80,7 @@
 										}
 									</td>
 									<td>
-										<button @onclick="() => EditarEvaluacion(evaluacion.IdEvaluacion)">
-											<span class="btn-icon">✏️</span>
-											Editar
-										</button>
-
+										<span class="area-badge">@(evaluacion.Estado ?? "Sin especificar")</span>
 									</td>
 									<td>
 										<button class="btn btn-secondary" @onclick="() => EditarEvaluacion(evaluacion.IdEvaluacion)">
@@ -158,6 +146,15 @@
         font-weight: 300;
         margin: 0;
     }
+
+	.area-badge {
+		background: #f8f9fa;
+		color: #495057;
+		padding: 0.25rem 0.5rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		border: 1px solid #dee2e6;
+	}
 
     .docente-info {
         display: flex;
@@ -551,7 +548,7 @@
 		{
 			evaluacionesFiltradas = evaluaciones.Where(e =>
 				string.IsNullOrEmpty(filtroTexto) ||
-				e.PeriodoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+				e.PeriodoEvaluado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
 				e.TipoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
 			).ToList();
 
@@ -720,12 +717,13 @@
 	{
 		public int IdEvaluacion { get; set; } // Este es el que necesitas para navegar
 		public DateTime FechaEvaluacion { get; set; }
-		public decimal Calificacion { get; set; }
+		public decimal Resultado { get; set; }
 		public string PdfEvaluacion { get; set; }
-		public string PeriodoEvaluacion { get; set; }
+		public string PeriodoEvaluado { get; set; }
 		public string CedulaDocente { get; set; }
 		public string TipoEvaluacion { get; set; }
 		public bool Seleccionada { get; set; }
+        public string Estado { get; set; }
 	}
 
 
