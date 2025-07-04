@@ -1,0 +1,824 @@
+﻿@page "/docente/obras"
+@using static System.Net.WebRequestMethods
+@layout DocenteLayout
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
+
+<div class="obras-container">
+
+	<div class="header-container">
+		<div class="header-content">
+			<h1 class="titulo-principal">Gestión de Obras</h1>
+
+		</div>
+	</div>
+
+	<!-- Contenido Principal -->
+	<div class="contenido-principal">
+		<div class="tabla-container">
+			<!-- Barra de herramientas -->
+			<div class="toolbar">
+				<div class="search-container">
+					<input type="text" class="search-input" placeholder="Buscar obras..." @bind="filtroTexto" @oninput="FiltrarObras" />
+					<span class="search-icon">🔍</span>
+				</div>
+				<div class="action-buttons">
+					<button class="btn btn-primary" @onclick="AgregarObra">
+						<span class="btn-icon">➕</span>
+						Agregar
+					</button>
+
+					<button class="btn btn-secondary" @onclick="ImportarObras" disabled="@isImporting">
+						<span class="btn-icon">📁</span>
+						@(isImporting ? "Importando..." : "Importar")
+					</button>
+					
+				</div>
+			</div>
+
+			<!-- Tabla de obras -->
+			<div class="tabla-obras">
+				<table class="obras-table">
+					<thead>
+						<tr>
+							<th class="col-tipo">Tipo Obra</th>
+							<th class="col-titulo">Título</th>
+							<th class="col-fecha">Fecha Publicación</th>
+							<th class="col-area">Área Conocimiento</th>
+							<th class="col-documento">Documento</th>
+							<th class="col-doi">DOI/URL</th>
+							<th class="col-doi">Estado</th>
+							<th class="col-doi">Acciones</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (obrasFiltradas != null && obrasFiltradas.Any())
+						{
+							@foreach (var obra in obrasFiltradas)
+							{
+								<tr class="@(obra.Seleccionada ? "selected" : "")">
+									
+									<td>
+										<span class="badge-tipo @GetClaseTipo(obra.TipoObra)">
+											@obra.TipoObra
+										</span>
+									</td>
+									<td class="titulo-cell">
+										<div class="titulo-info">
+											<span class="titulo-texto">@obra.Titulo</span>
+											@if (!string.IsNullOrEmpty(obra.Observaciones))
+											{
+												<small class="observaciones">@obra.Observaciones</small>
+											}
+										</div>
+									</td>
+									<td>@(obra.FechaPublicacion.HasValue? obra.FechaPublicacion.Value.ToString("dd/MM/yyyy") : "Sin fecha")</td>
+									<td>
+										<span class="area-badge">@(obra.AreaConocimiento ?? "Sin especificar")</span>
+									</td>
+									<td class="documento">
+										@if (obra.TienePDF())
+										{
+											<button class="btn-documento" @onclick="() => VerPDF(obra)" title="Ver PDF">
+												<span class="documento-icon">📄</span>
+												<span class="documento-text">PDF</span>
+											</button>
+										}
+										else
+										{
+											<span class="no-documento">Sin documento</span>
+										}
+									</td>
+
+									<td class="doi-cell">
+										@if (!string.IsNullOrEmpty(obra.DoiUrl))
+										{
+											<button class="btn-doi" @onclick="() => AbrirUrl(obra.DoiUrl)">
+												<span class="doi-icon">🔗</span>
+												<span class="doi-text">Ver</span>
+											</button>
+										}
+										else
+										{
+											<span class="no-doi">Sin enlace</span>
+										}
+									</td>
+									<td>
+										<span class="area-badge">@(obra.Estado ?? "Sin especificar")</span>
+									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)" title="Editar">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
+									</td>
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="7" class="no-data">No se encontraron obras</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Paginación -->
+			<div class="pagination-container">
+				<div class="pagination-info">
+					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos obras
+				</div>
+				<div class="pagination-controls">
+					<button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
+					<span class="page-info">Página @paginaActual de @totalPaginas</span>
+					<button class="btn-page" @onclick="PaginaSiguiente" disabled="@(paginaActual >= totalPaginas)">▶</button>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>
+
+
+<style>
+    .obras-container {
+        min-height: 100vh;
+        background: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: #581517;
+        backdrop-filter: blur(10px);
+        color: white;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .docente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .info-text {
+        color: white;
+    }
+
+    .nombre {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cargo {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .contenido-principal {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    /* Toolbar */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-icon {
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background: #581517;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #6d1a1c;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #5a6268;
+    }
+
+    .btn-danger {
+        background: #dc3545;
+        color: white;
+    }
+
+    .btn-danger:hover:not(:disabled) {
+        background: #c82333;
+    }
+
+    /* Tabla */
+    .tabla-obras {
+        overflow-x: auto;
+    }
+
+    .obras-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .obras-table th,
+    .obras-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .obras-table th {
+        background: #f5f0f0;
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .obras-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .obras-table tbody tr.selected {
+        background: #e3f2fd;
+    }
+
+    .col-checkbox {
+        width: 40px;
+    }
+
+    .col-tipo {
+        width: 120px;
+    }
+
+    .col-titulo {
+        width: 300px;
+    }
+
+    .col-fecha {
+        width: 120px;
+    }
+
+    .col-area {
+        width: 150px;
+    }
+
+    .col-documento {
+        width: 100px;
+    }
+
+    .col-doi {
+        width: 80px;
+    }
+
+    .badge-tipo {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .tipo-articulo {
+        background: #e3f2fd;
+        color: #1976d2;
+    }
+
+    .tipo-libro {
+        background: #f3e5f5;
+        color: #7b1fa2;
+    }
+
+    .tipo-capitulo {
+        background: #e8f5e8;
+        color: #388e3c;
+    }
+
+    .tipo-tesis {
+        background: #fff3e0;
+        color: #f57c00;
+    }
+
+    .tipo-ponencia {
+        background: #fce4ec;
+        color: #c2185b;
+    }
+
+    .titulo-cell {
+        max-width: 300px;
+    }
+
+    .titulo-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .titulo-texto {
+        font-weight: 500;
+        color: #2c3e50;
+        line-height: 1.3;
+    }
+
+    .observaciones {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.75rem;
+        line-height: 1.2;
+    }
+
+    .area-badge {
+        background: #f8f9fa;
+        color: #495057;
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        border: 1px solid #dee2e6;
+    }
+
+    .documento {
+        text-align: center;
+    }
+
+    .btn-documento {
+        background: #f8f0f0;
+        border: 1px solid #581517;
+        color: #581517;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+    }
+
+    .btn-documento:hover {
+        background: #581517;
+        color: white;
+    }
+
+    .documento-icon {
+        font-size: 0.9rem;
+    }
+
+    .documento-text {
+        font-weight: 600;
+    }
+
+    .btn-doi {
+        background: #e3f2fd;
+        border: 1px solid #2196f3;
+        color: #2196f3;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+    }
+
+    .btn-doi:hover {
+        background: #2196f3;
+        color: white;
+    }
+
+    .doi-icon {
+        font-size: 0.9rem;
+    }
+
+    .doi-text {
+        font-weight: 600;
+    }
+
+    .no-documento, .no-doi {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        padding: 2rem;
+    }
+
+    /* Paginación */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f5f0f0;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-page {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-page:hover:not([disabled]) {
+        background: #e9ecef;
+    }
+
+    .btn-page[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .page-info {
+        color: #495057;
+        font-size: 0.9rem;
+    }
+</style>
+
+@code {
+	private string mensajeError = string.Empty;
+	private DocenteInfo docenteInfo;
+	private List<ObraInfo> obras = new List<ObraInfo>();
+	private List<ObraInfo> obrasFiltradas = new List<ObraInfo>();
+	private string filtroTexto = "";
+	private int paginaActual = 1;
+	private int elementosPorPagina = 10;
+	private int totalElementos = 0;
+	private int totalPaginas = 0;
+	private bool isImporting = false;
+	private int metaObras = 15;
+	private string? cedulaUsuario;
+
+	private async Task<string?> ObtenerCedulaUsuarioAsync()
+	{
+		// Obtener el JSON de localStorage
+		var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+
+		// Verificar si el JSON no es nulo ni vacío
+		if (string.IsNullOrEmpty(usuarioJson))
+			return null;
+
+		// Deserializar el JSON a la clase LoginResponse
+		var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+		return usuario?.Cedula; // Retornar la cédula
+	}
+
+	// Clase para deserializar localStorage.usuario
+	public class LoginResponse
+	{
+		public string Cedula { get; set; } = "";
+		public string Nombre1 { get; set; } = "";
+		public string Apellido1 { get; set; } = "";
+		public string Rol { get; set; } = "";
+	}
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Inicializar datos del docente
+		docenteInfo = new DocenteInfo
+			{
+				Nombre = "Ing. Ismael Cuadrado",
+				Cargo = "Profesor Auxiliar - Ing. Sistemas",
+			};
+
+		// Obtener la cédula del usuario antes de consultar las obras
+		cedulaUsuario = await ObtenerCedulaUsuarioAsync();
+
+		if (!string.IsNullOrEmpty(cedulaUsuario))
+		{
+			// Solo consultar las obras si la cédula no es nula o vacía
+			await ConsultarObras();
+		}
+		else
+		{
+			mensajeError = "No se pudo obtener la cédula del usuario.";
+		}
+	}
+
+	private async Task ConsultarObras()
+	{
+		mensajeError = string.Empty;
+		try
+		{
+			// Llamada a la API para obtener las obras filtradas por cédula
+			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/obras/cedula/{cedulaUsuario}");
+			FiltrarObras(); // Filtra las obras obtenidas
+		}
+		catch (Exception ex)
+		{
+			mensajeError = "Error al obtener obras: " + ex.Message;
+		}
+	}
+
+	private void FiltrarObras()
+	{
+		// Filtrado por texto
+		obrasFiltradas = obras.Where(o =>
+			string.IsNullOrEmpty(filtroTexto) ||
+			o.Titulo.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+			o.TipoObra.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+			(o.AreaConocimiento?.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ?? false)
+		).ToList();
+
+		// Actualizar la cantidad de elementos y páginas
+		totalElementos = obrasFiltradas.Count;
+		totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
+
+		// Aplicar paginación
+		obrasFiltradas = obrasFiltradas
+			.Skip((paginaActual - 1) * elementosPorPagina)
+			.Take(elementosPorPagina)
+			.ToList();
+
+		StateHasChanged(); // Actualiza el estado de la UI
+	}
+
+	private string GetClaseTipo(string tipo)
+	{
+		return tipo.ToLower() switch
+		{
+			"artículo" => "tipo-articulo",
+			"libro" => "tipo-libro",
+			"capítulo" => "tipo-capitulo",
+			"tesis" => "tipo-tesis",
+			"ponencia" => "tipo-ponencia",
+			_ => "tipo-articulo"
+		};
+	}
+
+	private void SeleccionarTodas(ChangeEventArgs e)
+	{
+		bool seleccionar = (bool)e.Value;
+		foreach (var obra in obrasFiltradas)
+		{
+			obra.Seleccionada = seleccionar;
+		}
+	}
+
+	private void PaginaAnterior()
+	{
+		if (paginaActual > 1)
+		{
+			paginaActual--;
+			FiltrarObras();
+		}
+	}
+
+	private void PaginaSiguiente()
+	{
+		if (paginaActual < totalPaginas)
+		{
+			paginaActual++;
+			FiltrarObras();
+		}
+	}
+
+	private int GetPorcentajeProgreso()
+	{
+		if (metaObras == 0) return 0;
+		return Math.Min(100, (obras.Count * 100) / metaObras);
+	}
+
+	
+
+	private async Task ImportarObras()
+	{
+		if (isImporting) return;
+
+		bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+			"¿Desea importar obras desde DAC?\n\n" +
+			"• Las obras duplicadas serán omitidas\n\n" +
+			"¿Continuar con la importación?");
+
+		if (confirmar)
+		{
+			isImporting = true;
+			StateHasChanged();
+
+			try
+			{
+				// Llamar al endpoint de importación
+				var response = await Http.GetAsync($"/api/ImportacionObras/Ced/{cedulaUsuario}");
+
+				if (response.IsSuccessStatusCode)
+				{
+					// Recargar las obras después de importar
+					await ConsultarObras();
+
+					await JSRuntime.InvokeVoidAsync("alert",
+						"¡Importación completada exitosamente!\n\n" +
+						"• Obras nuevas importadas desde DAC\n" +
+						"• Obras duplicadas omitidas");
+				}
+				else
+				{
+					mensajeError = "Error al importar obras: " + response.ReasonPhrase;
+				}
+			}
+			catch (Exception ex)
+			{
+				mensajeError = "Error al importar obras: " + ex.Message;
+			}
+			finally
+			{
+				isImporting = false;
+				StateHasChanged();
+			}
+		}
+	}
+
+	private async Task EditarSeleccionada()
+	{
+		var seleccionada = obrasFiltradas.FirstOrDefault(o => o.Seleccionada);
+		if (seleccionada != null)
+		{
+			await JSRuntime.InvokeVoidAsync("alert",
+				$"Editar Obra Seleccionada\n\n" +
+				$"• Título: {seleccionada.Titulo}\n" +
+				$"• Tipo: {seleccionada.TipoObra}\n" +
+				$"• Área: {seleccionada.AreaConocimiento}\n\n" +
+				$"Se abrirá el formulario de edición...");
+		}
+		else
+		{
+			await JSRuntime.InvokeVoidAsync("alert",
+				"⚠️ Atención\n\n" +
+				"No hay ninguna obra seleccionada.\n" +
+				"Por favor, seleccione una obra de la lista para editarla.");
+		}
+	}
+
+	private async Task VerPDF(ObraInfo obra)
+	{
+		if (!string.IsNullOrEmpty(obra.PdfUrl))
+		{
+			await JSRuntime.InvokeVoidAsync("window.open", obra.PdfUrl, "_blank");
+		}
+	}
+
+
+
+	private async Task AbrirUrl(string url)
+	{
+		if (!string.IsNullOrEmpty(url))
+		{
+			await JSRuntime.InvokeVoidAsync("open", url, "_blank");
+		}
+	}
+
+
+
+	public class ObraInfo
+	{
+		public int IdObra { get; set; }
+		public string TipoObra { get; set; } = "";
+		public string Titulo { get; set; } = "";
+		public DateTime? FechaPublicacion { get; set; } // <-- nullable
+		public string? DoiUrl { get; set; }
+		public string? AreaConocimiento { get; set; }
+		public string? Observaciones { get; set; }
+		public string? PdfUrl { get; set; }
+        public string Estado { get; set; } 
+		public bool Seleccionada { get; set; }
+
+		public bool TienePDF()
+		{
+			return PdfUrl != null && PdfUrl.Length > 0;
+		}
+	}
+
+
+	public class DocenteInfo
+	{
+		public string Nombre { get; set; } = "";
+		public string Cargo { get; set; } = "";
+	}
+
+	@inject NavigationManager NavManager
+
+	private void AgregarObra()
+	{
+		NavManager.NavigateTo("/docente/agregar/agregarobra");
+		
+	}
+
+	private void EditarObra(int id)
+	{
+		NavManager.NavigateTo($"/docente/editar/obra/{id}");
+	}
+	public class ObraUpdateDto
+	{
+		public string Titulo { get; set; }
+		public string TipoObra { get; set; }
+		public DateTime FechaPublicacion { get; set; }
+		public string? DoiUrl { get; set; }
+		public string? AreaConocimiento { get; set; }
+		public string? Observaciones { get; set; }
+		public byte[]? PdfProduccion { get; set; }
+	}
+
+
+	
+
+}

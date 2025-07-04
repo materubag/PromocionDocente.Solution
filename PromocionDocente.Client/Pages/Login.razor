@@ -1,0 +1,265 @@
+﻿@page "/"
+@using PromocionDocente.Client.Services
+@inject HttpClient Http
+@inject NavigationManager Navigation
+@inject Blazored.LocalStorage.ILocalStorageService LocalStorage
+@inject UserSessionService UserSession
+@using System.Net.Http.Json 
+
+<style>
+    .login-page {
+        background: linear-gradient(rgba(88, 21, 23, 0.65), rgba(88, 21, 23, 0.65)),
+            url('/images/utaCampus.png') center / cover no-repeat;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
+
+    .login-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        display: flex;
+        max-width: 800px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .left-panel {
+        background-color: #581517;
+        padding: 40px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .left-panel .logo {
+        margin-bottom: 30px;
+    }
+
+    .left-panel .logo img {
+        max-width: 150px;
+        height: auto;
+    }
+
+    .left-panel .university-name {
+        font-size: 1.1em;
+        margin-top: 10px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .left-panel .welcome-title {
+        font-size: 2em;
+        margin: 20px 0 10px;
+        font-weight: 600;
+    }
+
+    .left-panel .welcome-subtitle {
+        font-size: 1.1em;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .right-panel {
+        padding: 50px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 300px;
+    }
+
+    .login-title {
+        color: #581517;
+        font-size: 1.8em;
+        margin-bottom: 30px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        border-color: #581517;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(88, 21, 23, 0.2);
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 15px;
+        background-color: #581517;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.3s;
+    }
+
+    .login-btn:hover {
+        background-color: #4a1113;
+    }
+
+    .error-message {
+        color: #d32f2f;
+        background-color: #ffebee;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 0.9em;
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .forgot-password a {
+        color: #581517;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .forgot-password a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="login-page">
+    <div class="login-card">
+        <!-- Panel izquierdo con bienvenida -->
+        <div class="left-panel">
+            <div class="logo">
+                <img src="/images/UTA.png" alt="Logo UTA" />
+                <div class="university-name">UNIVERSIDAD TÉCNICA DE AMBATO</div>
+            </div>
+            <h1 class="welcome-title">Bienvenido</h1>
+            <p class="welcome-subtitle">Al proceso de escalafón.</p>
+        </div>
+
+        <!-- Panel derecho con formulario -->
+        <div class="right-panel">
+            <h2 class="login-title">Iniciar sesión</h2>
+            
+            <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+
+                <div class="form-group">
+                    <InputText class="form-input" @bind-Value="loginModel.Correo" placeholder="Usuario" required />
+                </div>
+
+                <div class="form-group">
+                    <InputText type="password" class="form-input" @bind-Value="loginModel.Contrasena" placeholder="Contraseña" required />
+                </div>
+
+                @if (!string.IsNullOrEmpty(errorMessage))
+                {
+                    <div class="error-message">
+                        @errorMessage
+                    </div>
+                }
+
+                <button type="submit" class="login-btn">Acceder</button>
+                
+                <div class="forgot-password">
+                    <a href="/recuperar-clave">¿Olvidaste tu contraseña?</a>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+</div>
+
+@code {
+    private LoginDTO loginModel = new();
+    private string? errorMessage;
+    private string? successMessage;
+
+    private async Task HandleLogin()
+    {
+        errorMessage = null;
+        successMessage = null;
+
+        try
+        {
+            var response = await Http.PostAsJsonAsync("api/user/login", loginModel);
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+
+                if (result != null)
+                {
+                    await LocalStorage.SetItemAsync("usuario", result);
+                    await UserSession.CargarUsuarioAsync();
+
+                    successMessage = "¡Inicio de sesión exitoso!";
+                    StateHasChanged();
+                    await Task.Delay(1000);
+
+                    if (result.Rol == "docente")
+                    {
+                        Navigation.NavigateTo("/home");
+                    }
+                    else if (result.Rol == "admin")
+                    {
+                        Navigation.NavigateTo("/admin");
+                    }
+                }
+                else
+                {
+                    errorMessage = "No se pudo obtener la información del usuario.";
+                }
+            }
+            else if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                errorMessage = "Contraseña o Usuario incorrecto. Por favor, vuelve a intentarlo.";
+            }
+            else
+            {
+                errorMessage = "No se pudo iniciar sesión. Verifica tus datos.";
+            }
+        }
+        catch
+        {
+            errorMessage = "Error al conectar con el servidor. Intenta más tarde.";
+        }
+    }
+
+    public class LoginDTO
+    {
+        public string Correo { get; set; } = string.Empty;
+        public string Contrasena { get; set; } = string.Empty;
+    }
+
+    public class LoginResponse
+    {
+        public string Cedula { get; set; } = string.Empty;
+        public string Nombre1 { get; set; } = string.Empty;
+        public string Apellido1 { get; set; } = string.Empty;
+        public string Rol { get; set; } = string.Empty;
+    }
+}

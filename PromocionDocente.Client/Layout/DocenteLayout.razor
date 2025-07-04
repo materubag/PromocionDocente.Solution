@@ -1,0 +1,93 @@
+﻿﻿@* Components/Layout/DocenteLayout.razor *@
+@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="fullscreen-layout">
+    <!-- Barra superior de navegación -->
+    <header class="top-navbar">
+        <div class="navbar-content">
+            <button class="back-btn" @onclick="GoToHome" title="Volver al inicio">
+                <span class="back-icon">←</span>
+            </button>
+            <h1>Panel Docente</h1>
+            
+        </div>    
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+        @Body
+    </main>
+</div>
+
+
+
+@code {
+    private bool hayRechazosObras = false;
+    private bool hayRechazosEvaluaciones = false;
+    private bool hayRechazosCapacitaciones = false;
+    private bool hayRechazosInvestigaciones = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await VerificarRechazos();
+    }
+
+    private async Task VerificarRechazos()
+    {
+        try
+        {
+            var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+            if (string.IsNullOrEmpty(usuarioJson))
+                return;
+
+            var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+            var cedula = usuario?.Cedula;
+            if (string.IsNullOrEmpty(cedula))
+                return;
+
+            var respuesta = await Http.GetAsync($"api/DetallePostulacions/rechazados/{cedula}");
+            if (respuesta.IsSuccessStatusCode)
+            {
+                var rechazos = await respuesta.Content.ReadFromJsonAsync<RechazosInfo>();
+                if (rechazos != null)
+                {
+                    hayRechazosObras = rechazos.ObrasRechazadas?.Count > 0;
+                    hayRechazosEvaluaciones = rechazos.EvaluacionesRechazadas?.Count > 0;
+                    hayRechazosCapacitaciones = rechazos.CursosRechazados?.Count > 0;
+                    hayRechazosInvestigaciones = rechazos.InvestigacionesRechazadas?.Count > 0;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al verificar rechazos: {ex.Message}");
+        }
+    }
+
+    private string GetActiveClass(string path)
+    {
+        return Navigation.Uri.Contains(path) ? "active" : "";
+    }
+
+    private void GoToHome()
+    {
+        Navigation.NavigateTo("/home");
+    }
+
+    private class LoginResponse
+    {
+        public string Cedula { get; set; }
+    }
+
+    private class RechazosInfo
+    {
+        public int TotalRechazados { get; set; }
+        public List<object> ObrasRechazadas { get; set; } = new();
+        public List<object> EvaluacionesRechazadas { get; set; } = new();
+        public List<object> CursosRechazados { get; set; } = new();
+        public List<object> InvestigacionesRechazadas { get; set; } = new();
+    }
+}

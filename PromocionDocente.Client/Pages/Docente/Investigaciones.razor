@@ -1,0 +1,809 @@
+﻿@page "/docente/investigaciones"
+@layout DocenteLayout
+@using Models
+@using static PromocionDocente.Client.Pages.Docente.CursosCapacitaciones
+@inject HttpClient Http
+@inject IJSRuntime JSRuntime
+
+<div class="investigaciones-container">
+
+	<div class="header-container">
+		<div class="header-content">
+			<h1 class="titulo-principal">Gestión de Investigaciones</h1>
+
+		</div>
+	</div>
+
+	<!-- Contenido Principal -->
+	<div class="contenido-principal">
+		<div class="tabla-container">
+			<!-- Barra de herramientas -->
+			<div class="toolbar">
+				<div class="search-container">
+					<input type="text" class="search-input" placeholder="Buscar investigación..." @bind="filtroTexto" @oninput="FiltrarInvestigaciones" />
+					<span class="search-icon">🔍</span>
+				</div>
+				<div class="action-buttons">
+					<button class="btn btn-primary" @onclick="AgregarInvestigacion">
+						<span class="btn-icon">➕</span>
+						Agregar
+					</button>
+					<button class="btn btn-secondary" @onclick="ImportarInvestigaciones" disabled="@isImporting">
+						<span class="btn-icon">📁</span>
+						@(isImporting ? "Importando..." : "Importar")
+					</button>
+				</div>
+			</div>
+
+			<!-- Tabla de investigaciones -->
+			<div class="tabla-investigaciones">
+				<table class="investigaciones-table">
+					<thead>
+						<tr>
+							<th class="col-titulo">Título</th>
+							<th class="col-tipo">Tipo</th>
+							<th class="col-campo">Campo de Aplicación</th>
+							<th class="col-duracion">Duración</th>
+							<th class="col-fechas">Fechas</th>
+							<th class="col-documento">Documento</th>
+							<th class="col-documento">Estado</th>
+							<th class="col-documento">Accion</th>
+						</tr>
+					</thead>
+					<tbody>
+						@if (investigacionesFiltradas != null && investigacionesFiltradas.Any())
+						{
+							@foreach (var investigacion in investigacionesFiltradas)
+							{
+								<tr class="@(investigacion.Seleccionada ? "selected" : "")">
+									<td class="titulo-cell">
+										<div class="titulo-investigacion" title="@investigacion.TituloInvestigacion">
+											@(investigacion.TituloInvestigacion.Length > 50 ?
+																					investigacion.TituloInvestigacion.Substring(0, 50) + "..." :
+																					investigacion.TituloInvestigacion)
+										</div>
+									</td>
+							<td class="area-badge">@investigacion.TipoInvestigacion</td>
+							<td class="area-badge">@investigacion.CampoAplicacion</td>
+									<td class="duracion">
+										<span class="badge-duracion @GetClaseDuracion(investigacion.DuracionMeses)">
+											@investigacion.DuracionMeses meses
+										</span>
+									</td>
+									<td class="fechas">
+										<div class="fecha-inicio">Inicio: @investigacion.FechaInicio.ToString("dd/MM/yyyy")</div>
+										<div class="fecha-fin">Fin: @investigacion.FechaFin.ToString("dd/MM/yyyy")</div>
+									</td>
+									<td class="documento">
+										@if (!string.IsNullOrEmpty(investigacion.archivoPdf))
+										{
+											<button class="btn-documento" @onclick="() => VerPDF(investigacion)" title="Ver PDF">
+												<span class="documento-icon">📄</span>
+												<span class="documento-text">PDF</span>
+											</button>
+										}
+										else
+										{
+											<span class="no-documento">Sin documento</span>
+										}
+									</td>
+									<td>
+										<span class="area-badge">@(investigacion.Estado ?? "Sin especificar")</span>
+									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarInvestigacion(investigacion.IdInvestigacion)">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
+									</td>
+								</tr>
+							}
+						}
+						else
+						{
+							<tr>
+								<td colspan="8" class="no-data">No se encontraron investigaciones</td>
+							</tr>
+						}
+						
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Paginación -->
+			<div class="pagination-container">
+				<div class="pagination-info">
+					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos investigaciones
+				</div>
+				<div class="pagination-controls">
+					<button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
+					<span class="page-info">Página @paginaActual de @totalPaginas</span>
+					<button class="btn-page" @onclick="PaginaSiguiente" disabled="@(paginaActual >= totalPaginas)">▶</button>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+<style>
+	.investigaciones-container {
+		 min-height: 100vh;
+        background: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	}
+
+	.header-container {
+		background: #581517;
+        backdrop-filter: blur(10px);
+        color: white;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+	}
+
+
+	.header-content {
+		 max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+	}
+
+	.area-badge {
+		background: #f8f9fa;
+		color: #495057;
+		padding: 0.25rem 0.5rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		border: 1px solid #dee2e6;
+	}
+
+	.titulo-principal {
+		color: white;
+		font-size: 2rem;
+		font-weight: 300;
+		margin: 0;
+	}
+
+	.docente-info {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		background: rgba(88, 21, 23, 0.1);
+		padding: 0.5rem 1rem;
+		border-radius: 50px;
+		backdrop-filter: blur(10px);
+	}
+
+	.info-text {
+		color: #faf8f8;
+	}
+
+	.nombre {
+		font-weight: 600;
+		font-size: 0.9rem;
+	}
+
+	.cargo {
+		font-size: 0.8rem;
+		opacity: 0.8;
+	}
+
+	.contenido-principal {
+		max-width: 1400px;
+		margin: 2rem auto;
+		padding: 0 2rem;
+		color:white;
+	}
+
+	.tabla-container {
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(88, 21, 23, 0.1);
+		overflow: hidden;
+	}
+
+	/* Toolbar */
+	.toolbar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 1.5rem;
+		background: #f8f9fa;
+		border-bottom: 1px solid #dee2e6;
+	}
+
+	.search-container {
+		position: relative;
+		flex: 1;
+		max-width: 350px;
+	}
+
+	.search-input {
+		width: 100%;
+		padding: 0.5rem 2.5rem 0.5rem 1rem;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		font-size: 0.9rem;
+	}
+
+	.search-icon {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: #666;
+	}
+
+	.action-buttons {
+		display: flex;
+		gap: 0.5rem;
+	}
+
+	.btn {
+		padding: 0.5rem 1rem;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+		.btn:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
+
+	.btn-icon {
+		font-size: 0.8rem;
+	}
+
+	.btn-primary {
+		background: #581517;
+		color: white;
+	}
+
+		.btn-primary:hover:not(:disabled) {
+			background: #6d1a1d;
+		}
+
+	.btn-secondary {
+		background: #6c757d;
+		color: white;
+	}
+
+		.btn-secondary:hover:not(:disabled) {
+			background: #5a6268;
+		}
+
+	/* Tabla */
+	.tabla-investigaciones {
+		overflow-x: auto;
+	}
+
+	.investigaciones-table {
+		width: 100%;
+		border-collapse: collapse;
+		min-width: 1200px;
+	}
+
+		.investigaciones-table th,
+		.investigaciones-table td {
+			padding: 0.75rem;
+			text-align: left;
+			border-bottom: 1px solid #dee2e6;
+			vertical-align: top;
+		}
+
+		.investigaciones-table th {
+			background: #f8f9fa;
+			font-weight: 600;
+			color: #495057;
+			font-size: 0.9rem;
+		}
+
+		.investigaciones-table tbody tr:hover {
+			background: rgba(88, 21, 23, 0.05);
+		}
+
+		.investigaciones-table tbody tr.selected {
+			background: rgba(88, 21, 23, 0.1);
+		}
+
+	.col-checkbox {
+		width: 40px;
+	}
+
+	.col-titulo {
+		width: 300px;
+	}
+
+	.col-tipo {
+		width: 150px;
+	}
+
+	.col-campo {
+		width: 180px;
+	}
+
+	.col-duracion {
+		width: 100px;
+	}
+
+	.col-fechas {
+		width: 140px;
+	}
+
+	.col-estado {
+		width: 100px;
+	}
+
+	.col-documento {
+		width: 120px;
+	}
+
+	.titulo-cell {
+		max-width: 300px;
+	}
+
+	.titulo-investigacion {
+		font-weight: 500;
+		color: #581517;
+		line-height: 1.3;
+	}
+
+	.fechas {
+		font-size: 0.8rem;
+	}
+
+	.fecha-inicio {
+		color: #28a745;
+		margin-bottom: 0.25rem;
+	}
+
+	.fecha-fin {
+		color: #dc3545;
+	}
+
+	.badge-duracion {
+		padding: 0.25rem 0.5rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+
+	.duracion-corta {
+		background: #d4edda;
+		color: #155724;
+	}
+
+	.duracion-media {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
+
+	.duracion-larga {
+		background: #fff3cd;
+		color: #856404;
+	}
+
+	.duracion-extensa {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	.badge-estado {
+		padding: 0.25rem 0.5rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
+
+	.estado-en-curso {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
+
+	.estado-completada {
+		background: #d4edda;
+		color: #155724;
+	}
+
+	.estado-planificada {
+		background: #fff3cd;
+		color: #856404;
+	}
+
+	.estado-suspendida {
+		background: #f8d7da;
+		color: #721c24;
+	}
+
+	.estado-borrador {
+		background: #e2e3e5;
+		color: #383d41;
+	}
+
+	.documento {
+		text-align: center;
+	}
+
+	.btn-documento {
+		background: #f8e8e8;
+		border: 1px solid #581517;
+		color: #581517;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.8rem;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		transition: all 0.2s;
+	}
+
+		.btn-documento:hover {
+			background: #581517;
+			color: white;
+		}
+
+	.documento-icon {
+		font-size: 0.9rem;
+	}
+
+	.documento-text {
+		font-weight: 600;
+	}
+
+	.no-documento {
+		color: #6c757d;
+		font-style: italic;
+		font-size: 0.8rem;
+	}
+
+	.no-data {
+		text-align: center;
+		color: #6c757d;
+		font-style: italic;
+		padding: 2rem;
+	}
+
+	/* Paginación */
+	.pagination-container {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 1.5rem;
+		background: #f8f9fa;
+		border-top: 1px solid #dee2e6;
+	}
+
+	.pagination-info {
+		color: #6c757d;
+		font-size: 0.9rem;
+	}
+
+	.pagination-controls {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	.btn-page {
+		background: #fff;
+		border: 1px solid #dee2e6;
+		padding: 0.5rem 0.75rem;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+		.btn-page:hover:not([disabled]) {
+			background: #e9ecef;
+		}
+
+		.btn-page[disabled] {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
+
+	.page-info {
+		color: #495057;
+		font-size: 0.9rem;
+	}
+</style>
+@code {
+	private DocenteInfo docenteInfo;
+	private List<InvestigacionInfo> investigaciones = new List<InvestigacionInfo>();
+	private List<InvestigacionInfo> investigacionesFiltradas = new List<InvestigacionInfo>();
+	private string filtroTexto = "";
+	private int paginaActual = 1;
+	private int elementosPorPagina = 10;
+	private int totalElementos = 0;
+	private int totalPaginas = 0;
+	private bool isImporting = false;
+	private string mensajeError = string.Empty;
+	private string cedulaUsuario;
+
+	protected override async Task OnInitializedAsync()
+	{
+		// Inicializar datos del docente
+		docenteInfo = new DocenteInfo
+			{
+				Nombre = "Ing. Ismael Cuadrado",
+				Cargo = "Profesor Auxiliar - Ing. Sistemas",
+			};
+
+		// Obtener cédula desde localStorage y cargar investigaciones
+		await ObtenerCedulaUsuarioAsync();
+		await CargarInvestigaciones();
+	}
+
+	private async Task ObtenerCedulaUsuarioAsync()
+	{
+		try
+		{
+			// Obtener cédula desde localStorage
+			var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+
+			if (!string.IsNullOrEmpty(usuarioJson))
+			{
+				var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+				cedulaUsuario = usuario?.Cedula;
+			}
+
+			if (string.IsNullOrEmpty(cedulaUsuario))
+			{
+				mensajeError = "No se encontró la cédula del usuario en localStorage";
+			}
+		}
+		catch (Exception ex)
+		{
+			mensajeError = "Error al obtener la cédula: " + ex.Message;
+		}
+	}
+
+	private async Task CargarInvestigaciones()
+	{
+		mensajeError = string.Empty;
+		try
+		{
+			// Llamada a la API para obtener las obras filtradas por cédula
+			investigaciones = await Http.GetFromJsonAsync<List<InvestigacionInfo>>($"/api/Investigaciones/cedula/{cedulaUsuario}");
+
+		}
+		catch (Exception ex)
+		{
+			mensajeError = "Error al obtener obras: " + ex.Message;
+		}
+
+
+		FiltrarInvestigaciones();
+	}
+
+	private void FiltrarInvestigaciones()
+	{
+		investigacionesFiltradas = investigaciones.Where(i =>
+			string.IsNullOrEmpty(filtroTexto) ||
+			i.TituloInvestigacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+			i.TipoInvestigacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+			i.CampoAplicacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+			i.Estado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
+		).ToList();
+
+		totalElementos = investigacionesFiltradas.Count;
+		totalPaginas = (int)Math.Ceiling((double)totalElementos / elementosPorPagina);
+
+		// Aplicar paginación
+		investigacionesFiltradas = investigacionesFiltradas
+			.Skip((paginaActual - 1) * elementosPorPagina)
+			.Take(elementosPorPagina)
+			.ToList();
+
+		StateHasChanged();
+	}
+
+	private string GetClaseDuracion(int duracionMeses)
+	{
+		if (duracionMeses <= 6) return "duracion-corta";
+		if (duracionMeses <= 12) return "duracion-media";
+		if (duracionMeses <= 18) return "duracion-larga";
+		return "duracion-extensa";
+	}
+
+	private string GetClaseEstado(string estado)
+	{
+		return estado.ToLower().Replace(" ", "-") switch
+		{
+			"en-curso" => "estado-en-curso",
+			"completada" => "estado-completada",
+			"planificada" => "estado-planificada",
+			"suspendida" => "estado-suspendida",
+			"borrador" => "estado-borrador",
+			_ => "estado-borrador"
+		};
+	}
+
+	private void SeleccionarTodas(ChangeEventArgs e)
+	{
+		bool seleccionar = (bool)e.Value;
+		foreach (var investigacion in investigacionesFiltradas)
+		{
+			investigacion.Seleccionada = seleccionar;
+		}
+	}
+
+	private void PaginaAnterior()
+	{
+		if (paginaActual > 1)
+		{
+			paginaActual--;
+			FiltrarInvestigaciones();
+		}
+	}
+
+	private void PaginaSiguiente()
+	{
+		if (paginaActual < totalPaginas)
+		{
+			paginaActual++;
+			FiltrarInvestigaciones();
+		}
+	}
+
+	// Métodos de acción
+	@inject NavigationManager NavManager
+	private void AgregarInvestigacion()
+	{
+        NavManager.NavigateTo("/docente/agregar/agregarinvestigacion");
+	}
+
+	private async Task ImportarInvestigaciones()
+	{
+		if (isImporting) return;
+
+
+		bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+			"¿Desea importar investigaciones desde la base externa?\n\n" +
+			"• Las investigaciones duplicadas serán omitidas\n" +
+			"• Solo se importarán las nuevas\n\n" +
+			"¿Desea continuar?");
+
+		if (confirmar)
+		{
+			isImporting = true;
+			StateHasChanged();
+
+			try
+			{
+				var response = await Http.GetFromJsonAsync<ImportacionResultado>(
+					$"/api/ImportarInvestigaciones/ced/{cedulaUsuario}");
+
+				if (response != null)
+				{
+					await JSRuntime.InvokeVoidAsync("alert",
+						$"¡Importación completada exitosamente!\n\n" +
+						$"• {response.nuevos} investigaciones nuevas importadas\n" +
+						$"• {response.duplicados} investigaciones duplicadas omitidas\n" +
+						$"• Total procesadas: {response.total}");
+				}
+				else
+				{
+					await JSRuntime.InvokeVoidAsync("alert", "No se recibió una respuesta válida del servidor.");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine(ex.Message);
+				await JSRuntime.InvokeVoidAsync("alert", "Error al importar investigaciones: " + ex.Message);
+			}
+
+			isImporting = false;
+			StateHasChanged();
+		}
+	}
+
+
+	private async Task EditarSeleccionada()
+	{
+		var seleccionada = investigacionesFiltradas.FirstOrDefault(i => i.Seleccionada);
+		if (seleccionada != null)
+		{
+			await JSRuntime.InvokeVoidAsync("alert",
+				$"Editar Investigación Seleccionada\n\n" +
+				$"• Título: {seleccionada.TituloInvestigacion.Substring(0, Math.Min(50, seleccionada.TituloInvestigacion.Length))}...\n" +
+				$"• Tipo: {seleccionada.TipoInvestigacion}\n" +
+				$"• Estado: {seleccionada.Estado}\n\n" +
+				$"Se abrirá el formulario de edición...");
+		}
+		else
+		{
+			await JSRuntime.InvokeVoidAsync("alert",
+				"⚠️ Atención\n\n" +
+				"No hay ninguna investigación seleccionada.\n" +
+				"Por favor, seleccione una investigación de la lista para editarla.");
+		}
+	}
+
+	private async Task EnviarSeleccionada()
+	{
+		var seleccionadas = investigacionesFiltradas.Where(i => i.Seleccionada).ToList();
+
+		if (seleccionadas.Any())
+		{
+			bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+				$"¿Enviar {seleccionadas.Count} investigación(es) seleccionada(s)?\n\n" +
+				$"• Las investigaciones serán enviadas para revisión\n" +
+				$"• No podrán ser editadas después del envío\n" +
+				$"• Recibirá una confirmación por email\n\n" +
+				$"¿Continuar con el envío?");
+
+			if (confirmar)
+			{
+				await JSRuntime.InvokeVoidAsync("alert",
+					$"✅ Envío exitoso\n\n" +
+					$"• {seleccionadas.Count} investigación(es) enviada(s)\n" +
+					$"• Estado cambiado a 'En Revisión'\n" +
+					$"• Confirmación enviada por email");
+
+				foreach (var inv in seleccionadas)
+				{
+					inv.Estado = "En Revisión";
+					inv.Seleccionada = false;
+				}
+				StateHasChanged();
+			}
+		}
+		else
+		{
+			await JSRuntime.InvokeVoidAsync("alert",
+				"⚠️ Atención\n\n" +
+				"No hay investigaciones seleccionadas.\n" +
+				"Seleccione al menos una investigación para enviar.");
+		}
+	}
+
+	private async Task VerPDF(InvestigacionInfo investigacion)
+	{
+		if (!string.IsNullOrEmpty(investigacion.archivoPdf))
+		{
+			await JSRuntime.InvokeVoidAsync("window.open", investigacion.archivoPdf, "_blank");
+		}
+	}
+
+	public class InvestigacionInfo
+	{
+		public int IdInvestigacion { get; set; }
+		public string TituloInvestigacion { get; set; } = "";
+		public int DuracionMeses { get; set; }
+		public DateTime FechaInicio { get; set; }
+		public DateTime FechaFin { get; set; }
+		public string TipoInvestigacion { get; set; } = "";
+		public string CampoAplicacion { get; set; } = "";
+		public string Estado { get; set; } = "";
+		public bool Seleccionada { get; set; }
+		public string archivoPdf { get; set; } = "";
+		public bool TieneArchivoPDF { get; set; }
+	}
+	public class ImportacionResultado
+	{
+		public string mensaje { get; set; }
+		public int nuevos { get; set; }
+		public int duplicados { get; set; }
+		public int total { get; set; }
+	}
+
+	public class DocenteInfo
+	{
+		public string Nombre { get; set; } = "";
+		public string Cargo { get; set; } = "";
+	}
+	private void EditarInvestigacion(int id)
+	{
+		NavManager.NavigateTo($"/docente/editar/investigacion/{id}");
+	}
+
+}

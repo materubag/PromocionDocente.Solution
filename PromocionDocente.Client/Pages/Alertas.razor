@@ -1,0 +1,76 @@
+<div class="toast-container">
+    @foreach (var toast in toasts)
+    {
+        <div class="toast @toast.CssClass" @key="toast.Id">
+            <div class="toast-header">
+                <strong class="me-auto">@toast.Title</strong>
+                <small>@toast.Time.ToString("HH:mm:ss")</small>
+                <button type="button" class="btn-close" @onclick="() => RemoveToast(toast.Id)"></button>
+            </div>
+            <div class="toast-body">
+                @toast.Message
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private List<ToastMessage> toasts = new List<ToastMessage>();
+    
+    public void ShowToast(string title, string message, ToastType type = ToastType.Info)
+    {
+        var toast = new ToastMessage
+        {
+            Id = Guid.NewGuid(),
+            Title = title,
+            Message = message,
+            Time = DateTime.Now,
+            CssClass = type.ToString().ToLower()
+        };
+        
+        toasts.Add(toast);
+        
+        // Configurar eliminación automática después de 5 segundos
+        var timer = new System.Timers.Timer(5000);
+        timer.Elapsed += (sender, args) => 
+        {
+            InvokeAsync(() => 
+            {
+                RemoveToast(toast.Id);
+                StateHasChanged();
+            });
+            timer.Dispose();
+        };
+        timer.AutoReset = false;
+        timer.Start();
+        
+        StateHasChanged();
+    }
+    
+    private void RemoveToast(Guid id)
+    {
+        var toast = toasts.FirstOrDefault(t => t.Id == id);
+        if (toast != null)
+        {
+            toasts.Remove(toast);
+            StateHasChanged();
+        }
+    }
+    
+    public class ToastMessage
+    {
+        public Guid Id { get; set; }
+        public string Title { get; set; }
+        public string Message { get; set; }
+        public DateTime Time { get; set; }
+        public string CssClass { get; set; }
+    }
+    
+    public enum ToastType
+    {
+        Info,
+        Success,
+        Warning,
+        Error
+    }
+}

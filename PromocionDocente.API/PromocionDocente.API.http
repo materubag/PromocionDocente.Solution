@@ -4,3 +4,7 @@ GET {{PromocionDocente.API_HostAddress}}/weatherforecast/
 Accept: application/json
 
 ###
+### Obtener tiempo de ense�anza por c�dula
+GET {{PromocionDocente.API_HostAddress}}/api/docentes/tiempo/1100000001
+Accept: application/json
+

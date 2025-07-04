@@ -1,0 +1,844 @@
+﻿@page "/evaluar-cursos"
+@using System.Net.Http.Json
+@using System.Web
+@using Microsoft.JSInterop
+@inject IJSRuntime JSRuntime
+@inject HttpClient Http
+@inject NavigationManager Navigation
+
+<!-- Font Awesome para iconos -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" />
+
+<div class="capacitaciones-container">
+    <!-- Alerta de éxito/error -->
+    @if (mostrarAlerta)
+    {
+        <div class="toast-alert @(tipoAlerta == "success" ? "toast-success" : tipoAlerta == "error" ? "toast-error" : "toast-info")">
+            <div class="toast-icon">
+                @if (tipoAlerta == "success")
+                {
+                    <i class="fas fa-check-circle"></i>
+                }
+                else if (tipoAlerta == "error")
+                {
+                    <i class="fas fa-exclamation-triangle"></i>
+                }
+                else
+                {
+                    <i class="fas fa-info-circle"></i>
+                }
+            </div>
+            <div class="toast-content">
+                <h6 class="toast-title">@tituloAlerta</h6>
+                <p class="toast-message">@mensajeAlerta</p>
+            </div>
+            <button class="toast-close" @onclick="CerrarAlerta">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+
+    <div class="header-container">
+        <div class="header-content">
+            <button class="btn-volver" @onclick="Volver">← Volver</button>
+            <h1 class="titulo-principal">Sistema de Gestión de Cursos</h1>
+            <div class="spacer"></div>
+        </div>
+    </div>
+    <div class="contenido-principal">
+        <div class="tabla-container">
+            <div class="tabla-cursos">
+                <table class="cursos-table">
+                    <thead>
+                        <tr>
+                            <th>
+                                <input type="checkbox" @onchange="SeleccionarTodos" />
+                            </th>
+                            <th class="col-nombre">Nombre del Curso</th>
+                            <th class="col-fecha">Fecha</th>
+                            <th class="col-horas">Horas</th>
+                            <th class="col-documento">Documento</th>
+                            <th class="col-estado">Estado</th>
+                            <th class="col-acciones">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (cursosFiltrados != null && cursosFiltrados.Any())
+                        {
+                            @foreach (var curso in cursosFiltrados)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="checkbox" @bind="curso.Seleccionado" />
+                                    </td>
+                                    <td class="nombre-cell">@curso.NombreCurso</td>
+                                    <td>@curso.FechaCurso.ToString("dd/MM/yyyy")</td>
+                                    <td class="horas-cell">@curso.Horas h</td>
+                                    <td class="documento">
+                                        @if (!string.IsNullOrEmpty(curso.pdfCurso))
+                                        {
+                                            <button class="btn-documento" @onclick="() => VerPDF(curso)" title="Ver PDF">
+                                                <span class="documento-icon">📄</span>
+                                                <span class="documento-text">PDF</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <span class="no-documento">Sin documento</span>
+                                        }
+                                    </td>
+                                    <td>
+                                        <span class="badge-estado @GetClaseEstado(curso.Estado ?? "")">
+                                            @curso.Estado
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <button class="btn-revisar" @onclick="() => RevisarCurso(curso)">Revisar</button>
+                                        @if (((curso.Estado ?? "").ToLower() == "rechazado" || (curso.Estado ?? "").ToUpper() == "RECHAZADO") && !string.IsNullOrEmpty(curso.Observacion))
+                                        {
+                                            <span title="@curso.Observacion" class="obs-icon">🛈 Obs.</span>
+                                        }
+                                    </td>
+                                </tr>
+                                @if (curso.MostrandoRevision)
+                                {
+                                    <tr>
+                                        <td colspan="7">
+                                            <div class="revisar-panel">
+                                                <textarea @bind="curso.Observacion"
+                                                          placeholder="Ingrese observación (opcional para aprobar, obligatoria para rechazar)"
+                                                          class="obs-textarea"></textarea>
+                                                <div class="revisar-buttons">
+                                                    <button class="btn-aprobar" @onclick="() => AprobarCurso(curso)">Aprobar</button>
+                                                    <button class="btn-rechazar" @onclick="() => RechazarCurso(curso)">Rechazar</button>
+                                                    <button class="btn-cancelar-revision" @onclick="() => OcultarRevision(curso)">Cancelar</button>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                        }
+                        else
+                        {
+                            <tr>
+                                <td colspan="7" class="no-data">No se encontraron cursos</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .capacitaciones-container {
+        min-height: 100vh;
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+        box-shadow: 0 4px 20px rgba(88, 21, 23, 0.15);
+        padding: 1.5rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1400px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .titulo-principal {
+        color: white;
+        font-size: 1.8rem;
+        font-weight: 600;
+        margin: 0;
+        flex: 1;
+        text-align: center;
+        letter-spacing: -0.3px;
+    }
+
+    .btn-volver {
+        background: #ffffff !important;
+        color: #581517 !important;
+        border: 2px solid #581517 !important;
+        border-radius: 8px !important;
+        padding: 0.7rem 1.4rem !important;
+        font-size: 0.95rem !important;
+        font-weight: 600 !important;
+        cursor: pointer !important;
+        transition: all 0.3s ease !important;
+        text-decoration: none !important;
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.5rem !important;
+        min-width: 140px !important;
+        text-align: center !important;
+        box-shadow: 0 3px 10px rgba(88, 21, 23, 0.25) !important;
+        z-index: 1000 !important;
+        position: relative !important;
+    }
+
+        .btn-volver:hover {
+            background: #581517 !important;
+            color: #ffffff !important;
+            transform: translateY(-2px) !important;
+            box-shadow: 0 5px 15px rgba(88, 21, 23, 0.4) !important;
+        }
+
+        .btn-volver:active {
+            transform: translateY(0) !important;
+        }
+
+    .spacer {
+        width: 120px;
+    }
+
+    .contenido-principal {
+        max-width: 1400px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .tabla-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 6px 25px rgba(88, 21, 23, 0.1);
+        overflow: hidden;
+        border: 1px solid rgba(88, 21, 23, 0.1);
+    }
+
+    .tabla-cursos {
+        overflow-x: auto;
+    }
+
+    .cursos-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 1000px;
+        table-layout: auto;
+    }
+
+        .cursos-table th,
+        .cursos-table td {
+            padding: 0.75rem 0.5rem;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+            vertical-align: top;
+            word-wrap: break-word;
+        }
+
+        .cursos-table th {
+            background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+            color: white;
+            font-weight: 600;
+            font-size: 0.9rem;
+            padding: 1rem 0.5rem;
+            text-align: left;
+            border: none;
+            white-space: nowrap;
+        }
+
+        .cursos-table tbody tr:hover {
+            background: rgba(88, 21, 23, 0.03);
+        }
+
+        .cursos-table tbody tr.selected {
+            background: rgba(88, 21, 23, 0.08);
+        }
+
+    .col-nombre {
+        width: 30%;
+    }
+
+    .col-fecha {
+        width: 12%;
+    }
+
+    .col-horas {
+        width: 10%;
+    }
+
+    .col-documento {
+        width: 12%;
+    }
+
+    .col-estado {
+        width: 12%;
+    }
+
+    .col-acciones {
+        width: 18%;
+    }
+
+    .nombre-cell {
+        font-weight: 500;
+        color: #2c3e50;
+    }
+
+    .horas-cell {
+        text-align: center;
+        font-weight: 500;
+    }
+
+    .documento {
+        text-align: center;
+    }
+
+    .btn-documento {
+        background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(0, 123, 255, 0.2);
+    }
+
+        .btn-documento:hover {
+            background: linear-gradient(135deg, #0056b3 0%, #004085 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 123, 255, 0.3);
+        }
+
+    .documento-icon {
+        font-size: 1rem;
+    }
+
+    .documento-text {
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .no-documento {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.85rem;
+    }
+
+    .badge-estado {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        text-align: center;
+        min-width: 80px;
+    }
+
+    .estado-completado,
+    .estado-aprobado {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+    }
+
+    .estado-pendiente {
+        background: linear-gradient(135deg, #ffc107 0%, #e0a800 100%);
+        color: #212529;
+    }
+
+    .estado-en-progreso,
+    .estado-en-validacion {
+        background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+        color: white;
+    }
+
+    .estado-validado {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+    }
+
+    .estado-rechazado {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+    }
+
+    .btn-revisar {
+        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.8rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(88, 21, 23, 0.2);
+    }
+
+        .btn-revisar:hover {
+            background: linear-gradient(135deg, #4a1214 0%, #561619 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(88, 21, 23, 0.3);
+        }
+
+    .obs-icon {
+        color: #ffc107;
+        font-size: 0.8rem;
+        margin-left: 0.5rem;
+        cursor: help;
+    }
+
+    .revisar-panel {
+        background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        border: 1px solid rgba(88, 21, 23, 0.1);
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin: 0.5rem 0;
+        box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.06);
+    }
+
+    .obs-textarea {
+        width: 100%;
+        min-height: 80px;
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 0.9rem;
+        font-family: inherit;
+        resize: vertical;
+        margin-bottom: 1rem;
+        transition: border-color 0.3s ease;
+    }
+
+        .obs-textarea:focus {
+            outline: none;
+            border-color: #581517;
+            box-shadow: 0 0 0 3px rgba(88, 21, 23, 0.1);
+        }
+
+    .revisar-buttons {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: flex-end;
+    }
+
+    .btn-aprobar {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(40, 167, 69, 0.2);
+    }
+
+        .btn-aprobar:hover {
+            background: linear-gradient(135deg, #218838 0%, #1c7430 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(40, 167, 69, 0.3);
+        }
+
+    .btn-rechazar {
+        background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(220, 53, 69, 0.2);
+    }
+
+        .btn-rechazar:hover {
+            background: linear-gradient(135deg, #c82333 0%, #a71e2a 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(220, 53, 69, 0.3);
+        }
+
+    .btn-cancelar-revision {
+        background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(108, 117, 125, 0.2);
+    }
+
+        .btn-cancelar-revision:hover {
+            background: linear-gradient(135deg, #5a6268 0%, #3d4549 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(108, 117, 125, 0.3);
+        }
+
+    .no-data {
+        text-align: center;
+        padding: 2rem;
+        color: #6c757d;
+        font-style: italic;
+    }
+
+    /* Estilos para la alerta tipo toast */
+    .toast-alert {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        min-width: 350px;
+        max-width: 400px;
+        z-index: 9999;
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem;
+        gap: 0.75rem;
+        animation: slideInRight 0.4s ease-out;
+        border-left: 4px solid;
+    }
+
+    .toast-success {
+        border-left-color: #28a745;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+    }
+
+    .toast-error {
+        border-left-color: #dc3545;
+        background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%);
+    }
+
+    .toast-info {
+        border-left-color: #17a2b8;
+        background: linear-gradient(135deg, #ffffff 0%, #f0fcff 100%);
+    }
+
+    .toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+    }
+
+    .toast-success .toast-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .toast-error .toast-icon {
+        background: linear-gradient(135deg, #dc3545 0%, #fd7e14 100%);
+    }
+
+    .toast-info .toast-icon {
+        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    }
+
+    .toast-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .toast-title {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #212529;
+        line-height: 1.3;
+    }
+
+    .toast-message {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+        line-height: 1.4;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        color: #adb5bd;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        font-size: 0.9rem;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .toast-close:hover {
+            color: #6c757d;
+            background: #f8f9fa;
+        }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    /* Responsive design */
+    @@media (max-width: 768px) {
+        .cursos-table {
+            min-width: 700px;
+        }
+
+        .revisar-buttons {
+            flex-direction: column;
+        }
+
+        .revisar-buttons button {
+            width: 100%;
+        }
+        
+        .col-nombre {
+            width: 35%;
+        }
+        
+        .col-acciones {
+            width: 15%;
+        }
+    }
+</style>
+
+@code {
+    private List<CursoCapacitacionInfo> cursos = new();
+    private List<CursoCapacitacionInfo> cursosFiltrados = new();
+    private string cedulaDocente = "";
+    
+    // Variables para el sistema de alertas/toast
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Leer la cédula desde el querystring
+        var uri = new Uri(Navigation.Uri);
+        var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+        cedulaDocente = query["cedula"] ?? "";
+
+        await CargarCursos();
+    }
+
+    private async Task CargarCursos()
+    {
+        try
+        {
+            // Usar el endpoint correcto para obtener cursos por cédula
+            var cursosResponse = await Http.GetFromJsonAsync<List<CursoCapacitacionInfo>>($"/api/CursosCapacitacions/cedula/{cedulaDocente}");
+            cursos = cursosResponse ?? new();
+            cursosFiltrados = cursos;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error cargando cursos: {ex.Message}");
+            cursos = new();
+            cursosFiltrados = new();
+            MostrarAlerta("error", "Error al cargar cursos", 
+                "No se pudieron cargar los cursos. Inténtalo de nuevo.");
+        }
+    }
+
+    private string GetClaseEstado(string estado)
+    {
+        return estado?.ToLower() switch
+        {
+            "completado" => "estado-completado",
+            "pendiente" => "estado-pendiente",
+            "en progreso" => "estado-en-progreso",
+            "en validación" => "estado-en-validacion",
+            "validado" => "estado-validado",
+            "aprobado" or "APROBADO" => "estado-aprobado",
+            "rechazado" or "RECHAZADO" => "estado-rechazado",
+            _ => "estado-pendiente"
+        };
+    }
+
+    private async Task VerPDF(CursoCapacitacionInfo curso)
+    {
+        if (string.IsNullOrEmpty(curso.pdfCurso))
+        {
+            MostrarAlerta("info", "PDF no disponible", 
+                "No hay documento PDF asociado a este curso.");
+            return;
+        }
+
+        try
+        {
+            await JSRuntime.InvokeVoidAsync("window.open", curso.pdfCurso, "_blank");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al abrir PDF: {ex.Message}");
+            MostrarAlerta("error", "Error al abrir PDF", 
+                "No se pudo abrir el documento PDF. Verifique que la URL sea válida.");
+        }
+    }
+
+    private void RevisarCurso(CursoCapacitacionInfo curso)
+    {
+        foreach (var c in cursosFiltrados)
+            c.MostrandoRevision = false;
+        curso.MostrandoRevision = true;
+        StateHasChanged();
+    }
+
+    private void OcultarRevision(CursoCapacitacionInfo curso)
+    {
+        curso.MostrandoRevision = false;
+        curso.Observacion = "";
+        StateHasChanged();
+    }
+
+    private async Task AprobarCurso(CursoCapacitacionInfo curso)
+    {
+        try
+        {
+            curso.Estado = "APROBADO";
+            curso.MostrandoRevision = false;
+            var dto = new EstadoUpdateDto
+            {
+                Estado = "APROBADO",
+                Observacion = string.IsNullOrEmpty(curso.Observacion) ? "Cumple con todos los requisitos" : curso.Observacion
+            };
+            await Http.PutAsJsonAsync($"/api/CursosCapacitacions/estado/{curso.IdCurso}", dto);
+            
+            // Mostrar alerta de éxito
+            MostrarAlerta("success", "¡Curso aprobado!", 
+                $"'{curso.NombreCurso}' ha sido aprobado exitosamente.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al aprobar curso: {ex.Message}");
+            // Mostrar alerta de error
+            MostrarAlerta("error", "Error al aprobar", 
+                "No se pudo aprobar el curso. Inténtalo de nuevo.");
+        }
+        StateHasChanged();
+    }
+
+    private async Task RechazarCurso(CursoCapacitacionInfo curso)
+    {
+        if (string.IsNullOrWhiteSpace(curso.Observacion))
+        {
+            MostrarAlerta("error", "Observación requerida", 
+                "Debe ingresar una observación para rechazar.");
+            return;
+        }
+        
+        try
+        {
+            curso.Estado = "RECHAZADO";
+            curso.MostrandoRevision = false;
+            var dto = new EstadoUpdateDto
+            {
+                Estado = "RECHAZADO",
+                Observacion = curso.Observacion
+            };
+            await Http.PutAsJsonAsync($"/api/CursosCapacitacions/estado/{curso.IdCurso}", dto);
+            
+            // Mostrar alerta de éxito
+            MostrarAlerta("success", "Curso rechazado", 
+                $"'{curso.NombreCurso}' ha sido rechazado.");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al rechazar curso: {ex.Message}");
+            // Mostrar alerta de error
+            MostrarAlerta("error", "Error al rechazar", 
+                "No se pudo rechazar el curso. Inténtalo de nuevo.");
+        }
+        StateHasChanged();
+    }
+
+    private void SeleccionarTodos(ChangeEventArgs e)
+    {
+        var seleccionarTodos = (bool)e.Value!;
+        foreach (var curso in cursosFiltrados)
+        {
+            curso.Seleccionado = seleccionarTodos;
+        }
+        StateHasChanged();
+    }
+    
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+        StateHasChanged();
+        
+        // Auto-cerrar después de 4 segundos
+        _ = Task.Delay(4000).ContinueWith(_ => 
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+    
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
+
+    private void Volver()
+    {
+        // Navega de vuelta incluyendo la cédula
+        Navigation.NavigateTo($"/administrador?codigo={cedulaDocente}");
+    }
+
+    public class CursoCapacitacionInfo
+    {
+        public int IdCurso { get; set; }
+        public string NombreCurso { get; set; } = "";
+        public DateTime FechaCurso { get; set; }
+        public int Horas { get; set; }
+        public string pdfCurso { get; set; } = "";
+        public string Estado { get; set; } = "";
+        public string Observacion { get; set; } = "";
+        public bool MostrandoRevision { get; set; } = false;
+        public bool Seleccionado { get; set; } = false;
+    }
+
+    public class EstadoUpdateDto
+    {
+        public string Estado { get; set; } = "";
+        public string Observacion { get; set; } = "";
+    }
+}

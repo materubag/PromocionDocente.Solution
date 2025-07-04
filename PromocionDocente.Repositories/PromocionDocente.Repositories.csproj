@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\PromocionDocente.Application\PromocionDocente.Application.csproj" />
+    <ProjectReference Include="..\PromocionDocente.Models\PromocionDocente.Models.csproj" />
+    <ProjectReference Include="..\PromocionDoncete.Domain\PromocionDocente.Domain.csproj" />
+    <ProjectReference Include="..\PromocionesDocente.Infraestructure\PromocionDocente.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,529 @@
+﻿
+@page "/admin"
+@using Blazored.Toast.Services
+@using PromocionDocente.Client.Services
+@layout AdminLayout
+@inject HttpClient Http
+@inject UserSessionService UserSessionService
+
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+
+<PageTitle>Panel de Administración</PageTitle>
+
+<div class="admin-dashboard">
+    <div class="dashboard-header">
+        <h1>Panel de Administración</h1>
+        <p>Bienvenido al sistema de gestión de promoción docente, @UserSessionService.Usuario?.Nombre1</p>
+    </div>
+
+    @if (cargando)
+    {
+        <div class="loading-indicator">
+            <span>Cargando datos...</span>
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Docentes Registrados</h3>
+                    <span class="card-icon">👥</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.TotalDocentes</div>
+                    <div class="stat-label">Total de docentes</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Solicitudes Pendientes</h3>
+                    <span class="card-icon">📋</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.EvaluacionesPendientes</div>
+                    <div class="stat-label">Por revisar</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Solicitudes Validadas</h3>
+                    <span class="card-icon">📚</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.SolicitudesFinalizadas</div>
+                    <div class="stat-label">En el sistema</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Solicitudes Rechazadas</h3>
+                    <span class="card-icon">⚡</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.SolicitudesRechazadas</div>
+                    <div class="stat-label">Rechazadas</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de solicitudes pendientes -->
+        <div class="solicitudes-section">
+            <h2>Solicitudes Docencia</h2>
+            <div class="table-container">
+                @if (dashboardData?.Solicitudes.Count > 0)
+                {
+                    <table class="solicitudes-table">
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Docente</th>
+                                <th>Nivel</th>
+                                <th>Fecha</th>
+                                <th>Tiempo Espera</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var solicitud in dashboardData.Solicitudes)
+                            {
+                                <tr>
+                                    <td class="cedula">@solicitud.Codigo</td>
+                                    <td class="docente">@solicitud.NombreDocente</td>
+                                    <td class="nivel">@solicitud.Nivel</td>
+                                    <td class="fecha">@solicitud.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td class="tiempo-espera">@solicitud.TiempoEspera</td>
+                                    <td>
+                                        <span class="estado-badge @GetEstadoClass(solicitud.Estado)">
+                                        @solicitud.Estado
+                                      </span>
+                                    </td>
+                                    <td class="acciones">
+                                         <td class="acciones">
+                                <button class="btn-validar" @onclick="() => ValidarSolicitud(solicitud.Id)">
+                                    <span class="btn-icon">✓</span>
+                                    Validar
+                                </button>
+                            </td>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="no-solicitudes">
+                        <p>No hay solicitudes pendientes en este momento.</p>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    .admin-dashboard {
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .dashboard-header {
+        margin-bottom: 32px;
+    }
+
+        .dashboard-header h1 {
+            margin: 0 0 8px 0;
+            font-size: 2rem;
+            font-weight: 700;
+            color: #1e293b;
+        }
+
+        .dashboard-header p {
+            margin: 0;
+            color: #64748b;
+            font-size: 1.1rem;
+        }
+
+    .dashboard-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        padding: 24px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+
+    .card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+        background-color: #581517;
+        padding: 16px;
+        border-radius: 22px 22px 22px 22px;
+        margin: -24px -24px 16px -24px;
+    }
+
+        .card-header h3 {
+            margin: 0;
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+        }
+
+    .card-icon {
+        font-size: 1.5rem;
+        opacity: 0.9;
+        color: white;
+    }
+
+    .card-body {
+        text-align: left;
+    }
+
+    .stat-number {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: #1e293b;
+        line-height: 1;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+
+    .solicitudes-section {
+        margin: 40px 0;
+    }
+
+        .solicitudes-section h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+    .table-container {
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border: 1px solid #e2e8f0;
+        overflow: hidden;
+    }
+
+    .solicitudes-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+        .solicitudes-table thead {
+            background-color: #581517;
+        }
+
+            .solicitudes-table thead th {
+                padding: 16px 12px;
+                text-align: left;
+                font-weight: 600;
+                color: white;
+                font-size: 0.9rem;
+                border-bottom: 1px solid #e2e8f0;
+            }
+
+        .solicitudes-table tbody tr {
+            border-bottom: 1px solid #f1f5f9;
+            transition: background-color 0.2s ease;
+        }
+
+            .solicitudes-table tbody tr:hover {
+                background-color: #f8fafc;
+            }
+
+            .solicitudes-table tbody tr:last-child {
+                border-bottom: none;
+            }
+
+        .solicitudes-table td {
+            padding: 16px 12px;
+            font-size: 0.9rem;
+            color: #334155;
+        }
+
+    .codigo {
+        font-family: 'Courier New', monospace;
+        font-weight: 600;
+        color: #3b82f6;
+    }
+
+    .docente {
+        font-weight: 500;
+    }
+
+    .nivel {
+        font-weight: 500;
+    }
+
+    .fecha {
+        color: #64748b;
+    }
+
+    .tiempo-espera {
+        color: #64748b;
+        font-size: 0.85rem;
+    }
+
+    .estado-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 500;
+        text-transform: capitalize;
+    }
+
+        .estado-badge.pendiente {
+            background-color: #fef3c7;
+            color: #d97706;
+        }
+
+        .estado-badge.en-revision {
+            background-color: #dbeafe;
+            color: #2563eb;
+        }
+
+        .estado-badge.aprobado {
+            background-color: #d1fae5;
+            color: #059669;
+        }
+
+    .btn-validar {
+        display: inline-flex;
+        align-items: center;
+        padding: 8px 16px;
+        background-color: #581517;
+        color: white;
+        border: none;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.2s ease;
+    }
+
+        .btn-validar:hover {
+            background-color: #6d1c1e;
+        }
+
+        .btn-validar .btn-icon {
+            margin-right: 6px;
+            font-size: 0.9rem;
+        }
+
+    .dashboard-actions {
+        margin-top: 40px;
+    }
+
+        .dashboard-actions h2 {
+            margin: 0 0 20px 0;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+    }
+
+    .action-btn {
+        display: flex;
+        align-items: center;
+        padding: 12px 20px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .action-btn.primary {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+            .action-btn.primary:hover {
+                background-color: #2563eb;
+            }
+
+        .action-btn.secondary {
+            background-color: #10b981;
+            color: white;
+        }
+
+            .action-btn.secondary:hover {
+                background-color: #059669;
+            }
+
+        .action-btn.tertiary {
+            background-color: #8b5cf6;
+            color: white;
+        }
+
+            .action-btn.tertiary:hover {
+                background-color: #7c3aed;
+            }
+
+    .btn-icon {
+        margin-right: 8px;
+        font-size: 1.1rem;
+    }
+
+</style>
+
+@code {
+    private bool cargando = true;
+    private DashboardDataDto dashboardData;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await UserSessionService.CargarUsuarioAsync();
+        await CargarDatosAsync();
+    }
+
+    private async Task CargarDatosAsync()
+    {
+        cargando = true;
+        try
+        {
+            dashboardData = await Http.GetFromJsonAsync<DashboardDataDto>("/api/Postulaciones/Dashboard");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error al cargar datos: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+        }
+    }
+
+   private async Task ValidarSolicitud(int solicitudId)
+{
+    try
+    {
+        // Buscar la solicitud en el dashboard para obtener el código
+        var respuestaDashboard = await Http.GetAsync("api/Postulaciones/dashboard");
+        
+        if (respuestaDashboard.IsSuccessStatusCode)
+        {
+            var dashboardData = await respuestaDashboard.Content.ReadFromJsonAsync<DashboardDataDto>();
+            
+            // Buscar la solicitud por ID
+            var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Id == solicitudId);
+            
+            if (solicitud != null && !string.IsNullOrEmpty(solicitud.Codigo))
+            {
+                // Crear datos para validación con el usuario actual
+                var validacion = new ValidacionDto
+                {
+                    Usuario = $"{UserSessionService.Usuario?.Nombre1} {UserSessionService.Usuario?.Apellido1} ({DateTime.UtcNow:yyyy-MM-dd HH:mm:ss})"
+                };
+
+                // Redirigir a la página de administrador con el código del docente
+                NavigationManager.NavigateTo($"/administrador?codigo={solicitud.Codigo}");
+                
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Redirigiendo a administrador con código: {solicitud.Codigo}");
+            }
+            else
+            {
+                ToastService.ShowError("No se encontró la solicitud o no tiene código asociado");
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se encontró la solicitud ID: {solicitudId}");
+            }
+        }
+        else
+        {
+            var errorMsg = await respuestaDashboard.Content.ReadAsStringAsync();
+            ToastService.ShowError($"Error al obtener datos del dashboard: {errorMsg}");
+            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error dashboard: {errorMsg}");
+        }
+    }
+    catch (Exception ex)
+    {
+        ToastService.ShowError($"Error al procesar la solicitud: {ex.Message}");
+        Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error: {ex.Message}");
+    }
+}
+
+    private void VerDetalles(int solicitudId)
+    {
+        NavigationManager.NavigateTo($"/admin/solicitud/{solicitudId}");
+    }
+
+    private string GetEstadoClass(string estado)
+    {
+        if (string.IsNullOrEmpty(estado)) return "pendiente";
+        
+        if (estado.Contains("PENDIENTE", StringComparison.OrdinalIgnoreCase))
+            return "pendiente";
+        else if (estado.Contains("REVISION", StringComparison.OrdinalIgnoreCase))
+            return "en-revision";
+        else if (estado.Contains("RECHAZADO", StringComparison.OrdinalIgnoreCase))
+            return "rechazado";
+        else if (estado.Contains("APROBADO", StringComparison.OrdinalIgnoreCase))
+            return "aprobado";
+        else
+            return "otro";
+    }
+
+    // Clases DTO para recibir datos del backend
+    public class DashboardDataDto
+    {
+        public DashboardEstadisticasDto Estadisticas { get; set; }
+        public List<SolicitudDocenteDto> Solicitudes { get; set; } = new List<SolicitudDocenteDto>();
+    }
+
+    public class DashboardEstadisticasDto
+    {
+        public int TotalDocentes { get; set; }
+        public int EvaluacionesPendientes { get; set; }
+        public int SolicitudesFinalizadas { get; set; }
+        public int SolicitudesRechazadas { get; set; }
+    }
+
+    public class SolicitudDocenteDto
+    {
+        public int Id { get; set; }
+        public string Codigo { get; set; }
+        public string NombreDocente { get; set; }
+        public string Nivel { get; set; }
+        public DateTime Fecha { get; set; }
+        public string TiempoEspera { get; set; }
+        public string Estado { get; set; }
+    }
+
+    public class ValidacionDto
+    {
+        public string Usuario { get; set; }
+    }
+}
