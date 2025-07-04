@@ -45,6 +45,11 @@ else
             <label>Observaciones</label>
             <InputTextArea class="form-control" @bind-Value="obra.Observaciones" />
         </div>
+        <div class="mb-3">
+            <label>Cambiar Archivo PDF (opcional):</label>
+            <InputFile OnChange="OnInputFileChange" />
+        </div>
+
 
         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
@@ -57,7 +62,7 @@ else
     private ObraUpdateDto obra = new();
     private bool isLoading = true;
     private string? errorMessage;
-
+    private byte[]? archivoPdf;
     protected override async Task OnInitializedAsync()
     {
         try
@@ -117,5 +122,12 @@ else
     private void Volver()
     {
         NavManager.NavigateTo("/docente/obras");
+    }
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var ms = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(ms);
+        archivoPdf = ms.ToArray();
     }
 }

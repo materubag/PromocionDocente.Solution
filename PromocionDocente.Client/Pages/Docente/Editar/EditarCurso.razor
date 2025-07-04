@@ -34,6 +34,11 @@ else
             <label>Horas</label>
             <InputNumber class="form-control" @bind-Value="curso.Horas" />
         </div>
+        <div class="mb-3">
+            <label>Cambiar Archivo PDF (opcional):</label>
+            <InputFile OnChange="OnInputFileChange" />
+        </div>
+
 
         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
@@ -98,6 +103,13 @@ else
         {
             errorMessage = "Error al guardar cambios: " + ex.Message;
         }
+    }
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var ms = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(ms);
+        curso.PdfCurso = ms.ToArray();
     }
 
 

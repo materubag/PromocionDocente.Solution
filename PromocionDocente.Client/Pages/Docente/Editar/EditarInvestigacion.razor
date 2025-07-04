@@ -46,6 +46,10 @@ else
             <label>Campo Aplicación</label>
             <InputText class="form-control" @bind-Value="investigacion.CampoAplicacion" />
         </div>
+        <div class="mb-3">
+            <label>Cambiar Archivo PDF (opcional):</label>
+            <InputFile OnChange="OnInputFileChange" />
+        </div>
 
         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
@@ -117,5 +121,12 @@ else
     private void Volver()
     {
         NavManager.NavigateTo("/docente/investigaciones");
+    }
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var ms = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(ms);
+        investigacion.ArchivoPdf = ms.ToArray();
     }
 }
