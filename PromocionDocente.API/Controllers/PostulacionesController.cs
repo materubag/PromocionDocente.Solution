@@ -526,7 +526,53 @@ namespace PromocionDocente.API.Controllers
                 return StatusCode(500, $"Error al obtener datos del dashboard: {ex.Message}");
             }
         }
+        [HttpGet("rechazadas")]
+public async Task<ActionResult<List<SolicitudDocenteDto>>> GetSolicitudesRechazadas()
+{
+    try
+    {
+        var solicitudes = new List<SolicitudDocenteDto>();
 
+        var postulacionesRechazadas = await _context.Postulaciones
+            .Where(p => p.EstPos == "RECHAZADO")
+            .Include(p => p.CedDocNavigation)
+            .ToListAsync();
+
+        var categorias = await _context.Categorias.ToListAsync();
+
+        foreach (var postulacion in postulacionesRechazadas)
+        {
+            var categoriaActual = categorias.FirstOrDefault(c => c.IdCat == postulacion.IdCat);
+
+            if (categoriaActual != null)
+            {
+                var siguienteCategoria = categorias
+                    .Where(c => c.NivCat > categoriaActual.NivCat)
+                    .OrderBy(c => c.NivCat)
+                    .FirstOrDefault() ?? categoriaActual;
+
+                solicitudes.Add(new SolicitudDocenteDto
+                {
+                    Id = postulacion.IdPos,
+                    Codigo = postulacion.CedDoc,
+                    NombreDocente = $"{postulacion.CedDocNavigation.Nom1Doc} {postulacion.CedDocNavigation.Ape1Doc}",
+                    Nivel = $"{categoriaActual.NomCat} a {siguienteCategoria.NomCat}",
+                    Fecha = postulacion.FecPos,
+                    TiempoEspera = CalcularTiempoEspera(postulacion.FecPos),
+                    Estado = postulacion.EstPos
+                });
+            }
+        }
+
+        solicitudes = solicitudes.OrderByDescending(s => s.Fecha).ToList();
+
+        return Ok(solicitudes);
+    }
+    catch (Exception ex)
+    {
+        return StatusCode(500, $"Error al obtener solicitudes rechazadas: {ex.Message}");
+    }
+}
         // POST: api/Postulaciones/ValidarSolicitud/5
         [HttpPost("ValidarSolicitud/{id}")]
         public async Task<IActionResult> ValidarSolicitud(int id, [FromBody] ValidacionDto validacion)
