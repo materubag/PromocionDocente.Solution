@@ -1,57 +1,198 @@
 ﻿@page "/"
 @using PromocionDocente.Client.Services
-
 @inject HttpClient Http
 @inject NavigationManager Navigation
 @inject Blazored.LocalStorage.ILocalStorageService LocalStorage
 @inject UserSessionService UserSession
+@using System.Net.Http.Json 
 
-<div class="container d-flex justify-content-center align-items-center min-vh-100">
-    <div class="card shadow p-4 border-0" style="width: 100%; max-width: 400px; border-radius: 1rem; background-color: rgba(255, 255, 255, 0.95);">
-        <div class="card-body">
-            <h3 class="text-center mb-4 text-primary">Iniciar Sesión</h3>
+<style>
+    .login-page {
+        background: linear-gradient(rgba(88, 21, 23, 0.65), rgba(88, 21, 23, 0.65)),
+            url('/images/utaCampus.png') center / cover no-repeat;
+        min-height: 100vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 20px;
+    }
 
+    .login-card {
+        background: white;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        display: flex;
+        max-width: 800px;
+        width: 100%;
+        overflow: hidden;
+    }
+
+    .left-panel {
+        background-color: #581517;
+        padding: 40px;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        flex: 1;
+        min-width: 300px;
+    }
+
+    .left-panel .logo {
+        margin-bottom: 30px;
+    }
+
+    .left-panel .logo img {
+        max-width: 150px;
+        height: auto;
+    }
+
+    .left-panel .university-name {
+        font-size: 1.1em;
+        margin-top: 10px;
+        opacity: 0.9;
+        font-weight: 500;
+    }
+
+    .left-panel .welcome-title {
+        font-size: 2em;
+        margin: 20px 0 10px;
+        font-weight: 600;
+    }
+
+    .left-panel .welcome-subtitle {
+        font-size: 1.1em;
+        opacity: 0.9;
+        margin-bottom: 30px;
+    }
+
+    .right-panel {
+        padding: 50px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-width: 300px;
+    }
+
+    .login-title {
+        color: #581517;
+        font-size: 1.8em;
+        margin-bottom: 30px;
+        text-align: center;
+        font-weight: 600;
+    }
+
+    .form-group {
+        margin-bottom: 25px;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 15px;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        font-size: 16px;
+        box-sizing: border-box;
+    }
+
+    .form-input:focus {
+        border-color: #581517;
+        outline: none;
+        box-shadow: 0 0 0 2px rgba(88, 21, 23, 0.2);
+    }
+
+    .login-btn {
+        width: 100%;
+        padding: 15px;
+        background-color: #581517;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        font-size: 1em;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background-color 0.3s;
+    }
+
+    .login-btn:hover {
+        background-color: #4a1113;
+    }
+
+    .error-message {
+        color: #d32f2f;
+        background-color: #ffebee;
+        padding: 10px 15px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        text-align: center;
+        font-size: 0.9em;
+    }
+
+    .forgot-password {
+        text-align: center;
+        margin-top: 20px;
+    }
+
+    .forgot-password a {
+        color: #581517;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+    .forgot-password a:hover {
+        text-decoration: underline;
+    }
+</style>
+
+<div class="login-page">
+    <div class="login-card">
+        <!-- Panel izquierdo con bienvenida -->
+        <div class="left-panel">
+            <div class="logo">
+                <img src="/images/UTA.png" alt="Logo UTA" />
+                <div class="university-name">UNIVERSIDAD TÉCNICA DE AMBATO</div>
+            </div>
+            <h1 class="welcome-title">Bienvenido</h1>
+            <p class="welcome-subtitle">Al proceso de escalafón.</p>
+        </div>
+
+        <!-- Panel derecho con formulario -->
+        <div class="right-panel">
+            <h2 class="login-title">Iniciar sesión</h2>
+            
             <EditForm Model="@loginModel" OnValidSubmit="HandleLogin">
                 <DataAnnotationsValidator />
                 <ValidationSummary />
 
-                <div class="mb-3">
-                    <label class="form-label">Correo</label>
-                    <InputText class="form-control" @bind-Value="loginModel.Correo" required />
+                <div class="form-group">
+                    <InputText class="form-input" @bind-Value="loginModel.Correo" placeholder="Usuario" required />
                 </div>
 
-                <div class="mb-3">
-                    <label class="form-label">Contraseña</label>
-                    <InputText class="form-control" type="password" @bind-Value="loginModel.Contrasena" required />
+                <div class="form-group">
+                    <InputText type="password" class="form-input" @bind-Value="loginModel.Contrasena" placeholder="Contraseña" required />
                 </div>
 
                 @if (!string.IsNullOrEmpty(errorMessage))
                 {
-                    <div class="alert alert-danger mt-2" role="alert">
-                        <i class="bi bi-exclamation-circle-fill me-2"></i>
+                    <div class="error-message">
                         @errorMessage
                     </div>
                 }
 
-                @if (!string.IsNullOrEmpty(successMessage))
-                {
-                    <div class="alert alert-success mt-2" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        @successMessage
-                    </div>
-                }
-
-                <button class="btn btn-primary w-100 mt-2" type="submit">Ingresar</button>
-
-                <div class="text-center mt-3">
-                    <a href="/recuperar-clave" class="text-decoration-none text-muted">
-                        ¿Olvidaste tu contraseña?
-                    </a>
+                <button type="submit" class="login-btn">Acceder</button>
+                
+                <div class="forgot-password">
+                    <a href="/recuperar-clave">¿Olvidaste tu contraseña?</a>
                 </div>
             </EditForm>
         </div>
     </div>
 </div>
+
 @code {
     private LoginDTO loginModel = new();
     private string? errorMessage;
@@ -85,7 +226,7 @@
                     }
                     else if (result.Rol == "admin")
                     {
-                        Navigation.NavigateTo("/administrador");
+                        Navigation.NavigateTo("/admin");
                     }
                 }
                 else

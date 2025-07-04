@@ -6,7 +6,7 @@
 @inject HttpClient Http
 @inject UserSessionService UserSessionService
 @inject NavigationManager NavigationManager
-@inject IToastService ToastService
+@*@inject IToastService ToastService*@
 
 <PageTitle>Panel de Administración</PageTitle>
 
@@ -413,7 +413,7 @@
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Error al cargar datos: {ex.Message}");
+            @*ToastService.ShowError($"Error al cargar datos: {ex.Message}");*@
             Console.WriteLine($"Error: {ex.Message}");
         }
         finally
@@ -437,18 +437,18 @@
             
             if (response.IsSuccessStatusCode)
             {
-                ToastService.ShowSuccess("Solicitud validada con éxito");
+                @*ToastService.ShowSuccess("Solicitud validada con éxito");*
                 await CargarDatosAsync(); // Recargar los datos
             }
             else
             {
                 var errorMsg = await response.Content.ReadAsStringAsync();
-                ToastService.ShowError($"Error: {errorMsg}");
+                @*ToastService.ShowError($"Error: {errorMsg}");*@
             }
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Error al validar: {ex.Message}");
+            @*ToastService.ShowError($"Error al validar: {ex.Message}");*@
         }
     }
 

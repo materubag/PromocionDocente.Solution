@@ -9,7 +9,7 @@
 
 	<div class="header-container">
 		<div class="header-content">
-			<h1 class="titulo-principal">Sistema de Gestión de Investigaciones</h1>
+			<h1 class="titulo-principal">Gestión de Investigaciones</h1>
 
 		</div>
 	</div>
@@ -130,24 +130,26 @@
 
 <style>
 	.investigaciones-container {
-		min-height: 100vh;
-		background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
-		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+		 min-height: 100vh;
+        background: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 	}
 
 	.header-container {
-		background: rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-		padding: 1rem 2rem;
+		background: #581517;
+        backdrop-filter: blur(10px);
+        color: white;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
 	}
 
+
 	.header-content {
-		max-width: 1400px;
-		margin: 0 auto;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
+		 max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
 	}
 
 	.titulo-principal {
@@ -161,14 +163,14 @@
 		display: flex;
 		align-items: center;
 		gap: 1rem;
-		background: rgba(255, 255, 255, 0.1);
+		background: rgba(88, 21, 23, 0.1);
 		padding: 0.5rem 1rem;
 		border-radius: 50px;
 		backdrop-filter: blur(10px);
 	}
 
 	.info-text {
-		color: white;
+		color: #faf8f8;
 	}
 
 	.nombre {
@@ -185,12 +187,13 @@
 		max-width: 1400px;
 		margin: 2rem auto;
 		padding: 0 2rem;
+		color:white;
 	}
 
 	.tabla-container {
 		background: white;
 		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		box-shadow: 0 4px 12px rgba(88, 21, 23, 0.1);
 		overflow: hidden;
 	}
 
@@ -253,12 +256,12 @@
 	}
 
 	.btn-primary {
-		background: #0D47A1;
+		background: #581517;
 		color: white;
 	}
 
 		.btn-primary:hover:not(:disabled) {
-			background: #1565C0;
+			background: #6d1a1d;
 		}
 
 	.btn-secondary {
@@ -297,11 +300,11 @@
 		}
 
 		.investigaciones-table tbody tr:hover {
-			background: #f8f9fa;
+			background: rgba(88, 21, 23, 0.05);
 		}
 
 		.investigaciones-table tbody tr.selected {
-			background: #e3f2fd;
+			background: rgba(88, 21, 23, 0.1);
 		}
 
 	.col-checkbox {
@@ -342,7 +345,7 @@
 
 	.titulo-investigacion {
 		font-weight: 500;
-		color: #2c3e50;
+		color: #581517;
 		line-height: 1.3;
 	}
 
@@ -423,9 +426,9 @@
 	}
 
 	.btn-documento {
-		background: #e8f5e8;
-		border: 1px solid #28a745;
-		color: #28a745;
+		background: #f8e8e8;
+		border: 1px solid #581517;
+		color: #581517;
 		padding: 0.25rem 0.5rem;
 		border-radius: 4px;
 		cursor: pointer;
@@ -437,7 +440,7 @@
 	}
 
 		.btn-documento:hover {
-			background: #28a745;
+			background: #581517;
 			color: white;
 		}
 
@@ -505,7 +508,6 @@
 		font-size: 0.9rem;
 	}
 </style>
-
 @code {
 	private DocenteInfo docenteInfo;
 	private List<InvestigacionInfo> investigaciones = new List<InvestigacionInfo>();
