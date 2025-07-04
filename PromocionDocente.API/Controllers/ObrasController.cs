@@ -202,6 +202,7 @@ namespace PromocionDocente.API.Controllers
                 {
                     await transaction.RollbackAsync();
                     return StatusCode(500, $"Error al actualizar el estado: {ex.Message}");
+                    //cambio
                 }
             }
         }
