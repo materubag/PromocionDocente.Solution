@@ -16,6 +16,7 @@ namespace PromocionDocente.Infrastructure.Contexts
         public DbSet<Evaluacion> Evaluaciones { get; set; }
         public DbSet<HistorialDocenteDac> HistorialDocente { get; set; }
         public DbSet<Docente> Docentes { get; set; }
+        public DbSet<ArchivoDocente> ArchivosDocente { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -78,6 +79,18 @@ namespace PromocionDocente.Infrastructure.Contexts
                 entity.Property(e => e.IdFac).HasColumnName("ID_FAC");
                 entity.Property(e => e.PdfContrato).HasColumnName("PDF_CONTRATO");
             });
+            modelBuilder.Entity<ArchivoDocente>(entity =>
+            {
+                entity.ToTable("ARCHIVOS_DOCENTE");
+
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id).HasColumnName("ID");
+                entity.Property(e => e.Titulo).HasColumnName("TITULO");
+                entity.Property(e => e.Encargado).HasColumnName("ENCARGADO");
+                entity.Property(e => e.Fecha).HasColumnName("FECHA");
+                entity.Property(e => e.RutaArchivo).HasColumnName("RUTA_ARCHIVO");
+            });
+
 
         }
 

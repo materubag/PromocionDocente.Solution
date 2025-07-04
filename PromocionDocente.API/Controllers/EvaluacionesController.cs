@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.DTOs.Update;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
@@ -44,33 +45,25 @@ namespace PromocionDocente.API.Controllers
             return evaluacione;
         }
 
+       
+
+
         // PUT: api/Evaluaciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutEvaluacione(int id, Evaluacione evaluacione)
+        public async Task<IActionResult> PutEvaluacione(int id, [FromBody] EvaluacionUpdateDto dto)
         {
-            if (id != evaluacione.IdEvaluacion)
-            {
-                return BadRequest();
-            }
+            var evaluacion = await _context.Evaluaciones.FindAsync(id);
+            if (evaluacion == null)
+                return NotFound();
 
-            _context.Entry(evaluacione).State = EntityState.Modified;
+            evaluacion.PeriodoEvaluado = dto.PeriodoEvaluado;
+            evaluacion.TipoEvaluacion = dto.TipoEvaluacion;
+            evaluacion.FechaEvaluacion = DateOnly.FromDateTime(dto.FechaEvaluacion); // aquí conviertes
+            evaluacion.Resultado = dto.Resultado;
+            evaluacion.Observacion = dto.Observaciones;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!EvaluacioneExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -78,12 +71,24 @@ namespace PromocionDocente.API.Controllers
         // POST: api/Evaluaciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Evaluacione>> PostEvaluacione(Evaluacione evaluacione)
+        public async Task<ActionResult> PostEvaluacion([FromBody] EvaluacionDto dto)
         {
-            _context.Evaluaciones.Add(evaluacione);
+            var evaluacion = new Evaluacione
+            {
+                CedDoc = dto.CedDoc,
+                PeriodoEvaluado = dto.PeriodoEvaluado,
+                TipoEvaluacion = dto.TipoEvaluacion,
+                FechaEvaluacion = DateOnly.FromDateTime(dto.FechaEvaluacion),
+                Resultado = dto.Resultado,
+                Observacion = dto.Observacion,
+                PdfEvaluacion = dto.PdfEvaluacion,
+                Estado = "PENDIENTE"
+            };
+
+            _context.Evaluaciones.Add(evaluacion);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetEvaluacione", new { id = evaluacione.IdEvaluacion }, evaluacione);
+            return CreatedAtAction(nameof(GetEvaluacione), new { id = evaluacion.IdEvaluacion }, evaluacion);
         }
 
         // DELETE: api/Evaluaciones/5

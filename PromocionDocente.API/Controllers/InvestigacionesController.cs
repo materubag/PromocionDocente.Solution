@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.DTOs.Update;
+using PromocionDocente.Infrastructure.Services;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
@@ -17,10 +19,14 @@ namespace PromocionDocente.API.Controllers
     public class InvestigacionesController : ControllerBase
     {
         private readonly PromocionDocenteContext _context;
+        private readonly InvestigacionService _investigacionService;
 
-        public InvestigacionesController(PromocionDocenteContext context)
+        public InvestigacionesController(
+     PromocionDocenteContext context,
+     InvestigacionService investigacionService)
         {
             _context = context;
+            _investigacionService = investigacionService;
         }
 
         // GET: api/Investigaciones
@@ -77,43 +83,50 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/Investigaciones/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutInvestigacione(int id, Investigacione investigacione)
+        public async Task ActualizarInvestigacionAsync(int id, InvestigacionUpdateDto dto)
         {
-            if (id != investigacione.IdInvestigacion)
-            {
-                return BadRequest();
-            }
+            var investigacion = await _context.Investigaciones.FindAsync(id);
+            if (investigacion == null)
+                throw new Exception("No se encontró la investigación.");
 
-            _context.Entry(investigacione).State = EntityState.Modified;
+            investigacion.TituloInvestigacion = dto.TituloInvestigacion;
+            investigacion.DuracionMeses = dto.DuracionMeses;
+            investigacion.FechaInicio = DateOnly.FromDateTime(dto.FechaInicio);
+            investigacion.FechaFin = DateOnly.FromDateTime(dto.FechaFin);
+            investigacion.ArchivoPdf = dto.ArchivoPdf;
+            investigacion.TipoInvestigacion = dto.TipoInvestigacion;
+            investigacion.CampoAplicacion = dto.CampoAplicacion;
+            investigacion.Observacion = dto.Observacion;
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!InvestigacioneExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
-
-            return NoContent();
+            await _context.SaveChangesAsync();
         }
+
+
+
 
         // POST: api/Investigaciones
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Investigacione>> PostInvestigacione(Investigacione investigacione)
+        public async Task<ActionResult> PostInvestigacion([FromBody] InvestigacionDto dto)
         {
-            _context.Investigaciones.Add(investigacione);
+            var investigacion = new Investigacione
+            {
+                CedDoc = dto.CedDoc,
+                TituloInvestigacion = dto.TituloInvestigacion,
+                DuracionMeses = dto.DuracionMeses,
+                FechaInicio = DateOnly.FromDateTime(dto.FechaInicio),
+                FechaFin = DateOnly.FromDateTime(dto.FechaFin),
+                ArchivoPdf = dto.ArchivoPdf,
+                TipoInvestigacion = dto.TipoInvestigacion,
+                CampoAplicacion = dto.CampoAplicacion,
+                Observacion = dto.Observacion,
+                Estado = "PENDIENTE"
+            };
+
+            _context.Investigaciones.Add(investigacion);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetInvestigacione", new { id = investigacione.IdInvestigacion }, investigacione);
+            return CreatedAtAction(nameof(GetInvestigacione), new { id = investigacion.IdInvestigacion }, investigacion);
         }
 
         // DELETE: api/Investigaciones/5

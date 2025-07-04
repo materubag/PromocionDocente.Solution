@@ -3,6 +3,7 @@
 @layout DocenteLayout
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
 
 <div class="obras-container">
 
@@ -27,14 +28,12 @@
 						<span class="btn-icon">➕</span>
 						Agregar
 					</button>
+
 					<button class="btn btn-secondary" @onclick="ImportarObras" disabled="@isImporting">
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
 					</button>
-					<button class="btn btn-secondary" @onclick="EditarSeleccionada">
-						<span class="btn-icon">✏️</span>
-						Editar
-					</button>
+					
 				</div>
 			</div>
 
@@ -60,9 +59,7 @@
 							@foreach (var obra in obrasFiltradas)
 							{
 								<tr class="@(obra.Seleccionada ? "selected" : "")">
-									<td>
-										<input type="checkbox" @bind="obra.Seleccionada" />
-									</td>
+									
 									<td>
 										<span class="badge-tipo @GetClaseTipo(obra.TipoObra)">
 											@obra.TipoObra
@@ -77,7 +74,7 @@
 											}
 										</div>
 									</td>
-									<td>@obra.FechaPublicacion.ToString("dd/MM/yyyy")</td>
+									<td>@(obra.FechaPublicacion.HasValue? obra.FechaPublicacion.Value.ToString("dd/MM/yyyy") : "Sin fecha")</td>
 									<td>
 										<span class="area-badge">@(obra.AreaConocimiento ?? "Sin especificar")</span>
 									</td>
@@ -98,7 +95,7 @@
 									<td class="doi-cell">
 										@if (!string.IsNullOrEmpty(obra.DoiUrl))
 										{
-											<button class="btn-doi" @onclick="() => AbrirUrl(obra.DoiUrl)" title="Abrir enlace">
+											<button class="btn-doi" @onclick="() => AbrirUrl(obra.DoiUrl)">
 												<span class="doi-icon">🔗</span>
 												<span class="doi-text">Ver</span>
 											</button>
@@ -107,6 +104,13 @@
 										{
 											<span class="no-doi">Sin enlace</span>
 										}
+									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)" title="Editar">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
 									</td>
 								</tr>
 							}
@@ -136,6 +140,7 @@
 
 	</div>
 </div>
+
 
 <style>
 	.obras-container {
@@ -595,7 +600,7 @@
 		try
 		{
 			// Llamada a la API para obtener las obras filtradas por cédula
-			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/Obras/cedula/{cedulaUsuario}");
+			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/obras/cedula/{cedulaUsuario}");
 			FiltrarObras(); // Filtra las obras obtenidas
 		}
 		catch (Exception ex)
@@ -671,12 +676,6 @@
 	{
 		if (metaObras == 0) return 0;
 		return Math.Min(100, (obras.Count * 100) / metaObras);
-	}
-
-	// Métodos de acción
-	private async Task AgregarObra()
-	{
-		await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Obra\n\n• Se abrirá el formulario para registrar una nueva obra\n• Complete todos los campos requeridos\n• Adjunte el documento PDF si está disponible\n• Guarde los cambios para continuar");
 	}
 
 	private async Task ImportarObras()
@@ -765,30 +764,55 @@
 	}
 
 
+
 	public class ObraInfo
 	{
 		public int IdObra { get; set; }
 		public string TipoObra { get; set; } = "";
 		public string Titulo { get; set; } = "";
-		public DateTime FechaPublicacion { get; set; }
+		public DateTime? FechaPublicacion { get; set; } // <-- nullable
 		public string? DoiUrl { get; set; }
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
 		public string? PdfUrl { get; set; }
-        public string? CedDoc { get; set; }
-        public string? Estado { get; set; }
+
 		public bool Seleccionada { get; set; }
 
-		// Método para verificar si tiene PDF
 		public bool TienePDF()
 		{
 			return PdfUrl != null && PdfUrl.Length > 0;
 		}
 	}
 
+
 	public class DocenteInfo
 	{
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
+
+	@inject NavigationManager NavManager
+
+	private void AgregarObra()
+	{
+		NavManager.NavigateTo("/docente/agregar/agregarobra");
+		
+	}
+
+	private void EditarObra(int id)
+	{
+		NavManager.NavigateTo($"/docente/editar/obra/{id}");
+	}
+	public class ObraUpdateDto
+	{
+		public string Titulo { get; set; }
+		public string TipoObra { get; set; }
+		public DateTime FechaPublicacion { get; set; }
+		public string? DoiUrl { get; set; }
+		public string? AreaConocimiento { get; set; }
+		public string? Observaciones { get; set; }
+		public byte[]? PdfProduccion { get; set; }
+	}
+
+
 }

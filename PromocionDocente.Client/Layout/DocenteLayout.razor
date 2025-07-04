@@ -1,4 +1,5 @@
-﻿@inherits LayoutComponentBase
+﻿﻿@* Components/Layout/DocenteLayout.razor *@
+@inherits LayoutComponentBase
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
@@ -15,6 +16,12 @@
         </div>
 
         <ul class="nav-menu">
+            @*<li class="nav-item">
+                <a href="/docente/dashboard" class="nav-link @GetActiveClass("/docente/dashboard")">
+                    <span class="nav-icon">🏠</span>
+                    Dashboard
+                </a>
+            </li>*@
             <li class="nav-item">
                 <a href="/docente/criterios" class="nav-link @GetActiveClass("/docente/criterios")">
                     <span class="nav-icon">📋</span>
