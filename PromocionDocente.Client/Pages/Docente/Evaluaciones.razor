@@ -4,7 +4,6 @@
 @using static System.Net.WebRequestMethods
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
-@inject NavigationManager NavManager
 
 <div class="evaluaciones-container">
 
@@ -33,7 +32,10 @@
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
 					</button>
-					
+					<button class="btn btn-secondary" @onclick="EditarSeleccionada">
+						<span class="btn-icon">✏️</span>
+						Editar
+					</button>
 					<button class="btn btn-secondary" @onclick="EnviarSeleccionada">
 						<span class="btn-icon">📤</span>
 						Enviar
@@ -53,64 +55,64 @@
 							<th class="col-tipo">Tipo Evaluación</th>
 							<th class="col-fecha">Fecha</th>
 							<th class="col-resultado">Resultado</th>
+							<th class="col-estado">Estado</th>
 							<th class="col-documento">Documento</th>
-							<th class="col-documento">Editar</th>
 						</tr>
 					</thead>
 					<tbody>
-						@if (evaluacionesFiltradas != null && evaluacionesFiltradas.Any())
-						{
-							@foreach (var evaluacion in evaluacionesFiltradas)
-							{
-								<tr class="@(evaluacion.Seleccionada ? "selected" : "")">
-									<td>
-										<input type="checkbox" @bind="evaluacion.Seleccionada" />
-									</td>
-									<td>@evaluacion.PeriodoEvaluacion</td>
-									<td>@evaluacion.TipoEvaluacion</td>
-									<td>@evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy")</td>
-									<td class="resultado">
-										<span class="badge-resultado @GetClaseResultado(evaluacion.Calificacion)">
-											@evaluacion.Calificacion.ToString("0.00")
-										</span>
-									</td>
-									<td class="documento">
-										@if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
-										{
-											<button class="btn-documento" @onclick="() => VerPDF(evaluacion)" title="Ver PDF">
-												<span class="documento-icon">📄</span>
-												<span class="documento-text">PDF</span>
-											</button>
-										}
-										else
-										{
-											<span class="no-documento">Sin documento</span>
-										}
-									</td>
-									<td>
-										<button @onclick="() => EditarEvaluacion(evaluacion.IdEvaluacion)">
-											<span class="btn-icon">✏️</span>
-											Editar
-										</button>
+	@if (evaluacionesFiltradas != null && evaluacionesFiltradas.Any())
+	{
+		@foreach (var evaluacion in evaluacionesFiltradas)
+		{
+			<tr class="@(evaluacion.Seleccionada ? "selected" : "")">
+				<td>
+					<input type="checkbox" @bind="evaluacion.Seleccionada" />
+				</td>
+				<td>@evaluacion.PeriodoEvaluacion</td>
+				<td>@evaluacion.TipoEvaluacion</td>
+				<td>@evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy")</td>
+				<td class="resultado">
+					@if (evaluacion.Calificacion > 0)
+					{
+						<span class="badge-resultado @GetClaseResultado(evaluacion.Calificacion)">
+							@evaluacion.Calificacion.ToString("0.00")
+						</span>
+					}
+					else
+					{
+						<span class="badge-resultado resultado-malo">0,00</span>
+					}
+				</td>
+				<td class="documento">
+					@if (!string.IsNullOrEmpty(evaluacion.PdfEvaluacion))
+					{
+						<button class="btn-documento" @onclick="() => VerPDF(evaluacion)" title="Ver PDF">
+							<span class="documento-icon">📄</span>
+							<span class="documento-text">PDF</span>
+						</button>
+					}
+					else
+					{
+						<span class="no-documento">Sin documento</span>
+					}
+				</td>
+				<td>
+					<button class="btn btn-secondary" @onclick="() => EditarEvaluacion(evaluacion.IdEvaluacion)">
+						<span class="btn-icon">✏️</span>
+						Editar
+					</button>
+				</td>
+			</tr>
+		}
+	}
+	else
+	{
+		<tr>
+			<td colspan="7" class="no-data">No se encontraron evaluaciones</td>
+		</tr>
+	}
+</tbody>
 
-									</td>
-									<td>
-										<button class="btn btn-secondary" @onclick="() => EditarEvaluacion(evaluacion.IdEvaluacion)">
-											<span class="btn-icon">✏️</span>
-											Editar
-										</button>
-
-									</td>
-								</tr>
-							}
-						}
-						else
-						{
-							<tr>
-								<td colspan="7" class="no-data">No se encontraron evaluaciones</td>
-							</tr>
-						}
-					</tbody>
 				</table>
 			</div>
 
@@ -537,7 +539,7 @@
 		mensajeError = string.Empty;
 		try
 		{
-			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluaciones/cedula/{cedulaUsuario}");
+			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/Evaluaciones/cedula/{cedulaUsuario}");
 		}
 		catch (Exception ex)
 		{
@@ -551,7 +553,7 @@
 		{
 			evaluacionesFiltradas = evaluaciones.Where(e =>
 				string.IsNullOrEmpty(filtroTexto) ||
-				e.PeriodoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
+				e.PeriodoEvaluado.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase) ||
 				e.TipoEvaluacion.Contains(filtroTexto, StringComparison.OrdinalIgnoreCase)
 			).ToList();
 
@@ -568,7 +570,7 @@
 		}
 	}
 
-	private string GetClaseResultado(decimal resultado)
+		private string GetClaseResultado(decimal resultado)
 		{
 	if (resultado >= 4.5m) return "resultado-excelente";
 	if (resultado >= 4.0m) return "resultado-bueno";
@@ -614,11 +616,11 @@
 	}
 		}
 
-	@inject NavigationManager NavManager
 
-		private void AgregarEvaluacion()
+		private async Task AgregarEvaluacion()
 		{
-		NavManager.NavigateTo("/docente/agregar/agregarevaluacion");
+	await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Evaluación\n\n• Se abrirá el formulario para crear una nueva evaluación\n• Complete todos los campos requeridos\n• Guarde los cambios para continuar");
+	// Lógica para agregar nueva evaluación
 		}
 
 		private async Task ImportarEvaluaciones()
@@ -665,7 +667,27 @@
 	}
 		}
 
-		
+		private async Task EditarSeleccionada()
+		{
+	var seleccionada = evaluacionesFiltradas.FirstOrDefault(e => e.Seleccionada);
+	if (seleccionada != null)
+	{
+		await JSRuntime.InvokeVoidAsync("alert",
+			$"Editar Evaluación Seleccionada\n\n" +
+			$"• Periodo: {seleccionada.PeriodoEvaluado}\n" +
+			$"• Tipo: {seleccionada.TipoEvaluacion}\n" +
+			$"Se abrirá el formulario de edición...");
+
+		EditarEvaluacion(seleccionada);
+	}
+	else
+	{
+		await JSRuntime.InvokeVoidAsync("alert",
+			"⚠️ Atención\n\n" +
+			"No hay ninguna evaluación seleccionada.\n" +
+			"Por favor, seleccione una evaluación de la lista para editarla.");
+	}
+		}
 
 		private async Task EnviarSeleccionada()
 		{
@@ -705,7 +727,16 @@
 	}
 		}
 
-		
+		private async Task EditarEvaluacion(EvaluacionInfo evaluacion)
+		{
+	await JSRuntime.InvokeVoidAsync("alert",
+		$"Editando Evaluación\n\n" +
+		$"• ID: {evaluacion.IdEvaluacion}\n" +
+		$"• Periodo: {evaluacion.PeriodoEvaluado}\n" +
+		$"• Tipo: {evaluacion.TipoEvaluacion}\n" +
+		$"Redirigiendo al formulario de edición...");
+	// Lógica para editar evaluación
+		}
 
 		private async Task VerPDF(EvaluacionInfo evaluacion)
 		{
@@ -716,27 +747,22 @@
 		}
 
 
-	public class EvaluacionInfo
-	{
-		public int IdEvaluacion { get; set; } // Este es el que necesitas para navegar
-		public DateTime FechaEvaluacion { get; set; }
-		public decimal Calificacion { get; set; }
-		public string PdfEvaluacion { get; set; }
-		public string PeriodoEvaluacion { get; set; }
-		public string CedulaDocente { get; set; }
-		public string TipoEvaluacion { get; set; }
-		public bool Seleccionada { get; set; }
-	}
-
+		public class EvaluacionInfo
+		{
+		public int IdEvaluacion { get; set; }
+	public DateTime FechaEvaluacion { get; set; }
+		public decimal Resultado { get; set; }
+	public string PdfEvaluacion { get; set; }
+		public string PeriodoEvaluado { get; set; }
+	public string CedDoc { get; set; }
+	public string TipoEvaluacion { get; set; }
+	public string Estado { get; set; }
+	public bool Seleccionada { get; set; }
+		}
 
 		public class DocenteInfo
 		{
 	public string Nombre { get; set; } = "";
 	public string Cargo { get; set; } = "";
 		}
-	private void EditarEvaluacion(int id)
-	{
-		NavManager.NavigateTo($"/docente/editar/evaluacion/{id}");
-	}
-
 }
