@@ -19,7 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
-builder.Services.AddBlazoredLocalStorage();
+
 
 //  Agrega soporte para Swagger (documentaci�n de API)
 builder.Services.AddEndpointsApiExplorer();
@@ -46,7 +46,6 @@ builder.Services.AddScoped<IDatoHistorial, DatoDocenteHistorial>();
 builder.Services.AddScoped<CursoCapacitacionService>();
 builder.Services.AddScoped<ObraService>();
 builder.Services.AddScoped<InvestigacionService>();
-builder.Services.AddScoped<UserSessionService>();
 
 
 builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
