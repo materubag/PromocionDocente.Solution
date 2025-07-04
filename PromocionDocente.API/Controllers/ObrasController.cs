@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Infrastructure.Services;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
@@ -17,10 +18,13 @@ namespace PromocionDocente.API.Controllers
     public class ObrasController : ControllerBase
     {
         private readonly PromocionDocenteContext _context;
+        private readonly ObraService _obraService;
 
-        public ObrasController(PromocionDocenteContext context)
+
+        public ObrasController(PromocionDocenteContext context, ObraService obraService)
         {
             _context = context;
+            _obraService = obraService;
         }
 
         // GET: api/Obras
@@ -47,31 +51,23 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/Obras/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutObra(int id, Obra obra)
+        public async Task<IActionResult> PutObra(int id, [FromBody] ObraUpdateDto dto)
         {
-            if (id != obra.IdObra)
-            {
-                return BadRequest();
-            }
+            if (dto == null)
+                return BadRequest("Datos inválidos.");
 
-            _context.Entry(obra).State = EntityState.Modified;
+            var obra = await _context.Obras.FindAsync(id);
+            if (obra == null)
+                return NotFound($"No se encontró la obra con ID {id}.");
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ObraExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            obra.Titulo = dto.Titulo;
+            obra.TipoObra = dto.TipoObra;
+            obra.FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion);
+            obra.AreaConocimiento = dto.AreaConocimiento; // Corregido aquí
+            obra.PdfProduccion = dto.PdfProduccion;
+            obra.Observaciones = dto.Observaciones;
 
+            await _context.SaveChangesAsync();
             return NoContent();
         }
 
@@ -123,7 +119,7 @@ namespace PromocionDocente.API.Controllers
             _context.Obras.Add(obra);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetObra", new { id = obra.IdObra }, obra);
+            return CreatedAtAction(nameof(GetObra), new { id = obra.IdObra }, obra);
         }
 
         // DELETE: api/Obras/5

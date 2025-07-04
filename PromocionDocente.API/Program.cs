@@ -40,6 +40,9 @@ builder.Services.AddScoped<IHistorialDocenteImportService, HistorialDocenteImpor
 builder.Services.AddScoped<IDocenteTiempoService, DocenteTiempoService>();
 builder.Services.AddScoped<IDatoDocente, DatoDocenteRepositorio>();
 builder.Services.AddScoped<IDatoHistorial, DatoDocenteHistorial>();
+builder.Services.AddScoped<CursoCapacitacionService>();
+builder.Services.AddScoped<ObraService>();
+builder.Services.AddScoped<InvestigacionService>();
 
 
 

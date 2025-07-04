@@ -3,6 +3,8 @@
 @using Models
 @inject IJSRuntime JSRuntime
 @inject HttpClient Http
+@inject NavigationManager NavManager
+
 
 <div class="capacitaciones-container">
 
@@ -29,7 +31,7 @@
 					</button>
 					<button class="btn btn-secondary" @onclick="ImportarCursos" disabled="@isImporting">
 						<span class="btn-icon">📁</span>
-						@(isImporting? "Importando..." : "Importar")
+						@(isImporting ? "Importando..." : "Importar")
 					</button>
 					<button class="btn btn-secondary" @onclick="EditarSeleccionado">
 						<span class="btn-icon">✏️</span>
@@ -61,7 +63,7 @@
 						{
 							@foreach (var curso in cursosFiltrados)
 							{
-								<tr class="@(curso.Seleccionado? "selected" : "")">
+								<tr class="@(curso.Seleccionado ? "selected" : "")">
 									<td>
 										<input type="checkbox" @bind="curso.Seleccionado" />
 									</td>
@@ -90,6 +92,13 @@
 											<span class="no-documento">Sin documento</span>
 										}
 									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarCurso(curso.IdCurso)">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
+									</td>
 								</tr>
 							}
 						}
@@ -106,7 +115,7 @@
 			<!-- Paginación -->
 			<div class="pagination-container">
 				<div class="pagination-info">
-					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual* elementosPorPagina, totalElementos)) de @totalElementos cursos
+					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos cursos
 				</div>
 				<div class="pagination-controls">
 					<button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
@@ -115,6 +124,8 @@
 				</div>
 			</div>
 		</div>
+
+
 	</div>
 </div>
 
@@ -551,6 +562,11 @@
 	private int cursosCompletados = 0;
 	private string mensajeError = string.Empty;
 	private string? cedulaUsuario;
+	@inject NavigationManager NavManager
+
+
+	private CursoCapacitacionInfo cursoEditar = new();
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -677,12 +693,14 @@
 			FiltrarCursos();
 		}
 	}
+	@inject NavigationManager NavManager
 
-	// Métodos de acción
-	private async Task AgregarCurso()
+	private void AgregarCurso()
 	{
-		await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nuevo Curso de Capacitación\n\n• Se abrirá el formulario para registrar un nuevo curso\n• Complete los datos: nombre, fecha, horas y documento PDF\n• Guarde los cambios para continuar");
+		NavManager.NavigateTo("/docente/agregar/agregarcurso");
 	}
+
+
 
 	private async Task ImportarCursos()
 	{
@@ -734,7 +752,12 @@
 			await CargarCursos();
 		}
 	}
-
+	private async Task GuardarCurso(CursoCapacitacionInfo curso)
+	{
+		// Asumiendo que tienes un DTO compatible en backend
+		await Http.PostAsJsonAsync("/api/CursosCapacitacions", curso);
+		await CargarCursos();
+	}
 
 
 	private async Task EditarSeleccionado()
@@ -814,8 +837,8 @@
 		public bool TienePDF { get; set; }
 		public string pdfCurso { get; set; } = "";
 		public bool Seleccionado { get; set; }
-        public string Estado { get; set; }
 	}
+
 	public class ImportacionResultado
 	{
 		public string mensaje { get; set; }
@@ -829,4 +852,10 @@
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
+	private void EditarCurso(int id)
+	{
+		NavManager.NavigateTo($"docente/editar/curso/{id}");
+	}
+
+
 }

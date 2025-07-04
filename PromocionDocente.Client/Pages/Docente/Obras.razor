@@ -3,6 +3,7 @@
 @layout DocenteLayout
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
+@inject NavigationManager NavManager
 
 <div class="obras-container">
 
@@ -27,6 +28,7 @@
 						<span class="btn-icon">➕</span>
 						Agregar
 					</button>
+
 					<button class="btn btn-secondary" @onclick="ImportarObras" disabled="@isImporting">
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
@@ -108,6 +110,14 @@
 											<span class="no-doi">Sin enlace</span>
 										}
 									</td>
+									<td>
+										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)"
+												">
+											<span class="btn-icon">✏️</span>
+											Editar
+										</button>
+
+									</td>
 								</tr>
 							}
 						}
@@ -136,6 +146,7 @@
 
 	</div>
 </div>
+
 
 <style>
 	.obras-container {
@@ -595,7 +606,7 @@
 		try
 		{
 			// Llamada a la API para obtener las obras filtradas por cédula
-			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/Obras/cedula/{cedulaUsuario}");
+			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/obras/cedula/{cedulaUsuario}");
 			FiltrarObras(); // Filtra las obras obtenidas
 		}
 		catch (Exception ex)
@@ -671,12 +682,6 @@
 	{
 		if (metaObras == 0) return 0;
 		return Math.Min(100, (obras.Count * 100) / metaObras);
-	}
-
-	// Métodos de acción
-	private async Task AgregarObra()
-	{
-		await JSRuntime.InvokeVoidAsync("alert", "Función: Agregar Nueva Obra\n\n• Se abrirá el formulario para registrar una nueva obra\n• Complete todos los campos requeridos\n• Adjunte el documento PDF si está disponible\n• Guarde los cambios para continuar");
 	}
 
 	private async Task ImportarObras()
@@ -765,6 +770,7 @@
 	}
 
 
+
 	public class ObraInfo
 	{
 		public int IdObra { get; set; }
@@ -775,8 +781,7 @@
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
 		public string? PdfUrl { get; set; }
-        public string? CedDoc { get; set; }
-        public string? Estado { get; set; }
+
 		public bool Seleccionada { get; set; }
 
 		// Método para verificar si tiene PDF
@@ -791,4 +796,18 @@
 		public string Nombre { get; set; } = "";
 		public string Cargo { get; set; } = "";
 	}
+
+	@inject NavigationManager NavManager
+
+	private void AgregarObra()
+	{
+		NavManager.NavigateTo("/docente/agregar/agregarobra");
+		
+	}
+
+	private void EditarObra(int id)
+	{
+		NavManager.NavigateTo($"/docente/editar/obra/{id}");
+	}
+
 }
