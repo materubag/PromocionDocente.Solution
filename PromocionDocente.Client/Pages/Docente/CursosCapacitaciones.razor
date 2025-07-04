@@ -10,7 +10,7 @@
 
 	<div class="header-container">
 		<div class="header-content">
-			<h1 class="titulo-principal">Sistema de Ascenso Docente</h1>
+			<h1 class="titulo-principal">Gestión de Cursos y Capacitaciones</h1>
 
 		</div>
 	</div>
@@ -130,422 +130,422 @@
 </div>
 
 <style>
-	.capacitaciones-container {
-		min-height: 100vh;
-		background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
-		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-	}
-
-	.header-container {
-		background: rgba(255, 255, 255, 0.1);
-		backdrop-filter: blur(10px);
-		border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-		padding: 1rem 2rem;
-	}
-
-	.header-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-	}
-
-	.titulo-principal {
-		color: white;
-		font-size: 2rem;
-		font-weight: 300;
-		margin: 0;
-	}
-
-	.docente-info {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-		background: rgba(255, 255, 255, 0.1);
-		padding: 0.5rem 1rem;
-		border-radius: 50px;
-		backdrop-filter: blur(10px);
-	}
-
-	.info-text {
-		color: white;
-	}
-
-	.nombre {
-		font-weight: 600;
-		font-size: 0.9rem;
-	}
-
-	.cargo {
-		font-size: 0.8rem;
-		opacity: 0.8;
-	}
-
-	.contenido-principal {
-		max-width: 1200px;
-		margin: 2rem auto;
-		padding: 0 2rem;
-	}
-
-	.tabla-container {
-		background: white;
-		border-radius: 8px;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-		overflow: hidden;
-		margin-bottom: 2rem;
-	}
-
-	/* Toolbar */
-	.toolbar {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 1.5rem;
-		background: #f8f9fa;
-		border-bottom: 1px solid #dee2e6;
-	}
-
-	.search-container {
-		position: relative;
-		flex: 1;
-		max-width: 300px;
-	}
-
-	.search-input {
-		width: 100%;
-		padding: 0.5rem 2.5rem 0.5rem 1rem;
-		border: 1px solid #ddd;
-		border-radius: 4px;
-		font-size: 0.9rem;
-	}
-
-	.search-icon {
-		position: absolute;
-		right: 0.75rem;
-		top: 50%;
-		transform: translateY(-50%);
-		color: #666;
-	}
-
-	.action-buttons {
-		display: flex;
-		gap: 0.5rem;
-	}
-
-	.btn {
-		padding: 0.5rem 1rem;
-		border: none;
-		border-radius: 4px;
-		cursor: pointer;
-		font-size: 0.9rem;
-		transition: all 0.2s;
-		display: flex;
-		align-items: center;
-		gap: 0.5rem;
-	}
-
-		.btn:disabled {
-			opacity: 0.6;
-			cursor: not-allowed;
-		}
-
-	.btn-icon {
-		font-size: 0.8rem;
-	}
-
-	.btn-primary {
-		background: #0D47A1;
-		color: white;
-	}
-
-		.btn-primary:hover:not(:disabled) {
-			background: #1565C0;
-		}
-
-	.btn-secondary {
-		background: #6c757d;
-		color: white;
-	}
-
-		.btn-secondary:hover:not(:disabled) {
-			background: #5a6268;
-		}
-
-	/* Tabla */
-	.tabla-cursos {
-		overflow-x: auto;
-	}
-
-	.cursos-table {
-		width: 100%;
-		border-collapse: collapse;
-	}
-
-		.cursos-table th,
-		.cursos-table td {
-			padding: 0.75rem;
-			text-align: left;
-			border-bottom: 1px solid #dee2e6;
-		}
-
-		.cursos-table th {
-			background: #f8f9fa;
-			font-weight: 600;
-			color: #495057;
-			font-size: 0.9rem;
-		}
-
-		.cursos-table tbody tr:hover {
-			background: #f8f9fa;
-		}
-
-		.cursos-table tbody tr.selected {
-			background: #e3f2fd;
-		}
-
-	.col-checkbox {
-		width: 40px;
-	}
-
-	.col-nombre {
-		width: 300px;
-	}
-
-	.col-fecha {
-		width: 120px;
-	}
-
-	.col-horas {
-		width: 100px;
-	}
-
-	.col-estado {
-		width: 120px;
-	}
-
-	.col-documento {
-		width: 120px;
-	}
-
-	.nombre-curso {
-		padding: 0.5rem 0;
-	}
-
-	.curso-info {
-		display: flex;
-		flex-direction: column;
-		gap: 0.25rem;
-	}
-
-	.curso-nombre {
-		font-weight: 600;
-		color: #2c3e50;
-		font-size: 0.9rem;
-	}
-
-	.curso-tipo {
-		font-size: 0.8rem;
-		color: #7f8c8d;
-	}
-
-	.horas {
-		text-align: center;
-	}
-
-	.badge-horas {
-		padding: 0.25rem 0.5rem;
-		background: #e3f2fd;
-		color: #1976d2;
-		border-radius: 12px;
-		font-size: 0.8rem;
-		font-weight: 600;
-	}
-
-	.badge-estado {
-		padding: 0.25rem 0.5rem;
-		border-radius: 12px;
-		font-size: 0.8rem;
-		font-weight: 600;
-	}
-
-	.estado-completado {
-		background: #d4edda;
-		color: #155724;
-	}
-
-	.estado-pendiente {
-		background: #fff3cd;
-		color: #856404;
-	}
-
-	.estado-en-progreso {
-		background: #d1ecf1;
-		color: #0c5460;
-	}
-
-	.estado-validado {
-		background: #e2e3e5;
-		color: #383d41;
-	}
-
-	.documento {
-		text-align: center;
-	}
-
-	.btn-documento {
-		background: #e8f5e8;
-		border: 1px solid #28a745;
-		color: #28a745;
-		padding: 0.25rem 0.5rem;
-		border-radius: 4px;
-		cursor: pointer;
-		font-size: 0.8rem;
-		display: flex;
-		align-items: center;
-		gap: 0.25rem;
-		transition: all 0.2s;
-	}
-
-		.btn-documento:hover {
-			background: #28a745;
-			color: white;
-		}
-
-	.documento-icon {
-		font-size: 0.9rem;
-	}
-
-	.documento-text {
-		font-weight: 600;
-	}
-
-	.no-documento {
-		color: #6c757d;
-		font-style: italic;
-		font-size: 0.8rem;
-	}
-
-	.no-data {
-		text-align: center;
-		color: #6c757d;
-		font-style: italic;
-		padding: 2rem;
-	}
-
-	/* Paginación */
-	.pagination-container {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		padding: 1rem 1.5rem;
-		background: #f8f9fa;
-		border-top: 1px solid #dee2e6;
-	}
-
-	.pagination-info {
-		color: #6c757d;
-		font-size: 0.9rem;
-	}
-
-	.pagination-controls {
-		display: flex;
-		align-items: center;
-		gap: 1rem;
-	}
-
-	.btn-page {
-		background: #fff;
-		border: 1px solid #dee2e6;
-		padding: 0.5rem 0.75rem;
-		border-radius: 4px;
-		cursor: pointer;
-	}
-
-		.btn-page:hover:not([disabled]) {
-			background: #e9ecef;
-		}
-
-		.btn-page[disabled] {
-			opacity: 0.5;
-			cursor: not-allowed;
-		}
-
-	.page-info {
-		color: #495057;
-		font-size: 0.9rem;
-	}
-
-	/* Sección de Progreso */
-	.progreso-section {
-		margin-top: 2rem;
-	}
-
-	.progreso-card {
-		background: white;
-		border-radius: 8px;
-		padding: 2rem;
-		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-	}
-
-	.progreso-header {
-		display: flex;
-		justify-content: space-between;
-		align-items: center;
-		margin-bottom: 1rem;
-	}
-
-		.progreso-header h3 {
-			margin: 0;
-			color: #2c3e50;
-			font-size: 1.2rem;
-		}
-
-	.progreso-porcentaje {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: #4CAF50;
-	}
-
-	.progreso-bar {
-		height: 10px;
-		background: #e0e0e0;
-		border-radius: 5px;
-		overflow: hidden;
-		margin-bottom: 1.5rem;
-	}
-
-	.progreso-fill {
-		height: 100%;
-		background: linear-gradient(90deg, #4CAF50, #81C784);
-		border-radius: 5px;
-		transition: width 0.5s ease;
-	}
-
-	.progreso-stats {
-		display: flex;
-		gap: 2rem;
-	}
-
-	.stat-item {
-		display: flex;
-		flex-direction: column;
-		align-items: center;
-	}
-
-	.stat-numero {
-		font-size: 1.5rem;
-		font-weight: 700;
-		color: #2c3e50;
-	}
-
-	.stat-label {
-		font-size: 0.9rem;
-		color: #7f8c8d;
-		margin-top: 0.25rem;
-	}
+    .capacitaciones-container {
+        min-height: 100vh;
+        background: #ffffff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .header-container {
+        background: #581517;
+        backdrop-filter: blur(10px);
+        color: white;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .titulo-principal {
+        color: white;
+        font-size: 2rem;
+        font-weight: 300;
+        margin: 0;
+    }
+
+    .docente-info {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        background: rgba(255, 255, 255, 0.1);
+        padding: 0.5rem 1rem;
+        border-radius: 50px;
+        backdrop-filter: blur(10px);
+    }
+
+    .info-text {
+        color: white;
+    }
+
+    .nombre {
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .cargo {
+        font-size: 0.8rem;
+        opacity: 0.8;
+    }
+
+    .contenido-principal {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 0 2rem;
+    }
+
+    .tabla-container {
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+
+    /* Toolbar */
+    .toolbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .search-container {
+        position: relative;
+        flex: 1;
+        max-width: 300px;
+    }
+
+    .search-input {
+        width: 100%;
+        padding: 0.5rem 2.5rem 0.5rem 1rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 0.9rem;
+    }
+
+    .search-icon {
+        position: absolute;
+        right: 0.75rem;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #666;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 0.5rem;
+    }
+
+    .btn {
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .btn-icon {
+        font-size: 0.8rem;
+    }
+
+    .btn-primary {
+        background: #581517;
+        color: white;
+    }
+
+    .btn-primary:hover:not(:disabled) {
+        background: #6d1a1c;
+    }
+
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+        background: #5a6268;;
+    }
+
+    /* Tabla */
+    .tabla-cursos {
+        overflow-x: auto;
+    }
+
+    .cursos-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    .cursos-table th,
+    .cursos-table td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .cursos-table th {
+        background: #f5f0f0;
+        font-weight: 600;
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    .cursos-table tbody tr:hover {
+        background: #f8f9fa;
+    }
+
+    .cursos-table tbody tr.selected {
+        background: #e3f2fd;
+    }
+
+    .col-checkbox {
+        width: 40px;
+    }
+
+    .col-nombre {
+        width: 300px;
+    }
+
+    .col-fecha {
+        width: 120px;
+    }
+
+    .col-horas {
+        width: 100px;
+    }
+
+    .col-estado {
+        width: 120px;
+    }
+
+    .col-documento {
+        width: 120px;
+    }
+
+    .nombre-curso {
+        padding: 0.5rem 0;
+    }
+
+    .curso-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .curso-nombre {
+        font-weight: 600;
+        color: #2c3e50;
+        font-size: 0.9rem;
+    }
+
+    .curso-tipo {
+        font-size: 0.8rem;
+        color: #7f8c8d;
+    }
+
+    .horas {
+        text-align: center;
+    }
+
+    .badge-horas {
+        padding: 0.25rem 0.5rem;
+        background: #f0e6e6;
+        color: #581517;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .badge-estado {
+        padding: 0.25rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 600;
+    }
+
+    .estado-completado {
+        background: #d4edda;
+        color: #155724;
+    }
+
+    .estado-pendiente {
+        background: #fff3cd;
+        color: #856404;
+    }
+
+    .estado-en-progreso {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+
+    .estado-validado {
+        background: #e2e3e5;
+        color: #383d41;
+    }
+
+    .documento {
+        text-align: center;
+    }
+
+    .btn-documento {
+        background: #f8f0f0;
+        border: 1px solid #581517;
+        color: #581517;
+        padding: 0.25rem 0.5rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+        display: flex;
+        align-items: center;
+        gap: 0.25rem;
+        transition: all 0.2s;
+    }
+
+    .btn-documento:hover {
+        background: #581517;
+        color: white;
+    }
+
+    .documento-icon {
+        font-size: 0.9rem;
+    }
+
+    .documento-text {
+        font-weight: 600;
+    }
+
+    .no-documento {
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.8rem;
+    }
+
+    .no-data {
+        text-align: center;
+        color: #6c757d;
+        font-style: italic;
+        padding: 2rem;
+    }
+
+    /* Paginación */
+    .pagination-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 1rem 1.5rem;
+        background: #f5f0f0;
+        border-top: 1px solid #dee2e6;
+    }
+
+    .pagination-info {
+        color: #6c757d;
+        font-size: 0.9rem;
+    }
+
+    .pagination-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .btn-page {
+        background: #fff;
+        border: 1px solid #dee2e6;
+        padding: 0.5rem 0.75rem;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-page:hover:not([disabled]) {
+        background: #e9ecef;
+    }
+
+    .btn-page[disabled] {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .page-info {
+        color: #495057;
+        font-size: 0.9rem;
+    }
+
+    /* Sección de Progreso */
+    .progreso-section {
+        margin-top: 2rem;
+    }
+
+    .progreso-card {
+        background: white;
+        border-radius: 8px;
+        padding: 2rem;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .progreso-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .progreso-header h3 {
+        margin: 0;
+        color: #2c3e50;
+        font-size: 1.2rem;
+    }
+
+    .progreso-porcentaje {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #581517;
+    }
+
+    .progreso-bar {
+        height: 10px;
+        background: #e0e0e0;
+        border-radius: 5px;
+        overflow: hidden;
+        margin-bottom: 1.5rem;
+    }
+
+    .progreso-fill {
+        height: 100%;
+        background: linear-gradient(90deg, #581517, #8a3b3c);
+        border-radius: 5px;
+        transition: width 0.5s ease;
+    }
+
+    .progreso-stats {
+        display: flex;
+        gap: 2rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .stat-numero {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #581517;
+    }
+
+    .stat-label {
+        font-size: 0.9rem;
+        color: #7f8c8d;
+        margin-top: 0.25rem;
+    }
 </style>
-
 
 @code {
 	private DocenteInfo docenteInfo;

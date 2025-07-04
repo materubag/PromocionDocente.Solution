@@ -7,7 +7,7 @@
 @inject UserSessionService UserSessionService
 
 @inject NavigationManager NavigationManager
-@inject IToastService ToastService
+@*@inject IToastService ToastService*@
 
 <PageTitle>Panel de Administración</PageTitle>
 
@@ -419,7 +419,7 @@
         }
         catch (Exception ex)
         {
-            ToastService.ShowError($"Error al cargar datos: {ex.Message}");
+            @*ToastService.ShowError($"Error al cargar datos: {ex.Message}");*@
             Console.WriteLine($"Error: {ex.Message}");
         }
         finally
@@ -457,23 +457,20 @@
             }
             else
             {
-                ToastService.ShowError("No se encontró la solicitud o no tiene código asociado");
-                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se encontró la solicitud ID: {solicitudId}");
+                @*ToastService.ShowSuccess("Solicitud validada con éxito");*
+                await CargarDatosAsync(); // Recargar los datos
+            }
+            else
+            {
+                var errorMsg = await response.Content.ReadAsStringAsync();
+                @*ToastService.ShowError($"Error: {errorMsg}");*@
             }
         }
-        else
+        catch (Exception ex)
         {
-            var errorMsg = await respuestaDashboard.Content.ReadAsStringAsync();
-            ToastService.ShowError($"Error al obtener datos del dashboard: {errorMsg}");
-            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error dashboard: {errorMsg}");
+            @*ToastService.ShowError($"Error al validar: {ex.Message}");*@
         }
     }
-    catch (Exception ex)
-    {
-        ToastService.ShowError($"Error al procesar la solicitud: {ex.Message}");
-        Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error: {ex.Message}");
-    }
-}
 
     private void VerDetalles(int solicitudId)
     {

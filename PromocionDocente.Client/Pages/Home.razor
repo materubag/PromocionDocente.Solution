@@ -1,14 +1,124 @@
 ﻿@page "/home"
+@using System.Text.Json.Serialization
 
 <style>
     .hero {
-        background: linear-gradient(135deg, #3f51b5, #5c6bc0);
+        background: linear-gradient(135deg, #581517 0%, #581517 100%);
         color: white;
-        padding: 4rem 2rem;
-        border-radius: 20px;
+        padding: 5rem 2rem;
+        border-radius: 12px;
         text-align: center;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        box-shadow: 0 10px 30px rgba(88, 21, 23, 0.3);
         animation: fadeIn 1s ease-out;
+        margin-bottom: 3rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+        transform: rotate(30deg);
+    }
+
+    .criterios-evaluacion-container {
+        max-width: 1200px;
+        margin: 2rem auto;
+        padding: 2rem;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    }
+
+    .criterios-evaluacion-container h2 {
+        color: #581517;
+        text-align: center;
+        margin-bottom: 2rem;
+        font-size: 1.8rem;
+        border-bottom: 2px solid #f7f7f8;
+        padding-bottom: 0.5rem;
+    }
+
+    .criterios-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 1.5rem;
+    }
+
+    .criterio-item {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        border-left: 4px solid #581517;
+        transition: transform 0.2s, box-shadow 0.2s;
+        display: flex;
+        flex-direction: column;
+        min-height: 120px;
+        box-shadow: 0 2px 8px rgba(88, 21, 23, 0.1);
+    }
+
+    .criterio-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(88, 21, 23, 0.2);
+    }
+
+    .criterio-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 0.5rem;
+    }
+
+    .criterio-porcentaje {
+        background: #581517;
+        color: white;
+        padding: 0.3rem 0.8rem;
+        border-radius: 20px;
+        font-weight: bold;
+        margin-right: 1rem;
+        font-size: 0.9rem;
+    }
+
+    .criterio-titulo {
+        margin: 0;
+        color: #581517;
+        font-size: 1.2rem;
+    }
+
+    .criterio-detalle {
+        color: #581517;
+        font-size: 1rem;
+        padding-left: 2.5rem;
+        opacity: 0.8;
+    }
+
+    /* Responsive */
+    @@media (max-width: 768px) {
+        .criterios-evaluacion-container {
+            padding: 1rem;
+            margin: 1rem;
+        }
+        
+        .criterio-item {
+            padding: 1rem;
+        }
+        
+        .criterio-titulo {
+            font-size: 1.1rem;
+        }
+        .criterios-list {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @@media (min-width: 1200px) {
+        .criterios-list {
+            grid-template-columns: repeat(5, 1fr);
+        }
     }
 
     @@keyframes fadeIn {
@@ -23,60 +133,347 @@
     }
 
     .hero h1 {
-        font-size: 3rem;
-        font-weight: bold;
+        font-size: 2.8rem;
+        font-weight: 700;
+        margin-bottom: 1.5rem;
+        position: relative;
+        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
     }
 
     .hero p {
         font-size: 1.3rem;
-        margin-top: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+        position: relative;
+        opacity: 0.9;
     }
 
     .feature-card {
-        transition: transform 0.3s ease, box-shadow 0.3s ease;
+        transition: all 0.3s ease;
+        border: none;
+        border-radius: 10px;
+        overflow: hidden;
+        height: 100%;
+        position: relative;
+        background: white;
+        box-shadow: 0 5px 15px rgba(88, 21, 23, 0.1);
+        border: 1px solid rgba(88, 21, 23, 0.1);
     }
 
     .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+        transform: translateY(-8px);
+        box-shadow: 0 12px 25px rgba(88, 21, 23, 0.2);
+    }
+
+    .feature-card::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background: #581517;
+        transition: height 0.3s ease;
+    }
+
+    .feature-card:hover::after {
+        height: 6px;
     }
 
     .icon-img {
         width: 80px;
+        margin: 2rem auto 1.5rem;
+        filter: drop-shadow(0 2px 4px rgba(88, 21, 23, 0.2));
+    }
+
+    .feature-card h4 {
+        color: #581517;
+        font-weight: 600;
         margin-bottom: 1rem;
+    }
+
+    .feature-card p {
+        color: #581517;
+        padding: 0 1.5rem 2rem;
+        opacity: 0.8;
+    }
+
+    .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        margin: 3rem auto;
+        max-width: 1200px;
+    }
+
+    /* Estilos del dashboard - Modificado para una sola columna */
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 2rem;
+        max-width: 1200px;
+        margin: 3rem auto;
+    }
+
+    .card {
+        background: white;
+        border-radius: 15px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        border: 1px solid rgba(88, 21, 23, 0.1);
+    }
+
+    .card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: #581517;
+    }
+
+    .card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 20px 40px rgba(88, 21, 23, 0.2);
+    }
+
+    .card-primary::before {
+        background: #581517;
+    }
+
+    .card-success::before {
+        background: #581517;
+    }
+
+    .card-info::before {
+        background: #581517;
+    }
+
+    .card-warning::before {
+        background: #581517;
+    }
+
+    .card-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #581517;
+    }
+
+    .card-content h3 {
+        color: #581517;
+        font-size: 1.3rem;
+        margin-bottom: 1rem;
+        font-weight: 600;
+    }
+
+    .card-content p {
+        color: #581517;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+        opacity: 0.8;
+    }
+
+    .card-button {
+        display: inline-block;
+        padding: 0.75rem 2rem;
+        background: #581517;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+    }
+
+    .card-button:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 20px rgba(88, 21, 23, 0.4);
+        background: #6a1b1d;
+    }
+
+    @@media (max-width: 768px) {
+        .hero h1 {
+            font-size: 2.2rem;
+        }
+        
+        .hero p {
+            font-size: 1.1rem;
+        }
+        
+        .feature-grid, .dashboard-grid {
+            grid-template-columns: 1fr;
+        }
+        
+        .dashboard-grid {
+            grid-template-columns: 1fr;
+            max-width: 100%;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
     }
 </style>
 
-
-<div class="container mt-5">
+<div class="container">
     <!-- Sección principal (Hero) -->
     <div class="hero">
         <h1>Bienvenido al Sistema de Promoción Docente</h1>
         <p>Gestione sus criterios de evaluación, cursos, capacitaciones, obras y mucho más con facilidad y transparencia.</p>
     </div>
 
-    <!-- Sección de funcionalidades -->
-    <div class="row mt-5">
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card text-center p-4">
-                <img src="https://img.icons8.com/color/96/000000/classroom.png" class="icon-img" alt="Evaluación">
-                <h4>Criterios de Evaluación</h4>
-                <p>Revise y actualice sus criterios con base en sus logros académicos.</p>
+    <!-- Sección de criterios de evaluación -->
+    <div class="criterios-evaluacion-container">
+        <h2>Mis Criterios de Evaluación</h2>
+        
+        <div class="criterios-list">
+            <!-- Años de Docencia -->
+            <div class="criterio-item">
+                <div class="criterio-header">
+                    <span class="criterio-porcentaje">10%</span>
+                    <h3 class="criterio-titulo">Años Docencia</h3>
+                </div>
+                <div class="criterio-detalle">
+                    <span>@(datosEvaluacion?.AniosdeDocencia ?? 0) años</span>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card text-center p-4">
-                <img src="https://img.icons8.com/color/96/000000/training.png" class="icon-img" alt="Capacitaciones">
-                <h4>Capacitaciones</h4>
-                <p>Gestione sus cursos y capacitaciones para avanzar profesionalmente.</p>
+            
+            <!-- Cursos -->
+            <div class="criterio-item">
+                <div class="criterio-header">
+                    <span class="criterio-porcentaje">30%</span>
+                    <h3 class="criterio-titulo">Cursos</h3>
+                </div>
+                <div class="criterio-detalle">
+                    <span>@(datosEvaluacion?.CursosdeCapacitacion ?? 0) horas</span>
+                </div>
             </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card feature-card text-center p-4">
-                <img src="https://img.icons8.com/color/96/000000/education.png" class="icon-img" alt="Obras">
-                <h4>Obras y Publicaciones</h4>
-                <p>Documente sus obras y publicaciones para fortalecer su perfil académico.</p>
+            
+            <!-- Obras -->
+            <div class="criterio-item">
+                <div class="criterio-header">
+                    <span class="criterio-porcentaje">20%</span>
+                    <h3 class="criterio-titulo">Obras</h3>
+                </div>
+                <div class="criterio-detalle">
+                    <span>@(datosEvaluacion?.NumerodeObras ?? 0) obras</span>
+                </div>
+            </div>
+            
+            <!-- Evaluaciones -->
+            <div class="criterio-item">
+                <div class="criterio-header">
+                    <span class="criterio-porcentaje">20%</span>
+                    <h3 class="criterio-titulo">Evaluaciones</h3>
+                </div>
+                <div class="criterio-detalle">
+                    <span>Promedio: @(datosEvaluacion?.PromediodeEvaluacion.ToString("0.00") ?? "0")</span>
+                </div>
+            </div>
+            
+            <!-- Investigaciones -->
+            <div class="criterio-item">
+                <div class="criterio-header">
+                    <span class="criterio-porcentaje">20%</span>
+                    <h3 class="criterio-titulo">Investigaciones</h3>
+                </div>
+                <div class="criterio-detalle">
+                    <span>@(datosEvaluacion?.HorasdeInvestigacion ?? 0) meses</span>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Sección de botones del dashboard -->
+    <div class="dashboard-grid">
+
+        <div class="card card-success">
+            <div class="card-icon">📄</div>
+            <div class="card-content">
+                <h3>Obras</h3>
+                <p>Revisa tus obras publicadas y recientes</p>
+                <a href="/docente/obras" class="card-button">Ver Obras</a>
+            </div>
+        </div>
+
+        <div class="card card-info">
+            <div class="card-icon">📋</div>
+            <div class="card-content">
+                <h3>Evaluaciones</h3>
+                <p>Consulta tus evaluaciones y calificaciones académicas</p>
+                <a href="/docente/evaluaciones" class="card-button">Ver Evaluaciones</a>
+            </div>
+        </div>
+
+        <div class="card card-warning">
+            <div class="card-icon">🎓</div>
+            <div class="card-content">
+                <h3>Cursos</h3>
+                <p>Administra tus cursos y capacitaciones profesionales</p>
+                <a href="/docente/capacitaciones" class="card-button">Ver Cursos</a>
+            </div>
+        </div>
+
+        <div class="card card-warning">
+            <div class="card-icon">🔬</div>
+            <div class="card-content">
+                <h3>Investigaciones</h3>
+                <p>Gestiona tus proyectos de investigación y desarrollo</p>
+                <a href="/docente/investigaciones" class="card-button">Ver Investigaciones</a>
+            </div>
+        </div>
+    </div>
+
 </div>
+
+@code {
+    private DatosEvaluacion datosEvaluacion;
+
+    [Inject]
+    private IJSRuntime JSRuntime { get; set; }
+
+    [Inject]
+    private HttpClient Http { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try {
+            // Leer cédula desde localStorage
+            var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+            string cedulaUsuario = "";
+
+            if (!string.IsNullOrEmpty(usuarioJson)) {
+                var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+                cedulaUsuario = usuario?.Cedula ?? "";
+            }
+
+            if (!string.IsNullOrEmpty(cedulaUsuario)) {
+                datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
+            } else {
+                datosEvaluacion = new DatosEvaluacion();
+            }
+        } catch (Exception ex) {
+            Console.WriteLine("Error al cargar datos: " + ex.Message);
+            datosEvaluacion = new DatosEvaluacion();
+        }
+    }
+
+    public class DatosEvaluacion {
+        [JsonPropertyName("fechaBase")] public string FechaBase { get; set; }
+        [JsonPropertyName("totalObras")] public int NumerodeObras { get; set; }
+        [JsonPropertyName("mesesInvestigacion")] public int HorasdeInvestigacion { get; set; }
+        [JsonPropertyName("promedioEvaluacion")] public decimal PromediodeEvaluacion { get; set; }
+        [JsonPropertyName("horasCursos")] public int CursosdeCapacitacion { get; set; }
+        [JsonPropertyName("aniosServicio")] public decimal AniosdeDocencia { get; set; }
+    }
+
+    public class LoginResponse {
+        public string Cedula { get; set; } = "";
+        public string Nombre1 { get; set; } = "";
+        public string Apellido1 { get; set; } = "";
+        public string Rol { get; set; } = "";
+    }
+}

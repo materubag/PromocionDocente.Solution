@@ -1,19 +1,13 @@
 @using PromocionDocente.Client.Services
 @using Blazored.Toast.Configuration
+@using Blazored.Toast.Services
 @inject UserSessionService UserSession
 @inject NavigationManager Navigation
 @inject IJSRuntime JS
+@inject IToastService ToastService
 @inherits LayoutComponentBase
 
 <div class="page">
-    <!-- Sidebar de navegación - Solo visible si NO es administrador -->
-    @if (UserSession.Usuario?.Rol != "admin")
-    {
-        <div class="sidebar shadow">
-            <NavMenu />
-        </div>
-    }
-    
     <BlazoredToasts Position="ToastPosition.BottomRight"
                     Timeout="5"
                     IconType="IconType.FontAwesome"
@@ -22,36 +16,33 @@
                     InfoClass="info-toast"
                     WarningClass="warning-toast" />
                     
-    <!-- Contenido principal con clase condicional -->
-    <main class="@GetMainContentClass()">
-        <!-- Barra superior con logo y usuario - Solo visible si NO es administrador -->
-        @if (UserSession.Usuario?.Rol != "admin")
-        {
-            <div class="top-row d-flex justify-content-between align-items-center px-4">
-                <div class="d-flex align-items-center">
-                    <img src="https://img.icons8.com/color/48/000000/school.png" alt="Logo" style="width: 36px; height: 36px;" />
-                    <span class="ms-2 fw-bold">Plataforma Docente</span>
-                </div>
-                <div class="d-flex align-items-center">
-                    @if (UserSession.Usuario != null)
-                    {  
-                        <span class="me-3 text-muted">
-                            Usuario: <strong>@UserSession.Usuario.Nombre1 @UserSession.Usuario.Apellido1</strong>
-                            Rol:<strong> @UserSession.Usuario.Rol</strong>
-                        </span>  
-                    }  
-                    else  
-                    {  
-                        <span class="me-3 text-muted">  
-                            Usuario: <strong>No autenticado</strong>  
-                        </span>  
-                    }  
-                    <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">  
-                        Cerrar sesión  
-                    </button>  
-                </div>  
+    <!-- Contenido principal -->
+    <main class="main-fullwidth">
+        <!-- Barra superior con logo y usuario -->
+        <div class="top-row d-flex justify-content-between align-items-center px-4">
+            <div class="d-flex align-items-center">
+                <img src="/images/LogoUTA.png" alt="Logo" style="width: 250px; height: 100px;" />
+                <span class="ms-2 fw-bold">Plataforma Docente</span>
             </div>
-        }  
+            <div class="d-flex align-items-center">
+                @if (UserSession.Usuario != null)
+                {  
+                    <span class="me-3 text-muted">
+                        Usuario: <strong>@UserSession.Usuario.Nombre1 @UserSession.Usuario.Apellido1</strong>
+                        Rol:<strong> @UserSession.Usuario.Rol</strong>
+                    </span>  
+                }  
+                else  
+                {  
+                    <span class="me-3 text-muted">  
+                        Usuario: <strong>No autenticado</strong>  
+                    </span>  
+                }  
+                <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">  
+                    Cerrar sesión  
+                </button>  
+            </div>  
+        </div>
         
         <!-- Área del contenido de la página -->  
         <article class="content p-4">  
@@ -60,31 +51,81 @@
     </main>  
 </div>  
 
+<!-- Modal de confirmación personalizado -->
+@if (mostrarConfirmacion)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        <i class="fas fa-sign-out-alt me-2"></i>
+                        Confirmar acción
+                    </h5>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-0">¿Estás seguro de que deseas cerrar sesión?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CancelarLogout">
+                        <i class="fas fa-times me-1"></i>
+                        Cancelar
+                    </button>
+                    <button type="button" class="btn btn-danger" @onclick="ConfirmarLogout">
+                        <i class="fas fa-check me-1"></i>
+                        Cerrar sesión
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
-    private async Task HandleLogout()  
-    {  
-        var confirmado = await JS.InvokeAsync<bool>("confirm", "¿Estás seguro de cerrar sesión?");  
-        if (confirmado)  
-        {  
-            await UserSession.EliminarUsuarioAsync();  
-            Navigation.NavigateTo("/");  
-        }  
-    }  
+    private bool mostrarConfirmacion = false;
+
+    private void HandleLogout()
+    {
+        mostrarConfirmacion = true;
+        StateHasChanged();
+    }
+
+    private void CancelarLogout()
+    {
+        mostrarConfirmacion = false;
+        ToastService.ShowInfo("Operación cancelada");
+        StateHasChanged();
+    }
+
+    private async Task ConfirmarLogout()
+    {
+        mostrarConfirmacion = false;
+        StateHasChanged();
+        
+        try
+        {
+            await UserSession.EliminarUsuarioAsync();
+            ToastService.ShowSuccess("Sesión cerrada exitosamente");
+            
+            // Pequeño delay para que se vea el toast
+            await Task.Delay(1000);
+            Navigation.NavigateTo("/");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error al cerrar sesión: {ex.Message}");
+        }
+    }
     
-    protected override async Task OnInitializedAsync()  
+    protected override async Task OnInitializedAsync()
     {
         await UserSession.CargarUsuarioAsync();
         Console.WriteLine($"[2025-06-26 05:39:38] Usuario: materubag, MainLayout cargado");
-    }
-    
-    private string GetMainContentClass()
-    {
-        // Si es administrador, usa toda la pantalla
-        if (UserSession.Usuario?.Rol == "Administrador")
+        
+        // Toast de bienvenida (opcional)
+        if (UserSession.Usuario != null)
         {
-            return "main-fullwidth";
+            ToastService.ShowSuccess($"¡Bienvenido, {UserSession.Usuario.Nombre1}!");
         }
-        // Si no es administrador, usa el layout normal con sidebar
-        return "";
     }
 }
