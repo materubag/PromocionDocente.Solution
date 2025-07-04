@@ -12,6 +12,7 @@ using PromocionDocente.Models.DITIC_Models;
 using PromocionDocente.Models.Models;
 using PromocionDocente.Models.TTHH_Models;
 using PromocionDocente.Repositories.Repositorios;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -38,6 +39,10 @@ builder.Services.AddScoped<IHistorialDocenteImportService, HistorialDocenteImpor
 // ineccion paara el calculo del Tiempo del docente
 builder.Services.AddScoped<IDocenteTiempoService, DocenteTiempoService>();
 builder.Services.AddScoped<IDatoDocente, DatoDocenteRepositorio>();
+builder.Services.AddScoped<IDatoHistorial, DatoDocenteHistorial>();
+
+
+
 builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
 builder.Services.AddScoped<AuthService>();
 

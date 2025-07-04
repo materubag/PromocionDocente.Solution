@@ -11,13 +11,15 @@ namespace PromocionDocente.Application.Services
     {
         private readonly IUsuarioRepository _repository;
         private readonly IDatoDocente _dato;
-        private readonly TthhContext _rrhhContext; 
+        private readonly TthhContext _rrhhContext;
+        private readonly IDatoHistorial _historial;
 
-        public AuthService(IUsuarioRepository repository, IDatoDocente dato, TthhContext rrhhContext)
+        public AuthService(IUsuarioRepository repository, IDatoDocente dato, TthhContext rrhhContext,IDatoHistorial historial)
         {
             _repository = repository;
             _dato = dato;
             _rrhhContext = rrhhContext;
+            _historial = historial;
         }
 
         public async Task<Login_Request?> LoginAsync(Login dto)
@@ -26,12 +28,12 @@ namespace PromocionDocente.Application.Services
             if (usuario == null) return null;
 
             var docenteExiste = await _dato.ExisteDocenteAsync(usuario.Cedula);
+            var empleado = await _rrhhContext.TthhContratos
+                  .FirstOrDefaultAsync(e => e.CedDoc == usuario.Cedula);
+
             if (!docenteExiste)
             {
                 // Buscar datos adicionales en RRHH usando la cédula
-                var empleado = await _rrhhContext.TthhContratos
-                    .FirstOrDefaultAsync(e => e.CedDoc == usuario.Cedula);
-
                 var log = new Docente
                 {
                     CedDoc = usuario.Cedula,
@@ -40,7 +42,7 @@ namespace PromocionDocente.Application.Services
                     Ape1Doc = usuario.Apellido1,
                     Ape2Doc = usuario.Apellido2,
                     TelDoc = usuario.Telefono,
-                    FecNac = new DateOnly(2020, 3, 10),
+                    FecNac = new DateOnly(1980, 3, 10),
                     IdFac = usuario.Facultad,
                     NivelDocente = empleado?.NivelDocente,
                     FechaContratacion = empleado?.FechaContratacion,
@@ -49,6 +51,22 @@ namespace PromocionDocente.Application.Services
                     EstadoContrato = empleado?.EstadoContrato
                 };
                 await _dato.AddAsync(log);
+
+                
+            }
+            var historiales = await _historial.ExisteHistorialAsync(usuario.Cedula);
+            if (!historiales)
+            {
+
+                var historial = new HistorialDocente
+                {
+                    CedDoc = usuario?.Cedula,
+                    IdCat = empleado?.NivelDocente,
+                    FecIni = empleado.FechaContratacion,
+                    DocumentoPdf = empleado?.PdfContrato
+
+                };
+                await _historial.AddAsync(historial);
             }
 
             return new Login_Request
@@ -61,7 +79,8 @@ namespace PromocionDocente.Application.Services
                 Facultad = usuario.Facultad,
                 Telefono = usuario.Telefono,
                 Correo = usuario.Correo,
-                Rol = usuario.Rol
+                Rol = usuario.Rol,
+                Docente = empleado?.NivelDocente
             };
         }
     }

@@ -11,6 +11,7 @@
         public string Telefono { get; set; }
         public string Correo { get; set; }
         public string Rol { get; set; }
+        public string Docente { get; set; }
 
     }
 }
