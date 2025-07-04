@@ -17,4 +17,8 @@
     <ProjectReference Include="..\PromocionDoncete.Domain\PromocionDocente.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="DTOs\Agregar\" />
+  </ItemGroup>
+
 </Project>

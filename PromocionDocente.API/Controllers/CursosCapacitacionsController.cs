@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
+using PromocionDocente.Application.DTOs.Update;
 using PromocionDocente.Application.Services;
 using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
@@ -18,10 +19,12 @@ namespace PromocionDocente.API.Controllers
     public class CursosCapacitacionsController : ControllerBase
     {
         private readonly PromocionDocenteContext _context;
+        private readonly CursoCapacitacionService _cursoService;
 
-        public CursosCapacitacionsController(PromocionDocenteContext context)
+        public CursosCapacitacionsController(PromocionDocenteContext context,CursoCapacitacionService cursoCapacitacionService)
         {
             _context = context;
+            _cursoService = cursoCapacitacionService;
         }
 
         // GET: api/CursosCapacitacions
@@ -75,33 +78,26 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/CursosCapacitacions/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutCursosCapacitacion(int id, CursosCapacitacion cursosCapacitacion)
+        public async Task<IActionResult> PutCurso(int id, [FromBody] CursoCapacitacionUpdateDto dto)
         {
-            if (id != cursosCapacitacion.IdCurso)
-            {
-                return BadRequest();
-            }
+            if (dto == null)
+                return BadRequest("Datos inválidos.");
 
-            _context.Entry(cursosCapacitacion).State = EntityState.Modified;
+            var curso = await _context.CursosCapacitacions.FindAsync(id);
+            if (curso == null)
+                return NotFound($"No se encontró el curso con ID {id}.");
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CursosCapacitacionExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            curso.NombreCurso = dto.NombreCurso;
+            curso.Horas = dto.Horas;
+            curso.FechaCurso = DateOnly.FromDateTime(dto.FechaCurso);
+            curso.PdfCurso = dto.PdfCurso;
+            curso.Observacion = dto.Observacion;
 
+            await _context.SaveChangesAsync();
             return NoContent();
         }
+
+
 
         [HttpPut("estado/{id}")]
         public async Task<IActionResult> UpdateEstadoCurso(int id, EstadoUpdateDto cursoDto)
@@ -193,13 +189,26 @@ namespace PromocionDocente.API.Controllers
         // POST: api/CursosCapacitacions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<CursosCapacitacion>> PostCursosCapacitacion(CursosCapacitacion cursosCapacitacion)
+        public async Task<ActionResult> PostCursosCapacitacion([FromBody] CursoCapacitacionDto dto)
         {
-            _context.CursosCapacitacions.Add(cursosCapacitacion);
+            // Mapear DTO -> Entidad
+            var curso = new CursosCapacitacion
+            {
+                CedDoc = dto.CedulaDocente,
+                NombreCurso = dto.NombreCurso,
+                FechaCurso = DateOnly.FromDateTime(dto.FechaCurso),
+                Horas = dto.Horas,
+                PdfCurso = dto.PdfCurso,
+                Estado = "PENDIENTE",
+                Observacion = dto.Observacion
+            };
+
+            _context.CursosCapacitacions.Add(curso);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCursosCapacitacion", new { id = cursosCapacitacion.IdCurso }, cursosCapacitacion);
+            return CreatedAtAction(nameof(GetCursosCapacitacion), new { id = curso.IdCurso }, curso);
         }
+
 
         // DELETE: api/CursosCapacitacions/5
         [HttpDelete("{id}")]

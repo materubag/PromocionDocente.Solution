@@ -1,0 +1,101 @@
+﻿@page "/docente/agregar/agregarobra"
+@inject HttpClient Http
+@inject NavigationManager NavManager
+@using PromocionDocente.Application.DTOs
+@inject IJSRuntime JSRuntime
+@using System.Text.Json
+
+<h3>Agregar Obra</h3>
+
+<EditForm Model="@nuevaObra" OnValidSubmit="GuardarObra">
+    <DataAnnotationsValidator />
+    <ValidationSummary />
+
+    <div>
+        <label>Título:</label>
+        <InputText @bind-Value="nuevaObra.Titulo" class="form-control" />
+    </div>
+    <div>
+        <label>Tipo de Obra:</label>
+        <InputText @bind-Value="nuevaObra.TipoObra" class="form-control" />
+    </div>
+    <div>
+        <label>Área de Conocimiento:</label>
+        <InputText @bind-Value="nuevaObra.AreaConocimiento" class="form-control" />
+    </div>
+    <div>
+        <label>DOI/URL:</label>
+        <InputText @bind-Value="nuevaObra.DoiUrl" class="form-control" />
+    </div>
+    <div>
+        <label>Fecha de Publicación:</label>
+        <InputDate @bind-Value="nuevaObra.FechaPublicacion" class="form-control" />
+    </div>
+    <div>
+        <label>Archivo PDF:</label>
+        <InputFile OnChange="OnInputFileChange" class="form-control" />
+    </div>
+
+    <button type="submit" class="btn btn-primary mt-3">Guardar</button>
+    <button type="button" class="btn btn-secondary mt-3" @onclick="Cancelar">Cancelar</button>
+</EditForm>
+
+@code {
+    private ObraDto nuevaObra = new()
+    {
+        Estado = "Pendiente",
+        Observacion = ""
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+
+        if (!string.IsNullOrEmpty(usuarioJson))
+        {
+            var usuario = JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+            if (usuario != null)
+            {
+                nuevaObra.CedDoc = usuario.Cedula;
+            }
+        }
+    }
+
+    private byte[]? archivoPdf;
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        using var ms = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(ms);
+        archivoPdf = ms.ToArray();
+    }
+
+    private async Task GuardarObra()
+    {
+        nuevaObra.PdfProduccion = archivoPdf;
+        var response = await Http.PostAsJsonAsync("api/obras", nuevaObra);
+
+        if (response.IsSuccessStatusCode)
+        {
+            NavManager.NavigateTo("/docente/obras");
+        }
+        else
+        {
+            Console.WriteLine("Error al guardar obra");
+        }
+    }
+
+    private void Cancelar()
+    {
+        NavManager.NavigateTo("/docente/obras");
+    }
+
+    public class LoginResponse
+    {
+        public string Cedula { get; set; } = string.Empty;
+        public string Nombre1 { get; set; } = string.Empty;
+        public string Apellido1 { get; set; } = string.Empty;
+        public string Rol { get; set; } = string.Empty;
+    }
+}
