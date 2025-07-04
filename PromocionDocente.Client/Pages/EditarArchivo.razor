@@ -34,16 +34,48 @@
 
     @if (!string.IsNullOrEmpty(mensajeExito))
     {
-        <div class="alert alert-success mt-3">@mensajeExito</div>
+        MostrarAlerta("success", "Éxito", mensajeExito);
     }
 }
 else
 {
     <p>Cargando archivo...</p>
 }
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
 
 @code {
     [Parameter] public int id { get; set; }
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+
+        // Auto-close después de 4s
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
 
     ArchivoDTO? archivo;
     IBrowserFile? archivoSubido;

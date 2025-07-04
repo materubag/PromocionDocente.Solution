@@ -5,6 +5,33 @@
 @inject NavigationManager Navigation
 
 <div class="capacitaciones-container">
+    @if (mostrarAlerta)
+    {
+        <div class="toast-alert @(tipoAlerta == "success" ? "toast-success" : tipoAlerta == "error" ? "toast-error" : "toast-info")">
+            <div class="toast-icon">
+                @if (tipoAlerta == "success")
+                {
+                    <i class="fas fa-check-circle"></i>
+                }
+                else if (tipoAlerta == "error")
+                {
+                    <i class="fas fa-exclamation-triangle"></i>
+                }
+                else
+                {
+                    <i class="fas fa-info-circle"></i>
+                }
+            </div>
+            <div class="toast-content">
+                <h6 class="toast-title">@tituloAlerta</h6>
+                <p class="toast-message">@mensajeAlerta</p>
+            </div>
+            <button class="toast-close" @onclick="CerrarAlerta">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    }
+
     <div class="header-container">
         <div class="header-content">
             <button class="btn-volver" @onclick="Volver">← Volver</button>
@@ -42,7 +69,9 @@
                                         }
                                         else
                                         {
-                                            <span class="no-documento">Sin documento</span>
+                                            MostrarAlerta("error", "Error al cargar PDF",
+                                            "No se pudo Mostrar el PDF. Inténtalo de nuevo.");
+                                        
                                         }
                                     </td>
                                     <td>
@@ -376,6 +405,39 @@
 @code {
     private List<CursoCapacitacionInfo> cursos = new();
     private List<CursoCapacitacionInfo> cursosFiltrados = new();
+
+    // Variables para el sistema de alertas/toast
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+        StateHasChanged();
+
+        // Auto-cerrar después de 4 segundos
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
