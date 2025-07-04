@@ -1,120 +1,130 @@
-﻿@page "/admin"
+﻿
+@page "/admin"
+@using Blazored.Toast.Services
+@using PromocionDocente.Client.Services
 @layout AdminLayout
+@inject HttpClient Http
+@inject UserSessionService UserSessionService
+
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
 
 <PageTitle>Panel de Administración</PageTitle>
 
 <div class="admin-dashboard">
     <div class="dashboard-header">
         <h1>Panel de Administración</h1>
-        <p>Bienvenido al sistema de gestión de promoción docente</p>
+        <p>Bienvenido al sistema de gestión de promoción docente, @UserSessionService.Usuario?.Nombre1</p>
     </div>
 
-    <div class="dashboard-cards">
-        <div class="card">
-            <div class="card-header">
-                <h3>Docentes Registrados</h3>
-                <span class="card-icon">👥</span>
+    @if (cargando)
+    {
+        <div class="loading-indicator">
+            <span>Cargando datos...</span>
+        </div>
+    }
+    else
+    {
+        <div class="dashboard-cards">
+            <div class="card">
+                <div class="card-header">
+                    <h3>Docentes Registrados</h3>
+                    <span class="card-icon">👥</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.TotalDocentes</div>
+                    <div class="stat-label">Total de docentes</div>
+                </div>
             </div>
-            <div class="card-body">
-                <div class="stat-number">@totalDocentes</div>
-                <div class="stat-label">Total de docentes</div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Solicitudes Pendientes</h3>
+                    <span class="card-icon">📋</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.EvaluacionesPendientes</div>
+                    <div class="stat-label">Por revisar</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Solicitudes Validadas</h3>
+                    <span class="card-icon">📚</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.SolicitudesFinalizadas</div>
+                    <div class="stat-label">En el sistema</div>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <h3>Solicitudes Rechazadas</h3>
+                    <span class="card-icon">⚡</span>
+                </div>
+                <div class="card-body">
+                    <div class="stat-number">@dashboardData?.Estadisticas.SolicitudesRechazadas</div>
+                    <div class="stat-label">Rechazadas</div>
+                </div>
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-header">
-                <h3>Solicitudes Pendientes</h3>
-                <span class="card-icon">📋</span>
-            </div>
-            <div class="card-body">
-                <div class="stat-number">@evaluacionesPendientes</div>
-                <div class="stat-label">Por revisar</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3>Solicitudes Validadas</h3>
-                <span class="card-icon">📚</span>
-            </div>
-            <div class="card-body">
-                <div class="stat-number">@solicitudesFinalizadas</div>
-                <div class="stat-label">En el sistema</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="card-header">
-                <h3>Solicitudes en Revisión</h3>
-                <span class="card-icon">⚡</span>
-            </div>
-            <div class="card-body">
-                <div class="stat-number">@procesosActivos</div>
-                <div class="stat-label">En Proceso</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Nueva sección de solicitudes pendientes -->
-    <div class="solicitudes-section">
-        <h2>Solicitudes Docencia</h2>
-        <div class="table-container">
-            <table class="solicitudes-table">
-                <thead>
-                    <tr>
-                        <th>Código</th>
-                        <th>Docente</th>
-                        <th>Nivel</th>
-                        <th>Fecha</th>
-                        <th>Tiempo Espera</th>
-                        <th>Estado</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var solicitud in solicitudesPendientes)
-                    {
-                        <tr>
-                            <td class="codigo">@solicitud.Codigo</td>
-                            <td class="docente">@solicitud.NombreDocente</td>
-                            <td class="nivel">@solicitud.Nivel</td>
-                            <td class="fecha">@solicitud.Fecha.ToString("dd/MM/yyyy")</td>
-                            <td class="tiempo-espera">@solicitud.TiempoEspera</td>
-                            <td>
-                                <span class="estado-badge @(solicitud.Estado.ToLower())">
-                                    @solicitud.Estado
-                                </span>
-                            </td>
-                            <td class="acciones">
+        <!-- Sección de solicitudes pendientes -->
+        <div class="solicitudes-section">
+            <h2>Solicitudes Docencia</h2>
+            <div class="table-container">
+                @if (dashboardData?.Solicitudes.Count > 0)
+                {
+                    <table class="solicitudes-table">
+                        <thead>
+                            <tr>
+                                <th>Cédula</th>
+                                <th>Docente</th>
+                                <th>Nivel</th>
+                                <th>Fecha</th>
+                                <th>Tiempo Espera</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var solicitud in dashboardData.Solicitudes)
+                            {
+                                <tr>
+                                    <td class="cedula">@solicitud.Codigo</td>
+                                    <td class="docente">@solicitud.NombreDocente</td>
+                                    <td class="nivel">@solicitud.Nivel</td>
+                                    <td class="fecha">@solicitud.Fecha.ToString("dd/MM/yyyy")</td>
+                                    <td class="tiempo-espera">@solicitud.TiempoEspera</td>
+                                    <td>
+                                        <span class="estado-badge @GetEstadoClass(solicitud.Estado)">
+                                        @solicitud.Estado
+                                      </span>
+                                    </td>
+                                    <td class="acciones">
+                                         <td class="acciones">
                                 <button class="btn-validar" @onclick="() => ValidarSolicitud(solicitud.Id)">
                                     <span class="btn-icon">✓</span>
                                     Validar
                                 </button>
                             </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="no-solicitudes">
+                        <p>No hay solicitudes pendientes en este momento.</p>
+                    </div>
+                }
+            </div>
         </div>
-    </div>
-
-    @*<div class="dashboard-actions">
-        <h2>Acciones Rápidas</h2>
-        <div class="action-buttons">
-            <a href="/admin/docente" class="action-btn primary">
-                <span class="btn-icon">👥</span>
-                Gestionar Docentes
-            </a>
-            <a href="/admin/evaluaciones" class="action-btn secondary">
-                <span class="btn-icon">📋</span>
-                Ver Evaluaciones
-            </a>
-            <a href="/admin/reportes" class="action-btn tertiary">
-                <span class="btn-icon">📊</span>
-                Generar Reportes
-            </a>
-        </div>
-    </div>*@
+    }
 </div>
 
 <style>
@@ -166,18 +176,23 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 16px;
+        background-color: #581517;
+        padding: 16px;
+        border-radius: 22px 22px 22px 22px;
+        margin: -24px -24px 16px -24px;
     }
 
         .card-header h3 {
             margin: 0;
             font-size: 1rem;
             font-weight: 600;
-            color: #475569;
+            color: white;
         }
 
     .card-icon {
         font-size: 1.5rem;
-        opacity: 0.7;
+        opacity: 0.9;
+        color: white;
     }
 
     .card-body {
@@ -223,14 +238,14 @@
     }
 
         .solicitudes-table thead {
-            background-color: #f8fafc;
+            background-color: #581517;
         }
 
             .solicitudes-table thead th {
                 padding: 16px 12px;
                 text-align: left;
                 font-weight: 600;
-                color: #475569;
+                color: white;
                 font-size: 0.9rem;
                 border-bottom: 1px solid #e2e8f0;
             }
@@ -305,7 +320,7 @@
         display: inline-flex;
         align-items: center;
         padding: 8px 16px;
-        background-color: #10b981;
+        background-color: #581517;
         color: white;
         border: none;
         border-radius: 6px;
@@ -316,7 +331,7 @@
     }
 
         .btn-validar:hover {
-            background-color: #059669;
+            background-color: #6d1c1e;
         }
 
         .btn-validar .btn-icon {
@@ -386,113 +401,129 @@
 </style>
 
 @code {
-    // Variables para las estadísticas del dashboard
-    private int totalDocentes = 0;
-    private int evaluacionesPendientes = 0;
-    private int solicitudesFinalizadas = 0;
-    private int procesosActivos = 0;
-
-    // Lista de solicitudes pendientes
-    private List<SolicitudDocente> solicitudesPendientes = new();
-
-    // TODO: Inyectar servicios del backend cuando estén disponibles
-    // [Inject] private IDocenteService DocenteService { get; set; }
-    // [Inject] private ISolicitudService SolicitudService { get; set; }
-    // [Inject] private IEstadisticaService EstadisticaService { get; set; }
+    private bool cargando = true;
+    private DashboardDataDto dashboardData;
 
     protected override async Task OnInitializedAsync()
     {
-        // Cargar datos al inicializar el componente
+        await UserSessionService.CargarUsuarioAsync();
         await CargarDatosAsync();
-        await CargarSolicitudesAsync();
     }
 
     private async Task CargarDatosAsync()
     {
-        // TODO: Reemplazar con el backend
-        // var estadisticas = await EstadisticaService.ObtenerEstadisticasDashboardAsync();
-        // totalDocentes = estadisticas.TotalDocentes;
-        // evaluacionesPendientes = estadisticas.EvaluacionesPendientes;
-        // obrasRegistradas = estadisticas.ObrasRegistradas;
-        // procesosActivos = estadisticas.ProcesosActivos;
-
-        // DATOS SIMULADOS 
-        await Task.Delay(100);
-        totalDocentes = 124;
-        evaluacionesPendientes = 2;
-        solicitudesFinalizadas  = 456;
-        procesosActivos = 1;
-    }
-
-    private async Task CargarSolicitudesAsync()
-    {
-        // Reemplazar con el backend
-        // solicitudesPendientes = await SolicitudService.ObtenerSolicitudesPendientesAsync();
-
-        // DATOS SIMULADOS
-        await Task.Delay(100);
-        solicitudesPendientes = new List<SolicitudDocente>
+        cargando = true;
+        try
         {
-            new SolicitudDocente
-            {
-                Id = 1,
-                Codigo = "DOC485962",
-                NombreDocente = "Martín Guerrón",
-                Nivel = "DT1 a DT2",
-                Fecha = DateTime.Now.AddDays(-5),
-                TiempoEspera = "5 días",
-                Estado = "Pendiente"
-            },
-            new SolicitudDocente
-            {
-                Id = 2,
-                Codigo = "DOC437226",
-                NombreDocente = "Mateo Pabón",
-                Nivel = "DT3 a DT4",
-                Fecha = DateTime.Now.AddDays(-3),
-                TiempoEspera = "3 días",
-                Estado = "Pendiente"
-            },
-            new SolicitudDocente
-            {
-                Id = 3,
-                Codigo = "DOC521847",
-                NombreDocente = "Ana García",
-                Nivel = "DT2 a DT3",
-                Fecha = DateTime.Now.AddDays(-7),
-                TiempoEspera = "7 días",
-                Estado = "En-Revision"
-            }
-        };
+            dashboardData = await Http.GetFromJsonAsync<DashboardDataDto>("/api/Postulaciones/Dashboard");
+        }
+        catch (Exception ex)
+        {
+            ToastService.ShowError($"Error al cargar datos: {ex.Message}");
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+        finally
+        {
+            cargando = false;
+        }
     }
 
-    private async Task ValidarSolicitud(int solicitudId)
+   private async Task ValidarSolicitud(int solicitudId)
+{
+    try
     {
-        // Implementar navegación real cuando esté disponible
-        // NavigationManager.NavigateTo($"/admin/validar-solicitud/{solicitudId}");
+        // Buscar la solicitud en el dashboard para obtener el código
+        var respuestaDashboard = await Http.GetAsync("api/Postulaciones/dashboard");
+        
+        if (respuestaDashboard.IsSuccessStatusCode)
+        {
+            var dashboardData = await respuestaDashboard.Content.ReadFromJsonAsync<DashboardDataDto>();
+            
+            // Buscar la solicitud por ID
+            var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Id == solicitudId);
+            
+            if (solicitud != null && !string.IsNullOrEmpty(solicitud.Codigo))
+            {
+                // Crear datos para validación con el usuario actual
+                var validacion = new ValidacionDto
+                {
+                    Usuario = $"{UserSessionService.Usuario?.Nombre1} {UserSessionService.Usuario?.Apellido1} ({DateTime.UtcNow:yyyy-MM-dd HH:mm:ss})"
+                };
 
-        // implementar validación directa con el backend
-        // try
-        // {
-        //     await SolicitudService.ValidarSolicitudAsync(solicitudId);
-        //     await CargarSolicitudesAsync(); // Recargar la lista después de validar
-        //     // Mostrar mensaje de éxito
-        // }
-        // catch (Exception ex)
-        // {
-        //     // Mostrar mensaje de error
-        //     Console.WriteLine($"Error al validar solicitud: {ex.Message}");
-        // }
+                // Redirigir a la página de administrador con el código del docente
+                NavigationManager.NavigateTo($"/administrador?codigo={solicitud.Codigo}");
+                
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Redirigiendo a administrador con código: {solicitud.Codigo}");
+            }
+            else
+            {
+                ToastService.ShowError("No se encontró la solicitud o no tiene código asociado");
+                Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, No se encontró la solicitud ID: {solicitudId}");
+            }
+        }
+        else
+        {
+            var errorMsg = await respuestaDashboard.Content.ReadAsStringAsync();
+            ToastService.ShowError($"Error al obtener datos del dashboard: {errorMsg}");
+            Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error dashboard: {errorMsg}");
+        }
+    }
+    catch (Exception ex)
+    {
+        ToastService.ShowError($"Error al procesar la solicitud: {ex.Message}");
+        Console.WriteLine($"[2025-06-26 18:03:37] Usuario: materubag, Error: {ex.Message}");
+    }
+}
 
-        // IMPLEMENTACIÓN TEMPORAL 
-        Console.WriteLine($"Redirigiendo a validar solicitud ID: {solicitudId}");
+    private void VerDetalles(int solicitudId)
+    {
+        NavigationManager.NavigateTo($"/admin/solicitud/{solicitudId}");
     }
 
-    
+    private string GetEstadoClass(string estado)
+    {
+        if (string.IsNullOrEmpty(estado)) return "pendiente";
+        
+        if (estado.Contains("PENDIENTE", StringComparison.OrdinalIgnoreCase))
+            return "pendiente";
+        else if (estado.Contains("REVISION", StringComparison.OrdinalIgnoreCase))
+            return "en-revision";
+        else if (estado.Contains("RECHAZADO", StringComparison.OrdinalIgnoreCase))
+            return "rechazado";
+        else if (estado.Contains("APROBADO", StringComparison.OrdinalIgnoreCase))
+            return "aprobado";
+        else
+            return "otro";
+    }
 
- 
-    // private async Task FiltrarSolicitudes(string filtro)
-    // {
-    //     // Implementar filtrado de solicitudes
-    // }
+    // Clases DTO para recibir datos del backend
+    public class DashboardDataDto
+    {
+        public DashboardEstadisticasDto Estadisticas { get; set; }
+        public List<SolicitudDocenteDto> Solicitudes { get; set; } = new List<SolicitudDocenteDto>();
+    }
+
+    public class DashboardEstadisticasDto
+    {
+        public int TotalDocentes { get; set; }
+        public int EvaluacionesPendientes { get; set; }
+        public int SolicitudesFinalizadas { get; set; }
+        public int SolicitudesRechazadas { get; set; }
+    }
+
+    public class SolicitudDocenteDto
+    {
+        public int Id { get; set; }
+        public string Codigo { get; set; }
+        public string NombreDocente { get; set; }
+        public string Nivel { get; set; }
+        public DateTime Fecha { get; set; }
+        public string TiempoEspera { get; set; }
+        public string Estado { get; set; }
+    }
+
+    public class ValidacionDto
+    {
+        public string Usuario { get; set; }
+    }
 }

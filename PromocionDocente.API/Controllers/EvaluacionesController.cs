@@ -231,5 +231,31 @@ namespace PromocionDocente.API.Controllers
             }
         }
 
+        [HttpGet("cedula/{cedula}")]
+        public async Task<IActionResult> GetEvaluacionesPorCedula(string cedula)
+        {
+            var evaluaciones = await _context.Evaluaciones
+                .Where(e => e.CedDoc == cedula)
+                .ToListAsync();
+
+            if (evaluaciones == null || evaluaciones.Count == 0)
+                return NotFound();
+
+            var resultado = evaluaciones.Select(e => new
+            {
+                e.IdEvaluacion,
+                e.FechaEvaluacion,
+                e.Resultado,
+                e.CedDoc,
+                e.TipoEvaluacion,
+                e.PeriodoEvaluado,
+                e.Estado,
+                PdfEvaluacion = e.PdfEvaluacion != null
+                    ? PdfHelper.GuardarBinarioComoPdf(e.PdfEvaluacion, e.CedDoc, $"{e.TipoEvaluacion}_{e.PeriodoEvaluado}", "Evaluaciones")
+                    : ""
+            }).ToList();
+
+            return Ok(resultado);
+        }
     }
 }

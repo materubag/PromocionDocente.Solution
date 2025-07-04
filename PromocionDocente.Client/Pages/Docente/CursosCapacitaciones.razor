@@ -5,7 +5,6 @@
 @inject HttpClient Http
 @inject NavigationManager NavManager
 
-
 <div class="capacitaciones-container">
 
 	<div class="header-container">
@@ -31,7 +30,7 @@
 					</button>
 					<button class="btn btn-secondary" @onclick="ImportarCursos" disabled="@isImporting">
 						<span class="btn-icon">📁</span>
-						@(isImporting ? "Importando..." : "Importar")
+						@(isImporting? "Importando..." : "Importar")
 					</button>
 					<button class="btn btn-secondary" @onclick="EditarSeleccionado">
 						<span class="btn-icon">✏️</span>
@@ -63,7 +62,7 @@
 						{
 							@foreach (var curso in cursosFiltrados)
 							{
-								<tr class="@(curso.Seleccionado ? "selected" : "")">
+								<tr class="@(curso.Seleccionado? "selected" : "")">
 									<td>
 										<input type="checkbox" @bind="curso.Seleccionado" />
 									</td>
@@ -115,7 +114,7 @@
 			<!-- Paginación -->
 			<div class="pagination-container">
 				<div class="pagination-info">
-					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos cursos
+					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual* elementosPorPagina, totalElementos)) de @totalElementos cursos
 				</div>
 				<div class="pagination-controls">
 					<button class="btn-page" @onclick="PaginaAnterior" disabled="@(paginaActual <= 1)">◀</button>
@@ -124,8 +123,6 @@
 				</div>
 			</div>
 		</div>
-
-
 	</div>
 </div>
 
@@ -837,8 +834,8 @@
 		public bool TienePDF { get; set; }
 		public string pdfCurso { get; set; } = "";
 		public bool Seleccionado { get; set; }
+        public string Estado { get; set; }
 	}
-
 	public class ImportacionResultado
 	{
 		public string mensaje { get; set; }

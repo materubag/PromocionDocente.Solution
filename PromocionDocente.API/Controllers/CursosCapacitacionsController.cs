@@ -65,6 +65,7 @@ namespace PromocionDocente.API.Controllers
                 c.NombreCurso,
                 c.FechaCurso,
                 c.Horas,
+                c.Estado,
                 PdfCurso = c.PdfCurso != null
                     ? PdfHelper.GuardarBinarioComoPdf(c.PdfCurso, c.CedDoc, c.NombreCurso, "Cursos")
                     : ""
