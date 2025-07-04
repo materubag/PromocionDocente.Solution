@@ -1,11 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using PromocionDocente.Infrastructure.Utils;
+using PromocionDocente.Models.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using PromocionDocente.Models.Models;
 
 namespace PromocionDocente.API.Controllers
 {
@@ -130,7 +131,7 @@ namespace PromocionDocente.API.Controllers
 
             var categoriaSiguiente = await _context.Categorias
                 .Where(c => c.NivCat == categoriaActual.NivCat + 1)
-                .Select(c => new { c.IdCat,c.NomCat })
+                .Select(c => new { c.IdCat, c.NomCat })
                 .FirstOrDefaultAsync();
 
             string nombreSiguienteNivel = categoriaSiguiente?.NomCat;
@@ -156,6 +157,7 @@ namespace PromocionDocente.API.Controllers
                 .Where(e => e.CedDoc == cedula && e.FechaEvaluacion >= fechaInicio)
                 .ToListAsync();
 
+            var totalEvaluaciones = evaluaciones.Count;
             var promedioEvaluacion = evaluaciones.Any() ? evaluaciones.Average(e => (double)e.Resultado) : 0;
 
             var docente = await _context.Docentes
@@ -164,8 +166,7 @@ namespace PromocionDocente.API.Controllers
                 .FirstOrDefaultAsync();
 
             // Convert DateOnly to DateTime for subtraction
-            var fechaContratacion = docente.HasValue ? docente.Value.ToDateTime(TimeOnly.MinValue) : (DateTime?)null;
-            var aniosServicio = fechaContratacion.HasValue ? Math.Round((DateTime.Now - fechaContratacion.Value).TotalDays / 365, 2) : 0;
+            var aniosServicio = Math.Round((DateTime.Now - fechaInicio.ToDateTime(TimeOnly.MinValue)).TotalDays / 365, 2);
 
             return Ok(new
             {
@@ -174,6 +175,7 @@ namespace PromocionDocente.API.Controllers
                 TotalCursos = totalCursos,
                 HorasCursos = horasCursos,
                 MesesInvestigacion = mesesInvestigacion,
+                TotalEvaluaciones = totalEvaluaciones,
                 PromedioEvaluacion = Math.Round(promedioEvaluacion, 2),
                 AniosServicio = aniosServicio,
                 Nivel = nombreNivelActual,
@@ -183,4 +185,6 @@ namespace PromocionDocente.API.Controllers
             });
         }
     }
+
 }
+

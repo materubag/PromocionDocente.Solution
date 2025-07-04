@@ -61,10 +61,23 @@ namespace PromocionDocente.API.Controllers
         [HttpGet("cedula/{cedula}")]
         public async Task<IActionResult> GetObrasPorCedula(string cedula)
         {
-            var obras = await _context.Obras
+            // Obtener la última fecha de publicación registrada para la cédula
+            var ultimaFecha = await _context.HistorialDocentes
                 .Where(o => o.CedDoc == cedula)
+                .MaxAsync(o => (DateOnly?)o.FecIni);
+
+            if (ultimaFecha == null)
+                return NotFound("No se encontraron obras para la cédula especificada.");
+
+            // Obtener las obras a partir de esa fecha
+            var obras = await _context.Obras
+                .Where(o => o.CedDoc == cedula && o.FechaPublicacion >= ultimaFecha)
                 .ToListAsync();
 
+            if (obras.Count == 0)
+                return NotFound("No hay obras desde la última fecha de publicación registrada.");
+
+            // Proyectar los resultados
             var resultado = obras.Select(o =>
             {
                 string pdfUrl = null;
@@ -87,7 +100,6 @@ namespace PromocionDocente.API.Controllers
                     o.CedDoc,
                     o.TipoObra,
                     o.Titulo,
-                    // CONVIERTE A DateTime
                     FechaPublicacion = o.FechaPublicacion.ToDateTime(TimeOnly.MinValue),
                     o.DoiUrl,
                     o.AreaConocimiento,
