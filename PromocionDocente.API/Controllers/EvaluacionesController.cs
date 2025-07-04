@@ -62,6 +62,8 @@ namespace PromocionDocente.API.Controllers
             evaluacion.FechaEvaluacion = DateOnly.FromDateTime(dto.FechaEvaluacion); // aquí conviertes
             evaluacion.Resultado = dto.Resultado;
             evaluacion.Observacion = dto.Observaciones;
+            evaluacion.PdfEvaluacion = dto.PdfEvaluacion; 
+
 
             await _context.SaveChangesAsync();
 
