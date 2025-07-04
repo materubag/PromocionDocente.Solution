@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using PromocionDocente.API.Controllers;
 using PromocionDocente.Application.Interfaces;
 using PromocionDocente.Application.Services;
+using PromocionDocente.Client.Services;
 using PromocionDocente.Domain.Interfaces;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Infrastructure.Services;
@@ -43,7 +44,7 @@ builder.Services.AddScoped<IDatoHistorial, DatoDocenteHistorial>();
 builder.Services.AddScoped<CursoCapacitacionService>();
 builder.Services.AddScoped<ObraService>();
 builder.Services.AddScoped<InvestigacionService>();
-
+builder.Services.AddScoped<UserSessionService>();
 
 
 builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
