@@ -201,13 +201,23 @@ namespace PromocionDocente.API.Controllers
         [HttpGet("cedula/{cedula}")]
         public async Task<IActionResult> GetEvaluacionesPorCedula(string cedula)
         {
+            // 1. Buscar la fecha más reciente de evaluación para la cédula
+            var ultimaFecha = await _context.HistorialDocentes
+                                            .Where(e => e.CedDoc == cedula)
+                                            .MaxAsync(e => (DateOnly?)e.FecIni);
+
+            if (ultimaFecha == null)
+                return NotFound("No se encontraron evaluaciones para la cédula especificada.");
+
+            // 2. Traer todas las evaluaciones desde esa fecha (inclusive)
             var evaluaciones = await _context.Evaluaciones
-                .Where(e => e.CedDoc == cedula)
-                .ToListAsync();
+                                             .Where(e => e.CedDoc == cedula && e.FechaEvaluacion >= ultimaFecha)
+                                             .ToListAsync();
 
-            if (evaluaciones == null || evaluaciones.Count == 0)
-                return NotFound();
+            if (evaluaciones.Count == 0)
+                return NotFound("No hay evaluaciones a partir de la última fecha registrada.");
 
+            // 3. Proyección anónima con la generación del PDF
             var resultado = evaluaciones.Select(e => new
             {
                 e.IdEvaluacion,
@@ -218,8 +228,12 @@ namespace PromocionDocente.API.Controllers
                 e.PeriodoEvaluado,
                 e.Estado,
                 PdfEvaluacion = e.PdfEvaluacion != null
-                    ? PdfHelper.GuardarBinarioComoPdf(e.PdfEvaluacion, e.CedDoc, $"{e.TipoEvaluacion}_{e.PeriodoEvaluado}", "Evaluaciones")
-                    : ""
+                    ? PdfHelper.GuardarBinarioComoPdf(
+                          e.PdfEvaluacion,
+                          e.CedDoc,
+                          $"{e.TipoEvaluacion}_{e.PeriodoEvaluado}",
+                          "Evaluaciones")
+                    : string.Empty
             }).ToList();
 
             return Ok(resultado);

@@ -14,7 +14,7 @@ namespace PromocionDocente.Application.Services
         private readonly TthhContext _rrhhContext;
         private readonly IDatoHistorial _historial;
 
-        public AuthService(IUsuarioRepository repository, IDatoDocente dato, TthhContext rrhhContext,IDatoHistorial historial)
+        public AuthService(IUsuarioRepository repository, IDatoDocente dato, TthhContext rrhhContext, IDatoHistorial historial)
         {
             _repository = repository;
             _dato = dato;
@@ -52,7 +52,7 @@ namespace PromocionDocente.Application.Services
                 };
                 await _dato.AddAsync(log);
 
-                
+
             }
             var historiales = await _historial.ExisteHistorialAsync(usuario.Cedula);
             if (!historiales)

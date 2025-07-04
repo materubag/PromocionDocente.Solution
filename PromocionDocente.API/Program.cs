@@ -1,7 +1,9 @@
+using Blazored.LocalStorage;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.API.Controllers;
 using PromocionDocente.Application.Interfaces;
 using PromocionDocente.Application.Services;
+using PromocionDocente.Client.Services;
 using PromocionDocente.Domain.Interfaces;
 using PromocionDocente.Infrastructure.Contexts;
 using PromocionDocente.Infrastructure.Services;
@@ -17,6 +19,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllers();
+
 
 //  Agrega soporte para Swagger (documentaci�n de API)
 builder.Services.AddEndpointsApiExplorer();
@@ -43,7 +46,6 @@ builder.Services.AddScoped<IDatoHistorial, DatoDocenteHistorial>();
 builder.Services.AddScoped<CursoCapacitacionService>();
 builder.Services.AddScoped<ObraService>();
 builder.Services.AddScoped<InvestigacionService>();
-
 
 
 builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();

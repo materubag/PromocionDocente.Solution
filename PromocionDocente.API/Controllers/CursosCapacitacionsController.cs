@@ -51,12 +51,21 @@ namespace PromocionDocente.API.Controllers
         [HttpGet("cedula/{cedDoc}")]
         public async Task<ActionResult<List<object>>> GetCursosPorCedula(string cedDoc)
         {
+            // Obtener la última fecha de curso registrada para la cédula
+            var ultimaFecha = await _context.HistorialDocentes
+                                            .Where(c => c.CedDoc == cedDoc)
+                                            .MaxAsync(c => (DateOnly?)c.FecIni);
+
+            if (ultimaFecha == null)
+                return NotFound("No se encontraron cursos para la cédula especificada.");
+
+            // Obtener los cursos a partir de la última fecha
             var cursos = await _context.CursosCapacitacions
-                                       .Where(c => c.CedDoc == cedDoc)
+                                       .Where(c => c.CedDoc == cedDoc && c.FechaCurso >= ultimaFecha)
                                        .ToListAsync();
 
             if (cursos == null || cursos.Count == 0)
-                return NotFound();
+                return NotFound("No hay cursos a partir de la última fecha registrada.");
 
             var resultado = cursos.Select(c => new
             {

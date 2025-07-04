@@ -54,12 +54,21 @@ namespace PromocionDocente.API.Controllers
         [HttpGet("cedula/{cedula}")]
         public async Task<ActionResult<IEnumerable<object>>> GetInvestigacionesPorCedula(string cedula)
         {
+            // Obtener la fecha más reciente de inicio de investigación
+            var ultimaFechaInicio = await _context.HistorialDocentes
+                                                  .Where(i => i.CedDoc == cedula)
+                                                  .MaxAsync(i => (DateOnly?)i.FecIni);
+
+            if (ultimaFechaInicio == null)
+                return NotFound("No se encontraron investigaciones para la cédula especificada.");
+
+            // Traer investigaciones a partir de esa fecha
             var investigaciones = await _context.Investigaciones
-                                                .Where(i => i.CedDoc == cedula)
+                                                .Where(i => i.CedDoc == cedula && i.FechaFin >= ultimaFechaInicio)
                                                 .ToListAsync();
 
-            if (investigaciones == null || !investigaciones.Any())
-                return NotFound();
+            if (!investigaciones.Any())
+                return NotFound("No hay investigaciones desde la última fecha de inicio registrada.");
 
             var resultado = investigaciones.Select(i => new
             {
