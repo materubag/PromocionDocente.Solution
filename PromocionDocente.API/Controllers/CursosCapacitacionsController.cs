@@ -209,7 +209,6 @@ namespace PromocionDocente.API.Controllers
             return CreatedAtAction(nameof(GetCursosCapacitacion), new { id = curso.IdCurso }, curso);
         }
 
-
         // DELETE: api/CursosCapacitacions/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCursosCapacitacion(int id)

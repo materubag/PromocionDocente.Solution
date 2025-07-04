@@ -2,7 +2,6 @@
 @using static PromocionDocente.Client.Pages.Docente.CursosCapacitaciones
 @layout DocenteLayout
 @using static System.Net.WebRequestMethods
-
 @inject HttpClient Http
 @inject IJSRuntime JSRuntime
 @inject NavigationManager NavManager
@@ -537,7 +536,7 @@
 		mensajeError = string.Empty;
 		try
 		{
-			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluaciones/docente/{cedulaUsuario}");
+			evaluaciones = await Http.GetFromJsonAsync<List<EvaluacionInfo>>($"/api/evaluaciones/cedula/{cedulaUsuario}");
 		}
 		catch (Exception ex)
 		{

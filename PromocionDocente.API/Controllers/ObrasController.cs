@@ -4,6 +4,7 @@ using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
 using PromocionDocente.Infrastructure.Services;
+using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -26,7 +27,6 @@ namespace PromocionDocente.API.Controllers
             _obraService = obraService;
         }
 
-
         // GET: api/Obras
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Obra>>> GetObras()
@@ -34,20 +34,7 @@ namespace PromocionDocente.API.Controllers
             return await _context.Obras.ToListAsync();
         }
 
-        // GET: api/Obras/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Obra>> GetObra(int id)
-        {
-            var obra = await _context.Obras.FindAsync(id);
-
-            if (obra == null)
-            {
-                return NotFound();
-            }
-
-            return obra;
-        }
-
+       
         // PUT: api/Obras/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -71,7 +58,67 @@ namespace PromocionDocente.API.Controllers
             return NoContent();
         }
 
+        [HttpGet("cedula/{cedula}")]
+        public async Task<IActionResult> GetObrasPorCedula(string cedula)
+        {
+            var obras = await _context.Obras
+                .Where(o => o.CedDoc == cedula)
+                .ToListAsync();
 
+            var resultado = obras.Select(o =>
+            {
+                string pdfUrl = null;
+
+                if (o.PdfProduccion != null)
+                {
+                    string rutaRelativa = PdfHelper.GuardarBinarioComoPdf(
+                        o.PdfProduccion,
+                        o.CedDoc,
+                        o.Titulo,
+                        "Obras"
+                    );
+
+                    pdfUrl = rutaRelativa;
+                }
+
+                return new
+                {
+                    o.IdObra,
+                    o.CedDoc,
+                    o.TipoObra,
+                    o.Titulo,
+                    // CONVIERTE A DateTime
+                    FechaPublicacion = o.FechaPublicacion.ToDateTime(TimeOnly.MinValue),
+                    o.DoiUrl,
+                    o.AreaConocimiento,
+                    o.Observaciones,
+                    o.Estado,
+                    PdfUrl = pdfUrl
+                };
+            });
+
+            return Ok(resultado);
+        }
+        // GET: api/Obras/5
+        [HttpGet("{id}")]
+        public async Task<ActionResult<ObraUpdateDto>> GetObraPorId(int id)
+        {
+            var obra = await _context.Obras.FindAsync(id);
+
+            if (obra == null)
+                return NotFound();
+
+            return new ObraUpdateDto
+            {
+                Titulo = obra.Titulo,
+                TipoObra = obra.TipoObra,
+                FechaPublicacion = obra.FechaPublicacion.ToDateTime(new TimeOnly(0, 0)),
+                DoiUrl = obra.DoiUrl,
+                AreaConocimiento = obra.AreaConocimiento,
+                Observaciones = obra.Observaciones,
+                PdfProduccion = obra.PdfProduccion
+            };
+        }
 
 
         // POST: api/Obras
@@ -79,25 +126,26 @@ namespace PromocionDocente.API.Controllers
         [HttpPost]
         public async Task<ActionResult> PostObra([FromBody] ObraDto dto)
         {
-            var obra = new Obra
+            var obras = new Obra
             {
                 CedDoc = dto.CedDoc,
-                TipoObra = dto.TipoObra,
+                TipoObra=dto.TipoObra,
                 Titulo = dto.Titulo,
-                FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion),
                 DoiUrl = dto.DoiUrl,
+                FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion),
                 AreaConocimiento = dto.AreaConocimiento,
                 Observaciones = dto.Observaciones,
                 PdfProduccion = dto.PdfProduccion,
-                Estado = "PENDIENTE",
-            };
+                Estado = "PENDIENTE"
+                
+        
+    };
 
-            _context.Obras.Add(obra);
+            _context.Obras.Add(obras);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetObra), new { id = obra.IdObra }, obra);
+            return CreatedAtAction(nameof(GetObras), new { id = obras.IdObra }, obras);
         }
-
 
 
         // DELETE: api/Obras/5

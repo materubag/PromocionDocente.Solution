@@ -29,7 +29,6 @@ namespace PromocionDocente.API.Controllers
             _investigacionService = investigacionService;
         }
 
-
         // GET: api/Investigaciones
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Investigacione>>> GetInvestigaciones()
@@ -129,7 +128,6 @@ namespace PromocionDocente.API.Controllers
 
             return CreatedAtAction(nameof(GetInvestigacione), new { id = investigacion.IdInvestigacion }, investigacion);
         }
-
 
         // DELETE: api/Investigaciones/5
         [HttpDelete("{id}")]

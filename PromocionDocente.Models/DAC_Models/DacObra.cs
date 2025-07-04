@@ -1,8 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using System;
+using System.Collections.Generic;
 
 namespace PromocionDocente.Models.DAC_Models;
 
-[Table("OBRAS", Schema = "dbo")]
 public partial class DacObra
 {
     public int IdObra { get; set; }
@@ -13,7 +13,7 @@ public partial class DacObra
 
     public string Titulo { get; set; } = null!;
 
-    public DateTime FechaPublicacion { get; set; }  // Usa DateTime, no DateOnly
+    public DateOnly FechaPublicacion { get; set; }
 
     public string? DoiUrl { get; set; }
 

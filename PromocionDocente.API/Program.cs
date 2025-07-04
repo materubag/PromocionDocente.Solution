@@ -12,6 +12,7 @@ using PromocionDocente.Models.DITIC_Models;
 using PromocionDocente.Models.Models;
 using PromocionDocente.Models.TTHH_Models;
 using PromocionDocente.Repositories.Repositorios;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -38,6 +39,13 @@ builder.Services.AddScoped<IHistorialDocenteImportService, HistorialDocenteImpor
 // ineccion paara el calculo del Tiempo del docente
 builder.Services.AddScoped<IDocenteTiempoService, DocenteTiempoService>();
 builder.Services.AddScoped<IDatoDocente, DatoDocenteRepositorio>();
+builder.Services.AddScoped<IDatoHistorial, DatoDocenteHistorial>();
+builder.Services.AddScoped<CursoCapacitacionService>();
+builder.Services.AddScoped<ObraService>();
+builder.Services.AddScoped<InvestigacionService>();
+
+
+
 builder.Services.AddScoped<IUsuarioRepository, Usuario_Repository>();
 builder.Services.AddScoped<AuthService>();
 
@@ -52,11 +60,6 @@ builder.Services.AddDbContext<DideContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DIDE")));
 builder.Services.AddDbContext<DiticContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DITIC")));
-// Servicios CRUD de cada entidad
-builder.Services.AddScoped<ObraService>();
-builder.Services.AddScoped<EvaluacionService>();
-builder.Services.AddScoped<InvestigacionService>();
-builder.Services.AddScoped<CursoCapacitacionService>();
 
 builder.Services.AddCors(options =>
 {
@@ -67,6 +70,7 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod();
     });
 });
+builder.Services.AddControllers();
 
 // Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -85,6 +89,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 app.UseStaticFiles();
+app.UseCors("AllowAll");
 
 // Middleware para Swagger
 if (app.Environment.IsDevelopment())
@@ -94,6 +99,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 
 }
+app.UseCors(policy =>
+    policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+);
+
 
 app.UseHttpsRedirection();
 app.UseCors("AllowBlazorClient");

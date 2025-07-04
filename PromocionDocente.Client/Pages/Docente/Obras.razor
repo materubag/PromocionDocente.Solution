@@ -33,10 +33,7 @@
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
 					</button>
-					<button class="btn btn-secondary" @onclick="EditarSeleccionada">
-						<span class="btn-icon">✏️</span>
-						Editar
-					</button>
+					
 				</div>
 			</div>
 
@@ -62,9 +59,7 @@
 							@foreach (var obra in obrasFiltradas)
 							{
 								<tr class="@(obra.Seleccionada ? "selected" : "")">
-									<td>
-										<input type="checkbox" @bind="obra.Seleccionada" />
-									</td>
+									
 									<td>
 										<span class="badge-tipo @GetClaseTipo(obra.TipoObra)">
 											@obra.TipoObra
@@ -79,7 +74,7 @@
 											}
 										</div>
 									</td>
-									<td>@obra.FechaPublicacion.ToString("dd/MM/yyyy")</td>
+									<td>@(obra.FechaPublicacion.HasValue? obra.FechaPublicacion.Value.ToString("dd/MM/yyyy") : "Sin fecha")</td>
 									<td>
 										<span class="area-badge">@(obra.AreaConocimiento ?? "Sin especificar")</span>
 									</td>
@@ -100,7 +95,7 @@
 									<td class="doi-cell">
 										@if (!string.IsNullOrEmpty(obra.DoiUrl))
 										{
-											<button class="btn-doi" @onclick="() => AbrirUrl(obra.DoiUrl)" title="Abrir enlace">
+											<button class="btn-doi" @onclick="() => AbrirUrl(obra.DoiUrl)">
 												<span class="doi-icon">🔗</span>
 												<span class="doi-text">Ver</span>
 											</button>
@@ -111,8 +106,7 @@
 										}
 									</td>
 									<td>
-										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)"
-												">
+										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)" title="Editar">
 											<span class="btn-icon">✏️</span>
 											Editar
 										</button>
@@ -606,7 +600,7 @@
 		try
 		{
 			// Llamada a la API para obtener las obras filtradas por cédula
-			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/obras/{cedulaUsuario}");
+			obras = await Http.GetFromJsonAsync<List<ObraInfo>>($"/api/obras/cedula/{cedulaUsuario}");
 			FiltrarObras(); // Filtra las obras obtenidas
 		}
 		catch (Exception ex)
@@ -776,7 +770,7 @@
 		public int IdObra { get; set; }
 		public string TipoObra { get; set; } = "";
 		public string Titulo { get; set; } = "";
-		public DateTime FechaPublicacion { get; set; }
+		public DateTime? FechaPublicacion { get; set; } // <-- nullable
 		public string? DoiUrl { get; set; }
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
@@ -784,12 +778,12 @@
 
 		public bool Seleccionada { get; set; }
 
-		// Método para verificar si tiene PDF
 		public bool TienePDF()
 		{
 			return PdfUrl != null && PdfUrl.Length > 0;
 		}
 	}
+
 
 	public class DocenteInfo
 	{
@@ -809,5 +803,16 @@
 	{
 		NavManager.NavigateTo($"/docente/editar/obra/{id}");
 	}
+	public class ObraUpdateDto
+	{
+		public string Titulo { get; set; }
+		public string TipoObra { get; set; }
+		public DateTime FechaPublicacion { get; set; }
+		public string? DoiUrl { get; set; }
+		public string? AreaConocimiento { get; set; }
+		public string? Observaciones { get; set; }
+		public byte[]? PdfProduccion { get; set; }
+	}
+
 
 }
