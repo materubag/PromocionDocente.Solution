@@ -44,8 +44,10 @@
     private ObraDto nuevaObra = new()
     {
         Estado = "Pendiente",
-        Observacion = ""
+        Observacion = "",
+        FechaPublicacion = DateTime.Today
     };
+
 
     protected override async Task OnInitializedAsync()
     {
