@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using PromocionDocente.Application.DTOs;
-using PromocionDocente.Infrastructure.Services;
+using PromocionDocente.Infrastructure.Utils;
 using PromocionDocente.Models.Models;
 using System;
 using System.Collections.Generic;
@@ -17,15 +17,11 @@ namespace PromocionDocente.API.Controllers
     public class ObrasController : ControllerBase
     {
         private readonly PromocionDocenteContext _context;
-        private readonly ObraService _obraService;
 
-
-        public ObrasController(PromocionDocenteContext context, ObraService obraService)
+        public ObrasController(PromocionDocenteContext context)
         {
             _context = context;
-            _obraService = obraService;
         }
-
 
         // GET: api/Obras
         [HttpGet]
@@ -51,54 +47,84 @@ namespace PromocionDocente.API.Controllers
         // PUT: api/Obras/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutObra(int id, [FromBody] ObraUpdateDto dto)
+        public async Task<IActionResult> PutObra(int id, Obra obra)
         {
-            if (dto == null)
-                return BadRequest("Datos inválidos.");
+            if (id != obra.IdObra)
+            {
+                return BadRequest();
+            }
 
-            var obra = await _context.Obras.FindAsync(id);
-            if (obra == null)
-                return NotFound($"No se encontró la obra con ID {id}.");
+            _context.Entry(obra).State = EntityState.Modified;
 
-            obra.Titulo = dto.Titulo;
-            obra.TipoObra = dto.TipoObra;
-            obra.FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion);
-            obra.AreaConocimiento = dto.AreaConocimiento; // Corregido aquí
-            obra.PdfProduccion = dto.PdfProduccion;
-            obra.Observaciones = dto.Observaciones;
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateConcurrencyException)
+            {
+                if (!ObraExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
 
-            await _context.SaveChangesAsync();
             return NoContent();
         }
 
+        [HttpGet("cedula/{cedula}")]
+        public async Task<IActionResult> GetObrasPorCedula(string cedula)
+        {
+            var obras = await _context.Obras
+                .Where(o => o.CedDoc == cedula)
+                .ToListAsync();
 
+            var resultado = obras.Select(o =>
+            {
+                string pdfUrl = null;
 
+                if (o.PdfProduccion != null)
+                {
+                    string rutaRelativa = PdfHelper.GuardarBinarioComoPdf(
+                        o.PdfProduccion,
+                        o.CedDoc,
+                        o.Titulo,
+                        "Obras"
+                    );
+
+                    pdfUrl = rutaRelativa;
+                }
+                return new
+                {
+                    o.IdObra,
+                    o.CedDoc,
+                    o.TipoObra,
+                    o.Titulo,
+                    o.FechaPublicacion,
+                    o.DoiUrl,
+                    o.AreaConocimiento,
+                    o.Observaciones,
+                    o.Estado,
+                    PdfUrl = pdfUrl
+                };
+            });
+
+            return Ok(resultado);
+        }
 
         // POST: api/Obras
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult> PostObra([FromBody] ObraDto dto)
+        public async Task<ActionResult<Obra>> PostObra(Obra obra)
         {
-            var obra = new Obra
-            {
-                CedDoc = dto.CedDoc,
-                TipoObra = dto.TipoObra,
-                Titulo = dto.Titulo,
-                FechaPublicacion = DateOnly.FromDateTime(dto.FechaPublicacion),
-                DoiUrl = dto.DoiUrl,
-                AreaConocimiento = dto.AreaConocimiento,
-                Observaciones = dto.Observaciones,
-                PdfProduccion = dto.PdfProduccion,
-                Estado = "PENDIENTE",
-            };
-
             _context.Obras.Add(obra);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(nameof(GetObra), new { id = obra.IdObra }, obra);
+            return CreatedAtAction("GetObra", new { id = obra.IdObra }, obra);
         }
-
-
 
         // DELETE: api/Obras/5
         [HttpDelete("{id}")]

@@ -3,11 +3,6 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
-#Appsetings con las refrencias d ela base dedatos
-**/appsettings.json
-
-
-
 # User-specific files
 *.rsuser
 *.suo
