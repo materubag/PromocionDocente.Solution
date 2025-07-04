@@ -39,7 +39,6 @@ else
             <InputFile OnChange="OnInputFileChange" />
         </div>
 
-
         <button type="submit" class="btn btn-primary">Guardar Cambios</button>
         <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
     </EditForm>
@@ -106,11 +105,11 @@ else
     }
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
-        var file = e.File;
-        using var ms = new MemoryStream();
-        await file.OpenReadStream().CopyToAsync(ms);
-        curso.PdfCurso = ms.ToArray();
+        using var stream = new MemoryStream();
+        await e.File.OpenReadStream().CopyToAsync(stream);
+        curso.PdfCurso = stream.ToArray();
     }
+
 
 
     private void Volver()

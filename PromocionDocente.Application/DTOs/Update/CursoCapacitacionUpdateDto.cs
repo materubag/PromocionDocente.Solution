@@ -11,8 +11,9 @@ namespace PromocionDocente.Application.DTOs.Update
         public string NombreCurso { get; set; } = "";
         public DateTime FechaCurso { get; set; }
         public int Horas { get; set; }
-        public byte[]? PdfCurso { get; set; }
+        public byte[]? PdfCurso { get; set; }   // <-- AQUÍ
         public string? Observacion { get; set; }
     }
+
 
 }
