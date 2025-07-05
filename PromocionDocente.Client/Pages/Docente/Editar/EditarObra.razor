@@ -163,6 +163,7 @@ else
             if (response.IsSuccessStatusCode)
             {
                 MostrarAlerta("success", "Éxito", "Obra actualizada correctamente.");
+                await Task.Delay(1500);
                 NavManager.NavigateTo("/docente/obras");
             }
             else

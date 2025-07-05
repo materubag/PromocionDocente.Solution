@@ -157,6 +157,7 @@ else
             if (response.IsSuccessStatusCode)
             {
                 MostrarAlerta("success", "Éxito", "Evaluación actualizada correctamente.");
+                await Task.Delay(1500);
                 NavManager.NavigateTo("/docente/evaluaciones");
             }
             else

@@ -149,6 +149,7 @@ else
             if (response.IsSuccessStatusCode)
             {
                 MostrarAlerta("success", "Éxito", "Curso actualizado correctamente.");
+                await Task.Delay(1500);
                 NavManager.NavigateTo("/docente/capacitaciones");
             }
             else

@@ -141,6 +141,7 @@
         if (response.IsSuccessStatusCode)
         {
             MostrarAlerta("success", "Obra guardada", "La obra se ha guardado correctamente.");
+            await Task.Delay(1500);
             NavManager.NavigateTo("/docente/obras");
         }
         else

@@ -145,6 +145,7 @@
         if (response.IsSuccessStatusCode)
         {
             MostrarAlerta("success", "Investigación guardada", "La investigación se ha guardado correctamente.");
+            await Task.Delay(1500);
             NavManager.NavigateTo("/docente/investigaciones");
         }
         else

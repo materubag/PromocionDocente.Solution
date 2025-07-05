@@ -165,6 +165,7 @@ else
             if (response.IsSuccessStatusCode)
             {
                 MostrarAlerta("success", "Éxito", "Investigación actualizada correctamente.");
+                await Task.Delay(1500);
                 NavManager.NavigateTo("/docente/investigaciones");
             }
             else
