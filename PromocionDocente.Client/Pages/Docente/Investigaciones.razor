@@ -515,6 +515,12 @@
 		font-size: 0.9rem;
 	}
 </style>
+
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
+
+
 @code {
 	private DocenteInfo docenteInfo;
 	private List<InvestigacionInfo> investigaciones = new List<InvestigacionInfo>();
@@ -527,6 +533,63 @@
 	private bool isImporting = false;
 	private string mensajeError = string.Empty;
 	private string cedulaUsuario;
+
+	// Variables para el sistema de alertas/toast
+	private bool mostrarAlerta = false;
+	private string tipoAlerta = "";
+	private string tituloAlerta = "";
+	private string mensajeAlerta = "";
+	private bool mostrarConfirmacion = false;
+	private string tituloConfirmar = "";
+	private string mensajeConfirmar = "";
+	private TaskCompletionSource<bool> tcsConfirmar;
+
+	private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+	{
+		tituloConfirmar = titulo;
+		mensajeConfirmar = mensaje;
+		mostrarConfirmacion = true;
+		StateHasChanged();
+		tcsConfirmar = new TaskCompletionSource<bool>();
+		return tcsConfirmar.Task;
+	}
+
+	private Task OnConfirmarToast(bool respuesta)
+	{
+		mostrarConfirmacion = false;
+		StateHasChanged();
+		tcsConfirmar?.SetResult(respuesta);
+		return Task.CompletedTask;
+	}
+
+
+	private void MostrarAlerta(string tipo, string titulo, string mensaje)
+	{
+		tipoAlerta = tipo;
+		tituloAlerta = titulo;
+		mensajeAlerta = mensaje;
+		mostrarAlerta = true;
+		StateHasChanged();
+
+		// Auto-cerrar después de 4 segundos
+		_ = Task.Delay(4000).ContinueWith(_ =>
+		{
+			InvokeAsync(() =>
+			{
+				if (mostrarAlerta)
+				{
+					CerrarAlerta();
+				}
+			});
+		});
+	}
+
+
+	private void CerrarAlerta()
+	{
+		mostrarAlerta = false;
+		StateHasChanged();
+	}
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -665,18 +728,13 @@
 	{
 		if (isImporting) return;
 
-
-		bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-			"¿Desea importar investigaciones desde la base externa?\n\n" +
-			"• Las investigaciones duplicadas serán omitidas\n" +
-			"• Solo se importarán las nuevas\n\n" +
-			"¿Desea continuar?");
-
+		bool confirmar = await MostrarConfirmacion(
+			"¿Importar investigaciones desde la base externa?",
+			"• Las investigaciones duplicadas serán omitidas.<br>• Solo se importarán las nuevas.<br><br>¿Desea continuar?"
+		);
 		if (confirmar)
 		{
 			isImporting = true;
-			StateHasChanged();
-
 			try
 			{
 				var response = await Http.GetFromJsonAsync<ImportacionResultado>(
@@ -684,27 +742,27 @@
 
 				if (response != null)
 				{
-					await JSRuntime.InvokeVoidAsync("alert",
-						$"¡Importación completada exitosamente!\n\n" +
+					MostrarAlerta("success", "¡Importación completada!", $"¡Importación completada exitosamente!\n\n" +
 						$"• {response.nuevos} investigaciones nuevas importadas\n" +
 						$"• {response.duplicados} investigaciones duplicadas omitidas\n" +
 						$"• Total procesadas: {response.total}");
+
 				}
 				else
 				{
-					await JSRuntime.InvokeVoidAsync("alert", "No se recibió una respuesta válida del servidor.");
+					MostrarAlerta("alert", "Alerta", "No se ecnontraron investigaciones que importar");
+					return;
 				}
 			}
 			catch (Exception ex)
 			{
-				Console.WriteLine(ex.Message);
-				await JSRuntime.InvokeVoidAsync("alert", "Error al importar investigaciones: " + ex.Message);
+				MostrarAlerta("error", "Sin respuesta del servidor", "No se pudo conectar: " + ex.Message);
 			}
-
 			isImporting = false;
-			StateHasChanged();
 		}
 	}
+
+
 
 
 	private async Task EditarSeleccionada()
@@ -712,19 +770,20 @@
 		var seleccionada = investigacionesFiltradas.FirstOrDefault(i => i.Seleccionada);
 		if (seleccionada != null)
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				$"Editar Investigación Seleccionada\n\n" +
+
+			tituloAlerta = "Editar Investigación Seleccionada";
+			mensajeAlerta = $"Se abrirá el formulario de edición para la investigación seleccionada:\n\n" +
 				$"• Título: {seleccionada.TituloInvestigacion.Substring(0, Math.Min(50, seleccionada.TituloInvestigacion.Length))}...\n" +
 				$"• Tipo: {seleccionada.TipoInvestigacion}\n" +
-				$"• Estado: {seleccionada.Estado}\n\n" +
-				$"Se abrirá el formulario de edición...");
+                $"• Estado: {seleccionada.Estado}";
+			tipoAlerta = "alert"; // o "success", "warning", etc.
+			mostrarAlerta = true;
+
 		}
 		else
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				"⚠️ Atención\n\n" +
-				"No hay ninguna investigación seleccionada.\n" +
-				"Por favor, seleccione una investigación de la lista para editarla.");
+			MostrarAlerta("alert", "⚠️ Atención\n\n","No hay ninguna investigación seleccionada.\n"+"Por favor, seleccione una investigación de la lista para editarla.");
+
 		}
 	}
 
@@ -734,20 +793,22 @@
 
 		if (seleccionadas.Any())
 		{
-			bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-				$"¿Enviar {seleccionadas.Count} investigación(es) seleccionada(s)?\n\n" +
+			bool confirmar = await MostrarConfirmacion("Confirmar Envío",
+				$"¿Está seguro de enviar {seleccionadas.Count} investigación(es) seleccionada(s)?\n\n" +
 				$"• Las investigaciones serán enviadas para revisión\n" +
 				$"• No podrán ser editadas después del envío\n" +
 				$"• Recibirá una confirmación por email\n\n" +
-				$"¿Continuar con el envío?");
+                $"¿Continuar con el envío?");
+
 
 			if (confirmar)
 			{
-				await JSRuntime.InvokeVoidAsync("alert",
+				MostrarAlerta("success", "Envío en proceso",
 					$"✅ Envío exitoso\n\n" +
 					$"• {seleccionadas.Count} investigación(es) enviada(s)\n" +
 					$"• Estado cambiado a 'En Revisión'\n" +
 					$"• Confirmación enviada por email");
+
 
 				foreach (var inv in seleccionadas)
 				{
@@ -759,10 +820,10 @@
 		}
 		else
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				"⚠️ Atención\n\n" +
+			MostrarAlerta("alert", "⚠️ Atención",
 				"No hay investigaciones seleccionadas.\n" +
-				"Seleccione al menos una investigación para enviar.");
+                "Seleccione al menos una investigación para enviar.");
+
 		}
 	}
 

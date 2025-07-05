@@ -1172,21 +1172,26 @@
     {
         await CargarEstadoDocumentos();
         FiltrarDocumentos();
-        MostrarAlerta("success", "Éxito", "Estados actualizados");
+        MostrarAlerta("success", "Éxito", "Esta");
     }
 
     private async Task VerResumen()
     {
         var completados = Documentos.Count(d => d.Estado == "Completo");
         var pendientes = Documentos.Count(d => d.Estado == "Pendiente");
+        var progreso = (completados * 100 / Documentos.Count);
 
-        await JSRuntime.InvokeVoidAsync("alert",
-            $"📊 Resumen de Evaluación\n\n" +
-            $"✅ Documentos Evaluados: {completados}\n" +
-            $"⏳ Documentos Pendientes: {pendientes}\n" +
-            $"📄 Total de Documentos: {Documentos.Count}\n\n" +
-            $"Progreso: {(completados * 100 / Documentos.Count)}%");
+        // Usar tu sistema de toast
+        MostrarAlerta(
+            "info",
+            "Resumen de Evaluación",
+            $"<b>Evaluados:</b> {completados}<br>" +
+            $"<b>Pendientes:</b> {pendientes}<br>" +
+            $"<b>Total:</b> {Documentos.Count}<br>" +
+            $"<b>Progreso:</b> {progreso}%"
+        );
     }
+
 
     private void Volver()
     {
