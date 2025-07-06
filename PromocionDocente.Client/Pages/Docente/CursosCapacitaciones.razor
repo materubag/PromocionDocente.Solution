@@ -304,15 +304,6 @@
         width: 300px;
     }
 
-	.area-badge {
-		background: #f8f9fa;
-		color: #495057;
-		padding: 0.25rem 0.5rem;
-		border-radius: 12px;
-		font-size: 0.8rem;
-		border: 1px solid #dee2e6;
-	}
-
     .col-fecha {
         width: 120px;
     }
@@ -547,6 +538,10 @@
     }
 </style>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
+
 @code {
 	private DocenteInfo docenteInfo;
 	private List<CursoCapacitacionInfo> cursos = new List<CursoCapacitacionInfo>();
@@ -563,6 +558,64 @@
 	private string mensajeError = string.Empty;
 	private string? cedulaUsuario;
 	@inject NavigationManager NavManager
+
+	// Variables para el sistema de alertas/toast
+	private bool mostrarAlerta = false;
+	private string tipoAlerta = "";
+	private string tituloAlerta = "";
+	private string mensajeAlerta = "";
+	private bool mostrarConfirmacion = false;
+	private string tituloConfirmar = "";
+	private string mensajeConfirmar = "";
+	private TaskCompletionSource<bool> tcsConfirmar;
+
+	private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+	{
+		tituloConfirmar = titulo;
+		mensajeConfirmar = mensaje;
+		mostrarConfirmacion = true;
+		StateHasChanged();
+		tcsConfirmar = new TaskCompletionSource<bool>();
+		return tcsConfirmar.Task;
+	}
+
+	private Task OnConfirmarToast(bool respuesta)
+	{
+		mostrarConfirmacion = false;
+		StateHasChanged();
+		tcsConfirmar?.SetResult(respuesta);
+		return Task.CompletedTask;
+	}
+
+
+	private void MostrarAlerta(string tipo, string titulo, string mensaje)
+	{
+		tipoAlerta = tipo;
+		tituloAlerta = titulo;
+		mensajeAlerta = mensaje;
+		mostrarAlerta = true;
+		StateHasChanged();
+
+		// Auto-cerrar después de 4 segundos
+		_ = Task.Delay(4000).ContinueWith(_ =>
+		{
+			InvokeAsync(() =>
+			{
+				if (mostrarAlerta)
+				{
+					CerrarAlerta();
+				}
+			});
+		});
+	}
+
+
+	private void CerrarAlerta()
+	{
+		mostrarAlerta = false;
+		StateHasChanged();
+	}
+
 
 
 	private CursoCapacitacionInfo cursoEditar = new();
@@ -708,15 +761,17 @@
 
 		if (string.IsNullOrEmpty(cedulaUsuario))
 		{
-			await JSRuntime.InvokeVoidAsync("alert", "No se ha cargado la cédula del usuario. No se puede importar.");
-			return;
+			MostrarAlerta("error", "Error de Importación",
+				"No se ha cargado la cédula del usuario. No se puede importar.");
+
 		}
 
-		bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+		bool confirmar = await MostrarConfirmacion("Confirmar Importación",
 			"¿Desea importar cursos de capacitación desde la base externa?\n\n" +
 			"• Los cursos duplicados serán omitidos\n" +
 			"• Solo se importarán los cursos nuevos\n\n" +
-			"¿Desea continuar?");
+            "¿Desea continuar?");
+		
 
 		if (confirmar)
 		{
@@ -730,21 +785,25 @@
 
 				if (response != null)
 				{
-					await JSRuntime.InvokeVoidAsync("alert",
+					MostrarAlerta("success", "Importación Exitosa",
 						$"¡Importación completada exitosamente!\n\n" +
 						$"• {response.nuevos} cursos nuevos importados\n" +
 						$"• {response.duplicados} cursos duplicados omitidos\n" +
-						$"• Total procesados: {response.total}");
+                        $"• Total procesados: {response.total}");
+
 				}
 				else
 				{
-					await JSRuntime.InvokeVoidAsync("alert", "No se recibió una respuesta válida del servidor.");
+					MostrarAlerta("error", "Error de Importación",
+                        "No se encontraron cursos para importar");
 				}
 			}
 			catch (Exception ex)
 			{
 				Console.WriteLine(ex.Message);
-				await JSRuntime.InvokeVoidAsync("alert", "Error al importar cursos: " + ex.Message);
+				MostrarAlerta("error", "Error de Importación",
+                    "Hubo un error al importar los cursos. Por favor, intente nuevamente más tarde." +ex.Message);
+				
 			}
 
 			isImporting = false;
@@ -765,19 +824,19 @@
 		var seleccionado = cursosFiltrados.FirstOrDefault(c => c.Seleccionado);
 		if (seleccionado != null)
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				$"Editar Curso Seleccionado\n\n" +
+			MostrarAlerta("info", "Editar Curso",
+				$"Se ha seleccionado el curso para editar:\n\n" +
 				$"• Curso: {seleccionado.NombreCurso}\n" +
 				$"• Fecha: {seleccionado.FechaCurso:dd/MM/yyyy}\n" +
-				$"• Horas: {seleccionado.Horas}\n" +
-				$"Se abrirá el formulario de edición...");
+				$"• Horas: {seleccionado.Horas} h\n\n" +
+                "Se abrirá el formulario de edición.");
+
 		}
 		else
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				"⚠️ Atención\n\n" +
-				"No hay ningún curso seleccionado.\n" +
-				"Por favor, seleccione un curso de la lista para editarlo.");
+			MostrarAlerta("warning", "Atención",
+				"No hay ningún curso seleccionado para editar.\n" +
+                "Por favor, seleccione un curso de la lista.");
 		}
 	}
 
@@ -787,20 +846,22 @@
 
 		if (seleccionados.Any())
 		{
-			bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-				$"¿Enviar {seleccionados.Count} curso(s) seleccionado(s) para validación?\n\n" +
-				$"• Los cursos serán enviados para revisión\n" +
-				$"• No podrán ser editados después del envío\n" +
-				$"• Recibirá una confirmación por email\n\n" +
-				$"¿Continuar con el envío?");
+			bool confirmar = await MostrarConfirmacion("Confirmar Envío",
+				$"¿Está seguro de enviar {seleccionados.Count} curso(s) seleccionado(s) para validación?\n\n" +
+				"• Los cursos serán enviados para revisión\n" +
+				"• No podrán ser editados después del envío\n" +
+				"• Recibirá una confirmación por email\n\n" +
+                "¿Continuar con el envío?");
+
 
 			if (confirmar)
 			{
-				await JSRuntime.InvokeVoidAsync("alert",
+				MostrarAlerta("info", "Envío de Cursos",
 					$"✅ Envío exitoso\n\n" +
 					$"• {seleccionados.Count} curso(s) enviado(s)\n" +
 					$"• Estado cambiado a 'En Validación'\n" +
 					$"• Confirmación enviada por email");
+
 
 				// Actualizar estado de los cursos seleccionados
 				foreach (var curso in seleccionados)
@@ -812,10 +873,9 @@
 		}
 		else
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				"⚠️ Atención\n\n" +
-				"No hay cursos seleccionados.\n" +
-				"Seleccione al menos un curso para enviar.");
+			MostrarAlerta("warning", "Atención",
+				"⚠️ No hay cursos seleccionados\n\n" +
+                "Debe seleccionar al menos un curso para enviar.");
 		}
 	}
 

@@ -11,32 +11,7 @@
 
 <div class="container-fluid">
     <!-- Sistema de notificaciones toast -->
-    @if (mostrarAlerta)
-    {
-        <div class="toast-alert @(tipoAlerta == "success" ? "toast-success" : tipoAlerta == "error" ? "toast-error" : "toast-info")">
-            <div class="toast-icon">
-                @if (tipoAlerta == "success")
-                {
-                    <i class="fas fa-check-circle"></i>
-                }
-                else if (tipoAlerta == "error")
-                {
-                    <i class="fas fa-exclamation-triangle"></i>
-                }
-                else
-                {
-                    <i class="fas fa-info-circle"></i>
-                }
-            </div>
-            <div class="toast-content">
-                <h6 class="toast-title">@tituloAlerta</h6>
-                <p class="toast-message">@mensajeAlerta</p>
-            </div>
-            <button class="toast-close" @onclick="CerrarAlerta">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
-    }
+
 
     @if (!string.IsNullOrEmpty(errorMensaje))
     {
@@ -317,6 +292,8 @@
     }
 </div>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
 @code {
     private DecisionModel decision = new();
     private bool isLoading = false;
@@ -392,7 +369,6 @@
         }
         catch (Exception ex)
         {
-            errorMensaje = $"Error en inicialización: {ex.Message}";
             MostrarAlerta("error", "Error de inicialización", ex.Message);
         }
         finally

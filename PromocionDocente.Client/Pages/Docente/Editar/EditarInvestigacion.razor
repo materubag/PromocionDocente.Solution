@@ -51,6 +51,11 @@ else
         <button type="button" class="btn btn-secondary ms-2" @onclick="Volver">Cancelar</button>
     </EditForm>
 }
+
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
+
 @code {
     [Parameter]
     public int Id { get; set; }
@@ -59,6 +64,65 @@ else
     private bool isLoading = true;
     private string? errorMessage;
 
+    // Variables para el sistema de alertas/toast
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+    private bool mostrarConfirmacion = false;
+    private string tituloConfirmar = "";
+    private string mensajeConfirmar = "";
+    private TaskCompletionSource<bool> tcsConfirmar;
+
+    private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+    {
+        tituloConfirmar = titulo;
+        mensajeConfirmar = mensaje;
+        mostrarConfirmacion = true;
+        StateHasChanged();
+        tcsConfirmar = new TaskCompletionSource<bool>();
+        return tcsConfirmar.Task;
+    }
+
+    private Task OnConfirmarToast(bool respuesta)
+    {
+        mostrarConfirmacion = false;
+        StateHasChanged();
+        tcsConfirmar?.SetResult(respuesta);
+        return Task.CompletedTask;
+    }
+
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+        StateHasChanged();
+
+        // Auto-cerrar después de 4 segundos
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
+
+
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -66,7 +130,7 @@ else
             var result = await Http.GetFromJsonAsync<InvestigacionDto>($"api/Investigaciones/{Id}");
             if (result == null)
             {
-                errorMessage = "No se encontró la investigación.";
+                MostrarAlerta("danger", "Error", "Investigación no encontrada.");
                 return;
             }
 
@@ -83,7 +147,8 @@ else
         }
         catch (Exception ex)
         {
-            errorMessage = "Error al cargar investigación: " + ex.Message;
+            MostrarAlerta("error", "Error", "No se pudo cargar la investigación. " + ex.Message);
+            
         }
         finally
         {
@@ -99,18 +164,19 @@ else
 
             if (response.IsSuccessStatusCode)
             {
-                await JS.InvokeVoidAsync("alert", "Investigación actualizada correctamente.");
+                MostrarAlerta("success", "Éxito", "Investigación actualizada correctamente.");
+                await Task.Delay(1500);
                 NavManager.NavigateTo("/docente/investigaciones");
             }
             else
             {
                 var errorText = await response.Content.ReadAsStringAsync();
-                errorMessage = $"Error al guardar: {response.ReasonPhrase}\n{errorText}";
+                MostrarAlerta("error", "Error", $"Error al guardar: {response.ReasonPhrase}\n{errorText}");
             }
         }
         catch (Exception ex)
         {
-            errorMessage = "Error al guardar cambios: " + ex.Message;
+            MostrarAlerta("error", "Error", "Error al guardar cambios: " + ex.Message);
         }
     }
 

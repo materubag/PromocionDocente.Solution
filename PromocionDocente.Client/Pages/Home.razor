@@ -845,6 +845,8 @@
 
 </div>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
 @code {
     private DatosEvaluacionCompleta datosEvaluacion = new DatosEvaluacionCompleta();
     private int progresoGeneral = 0;
@@ -858,6 +860,39 @@
         ["DT4"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 3, PromedioEvaluacion = 75, HorasCapacitacion = 128, MesesInvestigacion = 24 },
         ["DT5"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 5, PromedioEvaluacion = 75, HorasCapacitacion = 160, MesesInvestigacion = 24 }
     };
+
+
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+
+        // Auto-close después de 4s
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
+
 
 
     // Agregar estas variables junto con las demás declaraciones

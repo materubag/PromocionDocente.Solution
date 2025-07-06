@@ -147,15 +147,6 @@
         margin: 0;
     }
 
-	.area-badge {
-		background: #f8f9fa;
-		color: #495057;
-		padding: 0.25rem 0.5rem;
-		border-radius: 12px;
-		font-size: 0.8rem;
-		border: 1px solid #dee2e6;
-	}
-
     .docente-info {
         display: flex;
         align-items: center;
@@ -483,6 +474,10 @@
     }
 </style>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
+
 @code {
 	private DocenteInfo docenteInfo;
 	private List<EvaluacionInfo> evaluaciones = new List<EvaluacionInfo>();
@@ -495,6 +490,64 @@
 	private int totalPaginas = 0;
 	private bool isImporting = false;
 	private string? cedulaUsuario;
+
+	// Variables para el sistema de alertas/toast
+	private bool mostrarAlerta = false;
+	private string tipoAlerta = "";
+	private string tituloAlerta = "";
+	private string mensajeAlerta = "";
+	private bool mostrarConfirmacion = false;
+	private string tituloConfirmar = "";
+	private string mensajeConfirmar = "";
+	private TaskCompletionSource<bool> tcsConfirmar;
+
+	private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+	{
+		tituloConfirmar = titulo;
+		mensajeConfirmar = mensaje;
+		mostrarConfirmacion = true;
+		StateHasChanged();
+		tcsConfirmar = new TaskCompletionSource<bool>();
+		return tcsConfirmar.Task;
+	}
+
+	private Task OnConfirmarToast(bool respuesta)
+	{
+		mostrarConfirmacion = false;
+		StateHasChanged();
+		tcsConfirmar?.SetResult(respuesta);
+		return Task.CompletedTask;
+	}
+
+
+	private void MostrarAlerta(string tipo, string titulo, string mensaje)
+	{
+		tipoAlerta = tipo;
+		tituloAlerta = titulo;
+		mensajeAlerta = mensaje;
+		mostrarAlerta = true;
+		StateHasChanged();
+
+		// Auto-cerrar después de 4 segundos
+		_ = Task.Delay(4000).ContinueWith(_ =>
+		{
+			InvokeAsync(() =>
+			{
+				if (mostrarAlerta)
+				{
+					CerrarAlerta();
+				}
+			});
+		});
+	}
+
+
+	private void CerrarAlerta()
+	{
+		mostrarAlerta = false;
+		StateHasChanged();
+	}
+
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -639,11 +692,8 @@
 			if (response.IsSuccessStatusCode)
 			{
 				await CargarEvaluaciones();
-
-				await JSRuntime.InvokeVoidAsync("alert",
-					"¡Evaluaciones importadas exitosamente!\n\n" +
-					"• Evaluaciones nuevas agregadas\n" +
-					"• Duplicadas omitidas");
+					MostrarAlerta("success", "Importación Exitosa", "¡Evaluaciones importadas exitosamente!\n\n" +
+					"• Evaluaciones nuevas agregadas\n" +"• Duplicadas omitidas");
 			}
 			else
 			{
@@ -679,8 +729,7 @@
 
 		if (confirmar)
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				$"✅ Envío exitoso\n\n" +
+				MostrarAlerta("info", "Enviando Evaluaciones", $"✅ Envío exitoso\n\n" +
 				$"• {seleccionadas.Count} evaluación(es) enviada(s)\n" +
 				$"• Estado cambiado a 'En Revisión'\n" +
 				$"• Confirmación enviada por email");
@@ -695,10 +744,10 @@
 	}
 	else
 	{
-		await JSRuntime.InvokeVoidAsync("alert",
-			"⚠️ Atención\n\n" +
+		MostrarAlerta("info", "Atención", "⚠️ Atención\n\n" +
 			"No hay evaluaciones seleccionadas.\n" +
 			"Seleccione al menos una evaluación para enviar.");
+
 	}
 		}
 

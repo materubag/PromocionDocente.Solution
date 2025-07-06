@@ -1,0 +1,104 @@
+﻿@* ConfirmacionToast.razor *@
+@if (Mostrar)
+{
+    <div class="toast-confirm-backdrop">
+        <div class="toast-alert toast-info toast-confirm-modal">
+            <div class="toast-icon"><i class="fas fa-question-circle"></i></div>
+            <div class="toast-content">
+                <h6 class="toast-title">@Titulo</h6>
+                <p class="toast-message">@((MarkupString)Mensaje)</p>
+                <div class="toast-btn-row">
+                    <button class="btn btn-primary btn-aceptar" @onclick="() => OnConfirmar.InvokeAsync(true)">Aceptar</button>
+                    <button class="btn btn-secondary btn-cancelar" @onclick="() => OnConfirmar.InvokeAsync(false)">Cancelar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public bool Mostrar { get; set; }
+    [Parameter] public string Titulo { get; set; }
+    [Parameter] public string Mensaje { get; set; }
+    [Parameter] public EventCallback<bool> OnConfirmar { get; set; }
+}
+
+<style>
+@@keyframes slideInRight {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@@keyframes fadeInCenter {
+    from {
+        opacity: 0;
+        transform: translate(-50%, -60%) scale(0.96);
+    }
+    to {
+        opacity: 1;
+        transform: translate(-50%, -50%) scale(1);
+    }
+}
+
+.toast-confirm-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.15);
+    z-index: 9998;
+}
+
+.toast-confirm-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    bottom: auto;
+    transform: translate(-50%,-50%);
+    min-width: 350px;
+    max-width: 440px;
+    z-index: 9999;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.22);
+    animation: fadeInCenter 0.18s;
+}
+
+.toast-btn-row {
+    margin-top: 14px;
+    display: flex;
+    gap: 10px;
+}
+
+.btn-aceptar {
+    background: #581517;
+    border: none;
+}
+
+.btn-cancelar {
+    background: #868e96;
+    border: none;
+}
+
+.btn-aceptar, .btn-cancelar {
+    padding: 6px 18px;
+    border-radius: 6px;
+    color: #fff;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: .15s;
+    outline: none;
+}
+
+.btn-cancelar:hover {
+    background: #495057;
+}
+
+.btn-aceptar:hover {
+    background: #792220;
+}
+</style>

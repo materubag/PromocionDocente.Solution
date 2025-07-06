@@ -44,12 +44,74 @@
     <button type="button" class="btn btn-secondary mt-3" @onclick="Cancelar">Cancelar</button>
 </EditForm>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
+
 @code {
     private InvestigacionDto nuevaInvestigacion = new()
     {
         Estado = "Pendiente",
         Observacion = ""
     };
+
+    // Variables para el sistema de alertas/toast
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+    private bool mostrarConfirmacion = false;
+    private string tituloConfirmar = "";
+    private string mensajeConfirmar = "";
+    private TaskCompletionSource<bool> tcsConfirmar;
+
+    private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+    {
+        tituloConfirmar = titulo;
+        mensajeConfirmar = mensaje;
+        mostrarConfirmacion = true;
+        StateHasChanged();
+        tcsConfirmar = new TaskCompletionSource<bool>();
+        return tcsConfirmar.Task;
+    }
+
+    private Task OnConfirmarToast(bool respuesta)
+    {
+        mostrarConfirmacion = false;
+        StateHasChanged();
+        tcsConfirmar?.SetResult(respuesta);
+        return Task.CompletedTask;
+    }
+
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+        StateHasChanged();
+
+        // Auto-cerrar después de 4 segundos
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
+
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,11 +144,13 @@
 
         if (response.IsSuccessStatusCode)
         {
+            MostrarAlerta("success", "Investigación guardada", "La investigación se ha guardado correctamente.");
+            await Task.Delay(1500);
             NavManager.NavigateTo("/docente/investigaciones");
         }
         else
         {
-            Console.WriteLine("Error al guardar investigación");
+            MostrarAlerta("error", "Error al guardar la investigación", "No se pudo guardar la investigación. Por favor, intente nuevamente.");
         }
     }
 
