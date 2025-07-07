@@ -8,7 +8,12 @@ using System.Threading.Tasks;
 using System.Xml.Linq;
 using iTextSharp.text;
 using iTextSharp.text.pdf;
+using QuestPDF.Infrastructure;
+using QuestPDF.Fluent;
+using QuestPDF.Helpers;
 using static System.Net.Mime.MediaTypeNames;
+using Document = QuestPDF.Fluent.Document;
+
 
 namespace PromocionDocente.Infrastructure.Utils
 {
@@ -66,35 +71,65 @@ namespace PromocionDocente.Infrastructure.Utils
         }
 
         public static byte[] GenerarPdfPostulacion(string cedula, string nombreDocente,
-        string categoriaAnterior, string categoriaNueva, DateOnly fechaAprobacion, string usuario)
+    string categoriaAnterior, string categoriaNueva, DateOnly fechaAprobacion, string usuario)
         {
-            // En lugar de generar un PDF real, creamos un documento de texto en memoria
-            // que representa la información que iría en el PDF
-            using (MemoryStream ms = new MemoryStream())
-            using (StreamWriter writer = new StreamWriter(ms))
+            // Configurar QuestPDF (solo necesario una vez en la aplicación)
+            QuestPDF.Settings.License = LicenseType.Community;
+
+            // Generar documento
+            var document = Document.Create(container =>
             {
-                writer.WriteLine("CERTIFICADO DE PROMOCIÓN DOCENTE");
-                writer.WriteLine("================================");
-                writer.WriteLine();
-                writer.WriteLine($"Fecha: {fechaAprobacion.ToString("dd/MM/yyyy")}");
-                writer.WriteLine();
-                writer.WriteLine("Por medio del presente documento se certifica que:");
-                writer.WriteLine();
-                writer.WriteLine($"El/La docente {nombreDocente} con cédula {cedula} ha sido " +
-                    $"promovido/a de la categoría {categoriaAnterior} a la categoría {categoriaNueva}, " +
-                    $"cumpliendo con todos los requisitos establecidos para dicha promoción.");
-                writer.WriteLine();
-                writer.WriteLine($"La promoción ha sido aprobada con fecha {fechaAprobacion.ToString("dd/MM/yyyy")}.");
-                writer.WriteLine();
-                writer.WriteLine("Este documento ha sido generado automáticamente por el " +
-                    "Sistema de Promoción Docente.");
-                writer.WriteLine($"Revisor: {usuario}");
+                container.Page(page =>
+                {
+                    page.Margin(50);
 
-                writer.Flush();
+                    page.Header().Element(header =>
+                    {
+                        header.AlignCenter().Text("CERTIFICADO DE PROMOCIÓN DOCENTE")
+                            .FontSize(16)
+                            .Bold();
+                    });
 
-                // Convertir a base64 y luego a binario para simular el proceso
-                return ms.ToArray();
-            }
+                    page.Content().Element(content =>
+                    {
+                        content.Column(column =>
+                        {
+                            column.Spacing(10);
+
+                            column.Item().Text($"Fecha: {fechaAprobacion:dd/MM/yyyy}");
+
+                            column.Item().Text("Por medio del presente documento se certifica que:");
+                            column.Item().Text(text =>
+                            {
+                                text.Span($"El/La docente {nombreDocente} con cédula {cedula} ha sido ");
+                                text.Span($"promovido/a de la categoría {categoriaAnterior} a la categoría {categoriaNueva}, ");
+                                text.Span($"cumpliendo con todos los requisitos establecidos para dicha promoción.");
+                            });
+
+                            column.Item().Text($"La promoción ha sido aprobada con fecha {fechaAprobacion:dd/MM/yyyy}.");
+
+                            column.Item().Text(text =>
+                            {
+                                text.Span("Este documento ha sido generado automáticamente por el ");
+                                text.Span("Sistema de Promoción Docente.");
+                            });
+
+                            column.Item().Text($"Revisor: {usuario}");
+                        });
+                    });
+
+                    page.Footer().AlignCenter().Text(x =>
+                    {
+                        x.Span("Página ").FontSize(10);
+                        x.CurrentPageNumber().FontSize(10);
+                        x.Span(" de ").FontSize(10);
+                        x.TotalPages().FontSize(10);
+                    });
+                });
+            });
+
+            // Generar y devolver PDF como array de bytes
+            return document.GeneratePdf();
         }
     }
 }

@@ -15,10 +15,8 @@
 		</div>
 	</div>
 
-	<!-- Contenido Principal -->
 	<div class="contenido-principal">
 		<div class="tabla-container">
-			<!-- Barra de herramientas -->
 			<div class="toolbar">
 				<div class="search-container">
 					<input type="text" class="search-input" placeholder="Buscar..." @bind="filtroTexto" @oninput="FiltrarEvaluaciones" />
@@ -102,7 +100,6 @@
 				</table>
 			</div>
 
-			<!-- Paginación -->
 			<div class="pagination-container">
 				<div class="pagination-info">
 					Mostrando @((paginaActual - 1) * elementosPorPagina + 1) - @(Math.Min(paginaActual * elementosPorPagina, totalElementos)) de @totalElementos evaluaciones
@@ -490,8 +487,6 @@
 	private int totalPaginas = 0;
 	private bool isImporting = false;
 	private string? cedulaUsuario;
-
-	// Variables para el sistema de alertas/toast
 	private bool mostrarAlerta = false;
 	private string tipoAlerta = "";
 	private string tituloAlerta = "";
@@ -518,8 +513,6 @@
 		tcsConfirmar?.SetResult(respuesta);
 		return Task.CompletedTask;
 	}
-
-
 	private void MostrarAlerta(string tipo, string titulo, string mensaje)
 	{
 		tipoAlerta = tipo;
@@ -528,7 +521,6 @@
 		mostrarAlerta = true;
 		StateHasChanged();
 
-		// Auto-cerrar después de 4 segundos
 		_ = Task.Delay(4000).ContinueWith(_ =>
 		{
 			InvokeAsync(() =>
@@ -547,8 +539,6 @@
 		mostrarAlerta = false;
 		StateHasChanged();
 	}
-
-
 	protected override async Task OnInitializedAsync()
 	{
 		docenteInfo = new DocenteInfo
@@ -557,7 +547,6 @@
 				Cargo = "Profesor Auxiliar - Ing. Sistemas",
 			};
 
-		// Leer cédula solo una vez al iniciar
 		await LeerCedulaUsuarioAsync();
 
 		await CargarEvaluaciones();
@@ -774,7 +763,6 @@
 		public bool Seleccionada { get; set; }
         public string Estado { get; set; }
 	}
-
 
 		public class DocenteInfo
 		{
