@@ -642,7 +642,6 @@
 			<div class="rechazados-contenido">
 				<div class="rechazados-info">
 					<p><strong>Docente:</strong> @solicitudesRechazadas.NombreDocente</p>
-					<p><strong>Categoría actual:</strong> @(solicitudesRechazadas.CategoriaActual ?? "No disponible")</p>
 					<p><strong>Revisado por:</strong> @solicitudesRechazadas.UsuarioGeneracion</p>
 					<p><strong>Fecha de revisión:</strong> @solicitudesRechazadas.FechaGeneracion</p>
 					<p><strong>Total de elementos rechazados:</strong> @solicitudesRechazadas.TotalRechazados</p>
@@ -670,7 +669,74 @@
 						</ul>
 					</div>
 				}
-				@* Puedes dejar los otros bloques de investigaciones, cursos y evaluaciones igual *@
+
+				@if (solicitudesRechazadas.InvestigacionesRechazadas?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Investigaciones Rechazadas (@solicitudesRechazadas.InvestigacionesRechazadas.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var investigacion in solicitudesRechazadas.InvestigacionesRechazadas)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@investigacion.TituloInvestigacion</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Fecha inicio:</strong> @investigacion.FechaInicio.ToString("yyyy-MM-dd")</span>
+										<span><strong>Fecha fin:</strong> @investigacion.FechaFin.ToString("yyyy-MM-dd")</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@investigacion.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
+
+				@if (solicitudesRechazadas.CursosRechazados?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Cursos Rechazados (@solicitudesRechazadas.CursosRechazados.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var curso in solicitudesRechazadas.CursosRechazados)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@curso.NombreCurso</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Fecha:</strong> @curso.FechaCurso.ToString("yyyy-MM-dd")</span>
+										<span><strong>Horas:</strong> @curso.Horas</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@curso.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
+
+				@if (solicitudesRechazadas.EvaluacionesRechazadas?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Evaluaciones Rechazadas (@solicitudesRechazadas.EvaluacionesRechazadas.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var evaluacion in solicitudesRechazadas.EvaluacionesRechazadas)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@evaluacion.TipoEvaluacion - @evaluacion.PeriodoEvaluado</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Resultado:</strong> @evaluacion.Resultado.ToString("0.00")</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@evaluacion.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
 			</div>
 		</div>
 	}
@@ -924,7 +990,6 @@
 	{
 		public string CedulaDocente { get; set; } = "";
 		public string NombreDocente { get; set; } = "";
-		public string CategoriaActual { get; set; } = "";
 		public string UltimaFechaHistorial { get; set; } = "";
 		public List<ObraRechazada> ObrasRechazadas { get; set; } = new List<ObraRechazada>();
 		public List<InvestigacionRechazada> InvestigacionesRechazadas { get; set; } = new List<InvestigacionRechazada>();

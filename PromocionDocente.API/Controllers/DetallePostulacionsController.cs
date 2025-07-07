@@ -91,6 +91,11 @@ namespace PromocionDocente.API.Controllers
                 {
                     return NotFound("No se encontró historial para el docente. Se requiere al menos un registro en el historial.");
                 }
+                var revisor = await _context.Postulaciones
+                    .Where(p => p.CedDoc == cedula)
+                    .OrderByDescending(p => p.IdPos)
+                    .Select(p => p.Revisor)
+                    .FirstOrDefaultAsync();
 
                 // 4. Obtener elementos rechazados posteriores a la última fecha del historial
                 var obrasRechazadas = await _context.Obras
@@ -162,8 +167,8 @@ namespace PromocionDocente.API.Controllers
                     EvaluacionesRechazadas = evaluacionesRechazadas,
                     TotalRechazados = obrasRechazadas.Count + investigacionesRechazadas.Count +
                                      cursosRechazados.Count + evaluacionesRechazadas.Count,
-                    FechaGeneracion = "2025-07-07 02:08:17", // Usando la fecha actual proporcionada
-                    UsuarioGeneracion = "materubag" // Usando el usuario actual proporcionado
+                    FechaGeneracion = DateTime.Now.ToString("dd/MM/yyyy"),
+                    UsuarioGeneracion = revisor
                 };
 
                 return reporte;

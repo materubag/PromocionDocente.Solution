@@ -31,7 +31,7 @@
 						<span class="btn-icon">📁</span>
 						@(isImporting ? "Importando..." : "Importar")
 					</button>
-					
+
 				</div>
 			</div>
 
@@ -55,7 +55,7 @@
 							@foreach (var evaluacion in evaluacionesFiltradas)
 							{
 								<tr class="@(evaluacion.Seleccionada ? "selected" : "")">
-									
+
 									<td>@evaluacion.PeriodoEvaluado</td>
 									<td>@evaluacion.TipoEvaluacion</td>
 									<td>@evaluacion.FechaEvaluacion.ToString("dd/MM/yyyy")</td>
@@ -115,360 +115,360 @@
 </div>
 
 <style>
-    .evaluaciones-container {
-        min-height: 100vh;
-        background: #ffffff;
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    }
+	.evaluaciones-container {
+		min-height: 100vh;
+		background: #ffffff;
+		font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+	}
 
-    .header-container {
-        background: #581517;
-        backdrop-filter: blur(10px);
-        color: white;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
-        padding: 1rem 2rem;
-    }
+	.header-container {
+		background: #581517;
+		backdrop-filter: blur(10px);
+		color: white;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+		padding: 1rem 2rem;
+	}
 
-    .header-content {
-        max-width: 1200px;
-        margin: 0 auto;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
+	.header-content {
+		max-width: 1200px;
+		margin: 0 auto;
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+	}
 
-    .titulo-principal {
-        color: white;
-        font-size: 2rem;
-        font-weight: 300;
-        margin: 0;
-    }
+	.titulo-principal {
+		color: white;
+		font-size: 2rem;
+		font-weight: 300;
+		margin: 0;
+	}
 
-    .docente-info {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        background: rgba(255, 255, 255, 0.1);
-        padding: 0.5rem 1rem;
-        border-radius: 50px;
-        backdrop-filter: blur(10px);
-    }
+	.docente-info {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		background: rgba(255, 255, 255, 0.1);
+		padding: 0.5rem 1rem;
+		border-radius: 50px;
+		backdrop-filter: blur(10px);
+	}
 
-    .avatar {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        overflow: hidden;
-        background: #4A90E2;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+	.avatar {
+		width: 40px;
+		height: 40px;
+		border-radius: 50%;
+		overflow: hidden;
+		background: #4A90E2;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-    .avatar img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
+		.avatar img {
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+		}
 
-    .info-text {
-        color: white;
-    }
+	.info-text {
+		color: white;
+	}
 
-    .nombre {
-        font-weight: 600;
-        font-size: 0.9rem;
-    }
+	.nombre {
+		font-weight: 600;
+		font-size: 0.9rem;
+	}
 
-    .cargo {
-        font-size: 0.8rem;
-        opacity: 0.8;
-    }
+	.cargo {
+		font-size: 0.8rem;
+		opacity: 0.8;
+	}
 
-    .contenido-principal {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 0 2rem;
-    }
+	.contenido-principal {
+		max-width: 1200px;
+		margin: 2rem auto;
+		padding: 0 2rem;
+	}
 
-    .tabla-container {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        overflow: hidden;
-    }
+	.tabla-container {
+		background: white;
+		border-radius: 8px;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+		overflow: hidden;
+	}
 
-    /* Toolbar */
-    .toolbar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        background: #f8f9fa;
-        border-bottom: 1px solid #dee2e6;
-    }
+	/* Toolbar */
+	.toolbar {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 1.5rem;
+		background: #f8f9fa;
+		border-bottom: 1px solid #dee2e6;
+	}
 
-    .search-container {
-        position: relative;
-        flex: 1;
-        max-width: 300px;
-    }
+	.search-container {
+		position: relative;
+		flex: 1;
+		max-width: 300px;
+	}
 
-    .search-input {
-        width: 100%;
-        padding: 0.5rem 2.5rem 0.5rem 1rem;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 0.9rem;
-    }
+	.search-input {
+		width: 100%;
+		padding: 0.5rem 2.5rem 0.5rem 1rem;
+		border: 1px solid #ddd;
+		border-radius: 4px;
+		font-size: 0.9rem;
+	}
 
-    .search-icon {
-        position: absolute;
-        right: 0.75rem;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #666;
-    }
+	.search-icon {
+		position: absolute;
+		right: 0.75rem;
+		top: 50%;
+		transform: translateY(-50%);
+		color: #666;
+	}
 
-    .action-buttons {
-        display: flex;
-        gap: 0.5rem;
-    }
+	.action-buttons {
+		display: flex;
+		gap: 0.5rem;
+	}
 
-    .btn {
-        padding: 0.5rem 1rem;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.9rem;
-        transition: all 0.2s;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
+	.btn {
+		padding: 0.5rem 1rem;
+		border: none;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.9rem;
+		transition: all 0.2s;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
 
-    .btn:disabled {
-        opacity: 0.6;
-        cursor: not-allowed;
-    }
+		.btn:disabled {
+			opacity: 0.6;
+			cursor: not-allowed;
+		}
 
-    .btn-icon {
-        font-size: 0.8rem;
-    }
+	.btn-icon {
+		font-size: 0.8rem;
+	}
 
-    .btn-primary {
-        background: #581517;
-        color: white;
-    }
+	.btn-primary {
+		background: #581517;
+		color: white;
+	}
 
-    .btn-primary:hover:not(:disabled) {
-        background: #6d1a1c;
-    }
+		.btn-primary:hover:not(:disabled) {
+			background: #6d1a1c;
+		}
 
-    .btn-secondary {
-        background: #6c757d;
-        color: white;
-    }
+	.btn-secondary {
+		background: #6c757d;
+		color: white;
+	}
 
-    .btn-secondary:hover:not(:disabled) {
-        background: #5a6268;
-    }
+		.btn-secondary:hover:not(:disabled) {
+			background: #5a6268;
+		}
 
-    /* Tabla */
-    .tabla-evaluaciones {
-        overflow-x: auto;
-    }
+	/* Tabla */
+	.tabla-evaluaciones {
+		overflow-x: auto;
+	}
 
-    .evaluaciones-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
+	.evaluaciones-table {
+		width: 100%;
+		border-collapse: collapse;
+	}
 
-    .evaluaciones-table th,
-    .evaluaciones-table td {
-        padding: 0.75rem;
-        text-align: left;
-        border-bottom: 1px solid #dee2e6;
-    }
+		.evaluaciones-table th,
+		.evaluaciones-table td {
+			padding: 0.75rem;
+			text-align: left;
+			border-bottom: 1px solid #dee2e6;
+		}
 
-    .evaluaciones-table th {
-        background: #f8f9fa;
-        font-weight: 600;
-        color: #495057;
-        font-size: 0.9rem;
-    }
+		.evaluaciones-table th {
+			background: #f8f9fa;
+			font-weight: 600;
+			color: #495057;
+			font-size: 0.9rem;
+		}
 
-    .evaluaciones-table tbody tr:hover {
-        background: #f8f9fa;
-    }
+		.evaluaciones-table tbody tr:hover {
+			background: #f8f9fa;
+		}
 
-    .evaluaciones-table tbody tr.selected {
-        background: #e3f2fd;
-    }
+		.evaluaciones-table tbody tr.selected {
+			background: #e3f2fd;
+		}
 
-    .col-checkbox {
-        width: 40px;
-    }
+	.col-checkbox {
+		width: 40px;
+	}
 
-    .col-periodo {
-        width: 120px;
-    }
+	.col-periodo {
+		width: 120px;
+	}
 
-    .col-tipo {
-        width: 150px;
-    }
+	.col-tipo {
+		width: 150px;
+	}
 
-    .col-fecha {
-        width: 120px;
-    }
+	.col-fecha {
+		width: 120px;
+	}
 
-    .col-resultado {
-        width: 100px;
-    }
+	.col-resultado {
+		width: 100px;
+	}
 
-    .col-estado {
-        width: 100px;
-    }
+	.col-estado {
+		width: 100px;
+	}
 
-    .col-documento {
-        width: 120px;
-    }
+	.col-documento {
+		width: 120px;
+	}
 
-    .badge-resultado {
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
+	.badge-resultado {
+		padding: 0.25rem 0.5rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
 
-    .resultado-excelente {
-        background: #d4edda;
-        color: #155724;
-    }
+	.resultado-excelente {
+		background: #d4edda;
+		color: #155724;
+	}
 
-    .resultado-bueno {
-        background: #d1ecf1;
-        color: #0c5460;
-    }
+	.resultado-bueno {
+		background: #d1ecf1;
+		color: #0c5460;
+	}
 
-    .resultado-regular {
-        background: #fff3cd;
-        color: #856404;
-    }
+	.resultado-regular {
+		background: #fff3cd;
+		color: #856404;
+	}
 
-    .resultado-malo {
-        background: #f8d7da;
-        color: #721c24;
-    }
+	.resultado-malo {
+		background: #f8d7da;
+		color: #721c24;
+	}
 
-    .badge-estado {
-        padding: 0.25rem 0.5rem;
-        border-radius: 12px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
+	.badge-estado {
+		padding: 0.25rem 0.5rem;
+		border-radius: 12px;
+		font-size: 0.8rem;
+		font-weight: 600;
+	}
 
-    .estado-completado {
-        background: #d4edda;
-        color: #155724;
-    }
+	.estado-completado {
+		background: #d4edda;
+		color: #155724;
+	}
 
-    .estado-pendiente {
-        background: #fff3cd;
-        color: #856404;
-    }
+	.estado-pendiente {
+		background: #fff3cd;
+		color: #856404;
+	}
 
-    .estado-borrador {
-        background: #e2e3e5;
-        color: #383d41;
-    }
+	.estado-borrador {
+		background: #e2e3e5;
+		color: #383d41;
+	}
 
-    .documento {
-        text-align: center;
-    }
+	.documento {
+		text-align: center;
+	}
 
-    .btn-documento {
-        background: #e8f5e8;
-        border: 1px solid #28a745;
-        color: #28a745;
-        padding: 0.25rem 0.5rem;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 0.8rem;
-        display: flex;
-        align-items: center;
-        gap: 0.25rem;
-        transition: all 0.2s;
-    }
+	.btn-documento {
+		background: #e8f5e8;
+		border: 1px solid #28a745;
+		color: #28a745;
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+		cursor: pointer;
+		font-size: 0.8rem;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		transition: all 0.2s;
+	}
 
-    .btn-documento:hover {
-        background: #28a745;
-        color: white;
-    }
+		.btn-documento:hover {
+			background: #28a745;
+			color: white;
+		}
 
-    .documento-icon {
-        font-size: 0.9rem;
-    }
+	.documento-icon {
+		font-size: 0.9rem;
+	}
 
-    .documento-text {
-        font-weight: 600;
-    }
+	.documento-text {
+		font-weight: 600;
+	}
 
-    .no-documento {
-        color: #6c757d;
-        font-style: italic;
-        font-size: 0.8rem;
-    }
+	.no-documento {
+		color: #6c757d;
+		font-style: italic;
+		font-size: 0.8rem;
+	}
 
-    .no-data {
-        text-align: center;
-        color: #6c757d;
-        font-style: italic;
-        padding: 2rem;
-    }
+	.no-data {
+		text-align: center;
+		color: #6c757d;
+		font-style: italic;
+		padding: 2rem;
+	}
 
-    /* Paginación */
-    .pagination-container {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1rem 1.5rem;
-        background: #f8f9fa;
-        border-top: 1px solid #dee2e6;
-    }
+	/* Paginación */
+	.pagination-container {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 1.5rem;
+		background: #f8f9fa;
+		border-top: 1px solid #dee2e6;
+	}
 
-    .pagination-info {
-        color: #6c757d;
-        font-size: 0.9rem;
-    }
+	.pagination-info {
+		color: #6c757d;
+		font-size: 0.9rem;
+	}
 
-    .pagination-controls {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
+	.pagination-controls {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+	}
 
-    .btn-page {
-        background: #fff;
-        border: 1px solid #dee2e6;
-        padding: 0.5rem 0.75rem;
-        border-radius: 4px;
-        cursor: pointer;
-    }
+	.btn-page {
+		background: #fff;
+		border: 1px solid #dee2e6;
+		padding: 0.5rem 0.75rem;
+		border-radius: 4px;
+		cursor: pointer;
+	}
 
-    .btn-page:hover:not([disabled]) {
-        background: #e9ecef;
-    }
+		.btn-page:hover:not([disabled]) {
+			background: #e9ecef;
+		}
 
-    .btn-page[disabled] {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
+		.btn-page[disabled] {
+			opacity: 0.5;
+			cursor: not-allowed;
+		}
 
-    .page-info {
-        color: #495057;
-        font-size: 0.9rem;
-    }
+	.page-info {
+		color: #495057;
+		font-size: 0.9rem;
+	}
 </style>
 
 <ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
@@ -607,7 +607,7 @@
 		}
 	}
 
-	private string GetClaseResultado(decimal resultado)
+		private string GetClaseResultado(decimal resultado)
 		{
 	if (resultado >= 4.5m) return "resultado-excelente";
 	if (resultado >= 4.0m) return "resultado-bueno";
@@ -657,7 +657,7 @@
 
 		private void AgregarEvaluacion()
 		{
-		NavManager.NavigateTo("/docente/agregar/agregarevaluacion");
+	NavManager.NavigateTo("/docente/agregar/agregarevaluacion");
 		}
 
 		private async Task ImportarEvaluaciones()
@@ -681,8 +681,8 @@
 			if (response.IsSuccessStatusCode)
 			{
 				await CargarEvaluaciones();
-					MostrarAlerta("success", "Importación Exitosa", "¡Evaluaciones importadas exitosamente!\n\n" +
-					"• Evaluaciones nuevas agregadas\n" +"• Duplicadas omitidas");
+				MostrarAlerta("success", "Importación Exitosa", "¡Evaluaciones importadas exitosamente!\n\n" +
+				"• Evaluaciones nuevas agregadas\n" + "• Duplicadas omitidas");
 			}
 			else
 			{
@@ -701,7 +701,7 @@
 	}
 		}
 
-		
+
 
 		private async Task EnviarSeleccionada()
 		{
@@ -718,10 +718,10 @@
 
 		if (confirmar)
 		{
-				MostrarAlerta("info", "Enviando Evaluaciones", $"✅ Envío exitoso\n\n" +
-				$"• {seleccionadas.Count} evaluación(es) enviada(s)\n" +
-				$"• Estado cambiado a 'En Revisión'\n" +
-				$"• Confirmación enviada por email");
+			MostrarAlerta("info", "Enviando Evaluaciones", $"✅ Envío exitoso\n\n" +
+			$"• {seleccionadas.Count} evaluación(es) enviada(s)\n" +
+			$"• Estado cambiado a 'En Revisión'\n" +
+			$"• Confirmación enviada por email");
 
 			// Actualizar estado de las evaluaciones seleccionadas
 			foreach (var eval in seleccionadas)
@@ -740,7 +740,7 @@
 	}
 		}
 
-		
+
 
 		private async Task VerPDF(EvaluacionInfo evaluacion)
 		{
@@ -751,27 +751,27 @@
 		}
 
 
-	public class EvaluacionInfo
-	{
-		public int IdEvaluacion { get; set; } // Este es el que necesitas para navegar
-		public DateTime FechaEvaluacion { get; set; }
-		public decimal Resultado { get; set; }
-		public string PdfEvaluacion { get; set; }
-		public string PeriodoEvaluado { get; set; }
-		public string CedulaDocente { get; set; }
-		public string TipoEvaluacion { get; set; }
-		public bool Seleccionada { get; set; }
-        public string Estado { get; set; }
-	}
+		public class EvaluacionInfo
+		{
+	public int IdEvaluacion { get; set; } // Este es el que necesitas para navegar
+	public DateTime FechaEvaluacion { get; set; }
+	public decimal Resultado { get; set; }
+	public string PdfEvaluacion { get; set; }
+	public string PeriodoEvaluado { get; set; }
+	public string CedulaDocente { get; set; }
+	public string TipoEvaluacion { get; set; }
+	public bool Seleccionada { get; set; }
+	public string Estado { get; set; }
+		}
 
 		public class DocenteInfo
 		{
 	public string Nombre { get; set; } = "";
 	public string Cargo { get; set; } = "";
 		}
-	private void EditarEvaluacion(int id)
-	{
-		NavManager.NavigateTo($"/docente/editar/evaluacion/{id}");
-	}
+		private void EditarEvaluacion(int id)
+		{
+	NavManager.NavigateTo($"/docente/editar/evaluacion/{id}");
+		}
 
 }
