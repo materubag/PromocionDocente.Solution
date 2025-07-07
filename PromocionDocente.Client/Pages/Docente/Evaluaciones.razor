@@ -664,7 +664,7 @@
 		{
 	if (isImporting) return;
 
-	bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+	bool confirmar = await MostrarConfirmacion("Confirmacion",
 		"¿Desea importar evaluaciones desde DAC para este docente?\n\n" +
 		"• Evaluaciones duplicadas serán omitidas\n\n" +
 		"¿Continuar?");
@@ -709,12 +709,13 @@
 
 	if (seleccionadas.Any())
 	{
-		bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
+			bool confirmar = await MostrarConfirmacion("confirm",
 			$"¿Enviar {seleccionadas.Count} evaluación(es) seleccionada(s)?\n\n" +
 			$"• Las evaluaciones serán enviadas para revisión\n" +
 			$"• No podrán ser editadas después del envío\n" +
 			$"• Recibirá una confirmación por email\n\n" +
 			$"¿Continuar con el envío?");
+
 
 		if (confirmar)
 		{
