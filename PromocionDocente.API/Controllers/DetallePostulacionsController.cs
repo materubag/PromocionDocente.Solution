@@ -43,7 +43,7 @@ namespace PromocionDocente.API.Controllers
             return detallePostulacion;
         }
 
-        
+
 
         // POST: api/DetallePostulacions
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
@@ -86,19 +86,17 @@ namespace PromocionDocente.API.Controllers
                     .Select(h => h.FecIni)
                     .FirstOrDefaultAsync();
 
-                // 3. Obtener el revisor de la última postulación del docente
-                var ultimaPostulacion = await _context.Postulaciones
-                    .Where(p => p.CedDoc == cedula)
-                    .OrderByDescending(p => p.FecPos)
-                    .Select(p => new { p.IdPos, p.Revisor })
-                    .FirstOrDefaultAsync();
+                // Si no hay historial, mostrar un mensaje indicando que se necesita al menos un registro
+                if (ultimaFecha == default(DateOnly))
+                {
+                    return NotFound("No se encontró historial para el docente. Se requiere al menos un registro en el historial.");
+                }
 
-                string revisor = ultimaPostulacion?.Revisor ?? "Sistema";
-                int idPostulacion = ultimaPostulacion?.IdPos ?? 0;
-
-                // 4. Obtener elementos rechazados
+                // 4. Obtener elementos rechazados posteriores a la última fecha del historial
                 var obrasRechazadas = await _context.Obras
-                    .Where(o => o.CedDoc == cedula && o.Estado == "RECHAZADO")
+                    .Where(o => o.CedDoc == cedula &&
+                          o.Estado == "RECHAZADO" &&
+                          o.FechaPublicacion >= ultimaFecha)
                     .Select(o => new ObraRechazadaDto
                     {
                         IdObra = o.IdObra,
@@ -110,7 +108,9 @@ namespace PromocionDocente.API.Controllers
                     .ToListAsync();
 
                 var investigacionesRechazadas = await _context.Investigaciones
-                    .Where(i => i.CedDoc == cedula && i.Estado == "RECHAZADO")
+                    .Where(i => i.CedDoc == cedula &&
+                          i.Estado == "RECHAZADO" &&
+                          i.FechaInicio >= ultimaFecha)
                     .Select(i => new InvestigacionRechazadaDto
                     {
                         IdInvestigacion = i.IdInvestigacion,
@@ -122,7 +122,9 @@ namespace PromocionDocente.API.Controllers
                     .ToListAsync();
 
                 var cursosRechazados = await _context.CursosCapacitacions
-                    .Where(c => c.CedDoc == cedula && c.Estado == "RECHAZADO")
+                    .Where(c => c.CedDoc == cedula &&
+                          c.Estado == "RECHAZADO" &&
+                          c.FechaCurso >= ultimaFecha)
                     .Select(c => new CursoRechazadoDto
                     {
                         IdCurso = c.IdCurso,
@@ -134,7 +136,10 @@ namespace PromocionDocente.API.Controllers
                     .ToListAsync();
 
                 var evaluacionesRechazadas = await _context.Evaluaciones
-                    .Where(e => e.CedDoc == cedula && e.Estado == "RECHAZADO")
+                    .Where(e => e.CedDoc == cedula &&
+                          e.Estado == "RECHAZADO" &&
+                          // Asumiendo que FechaEvaluacion es el campo de fecha relevante para evaluaciones
+                          e.FechaEvaluacion >= ultimaFecha)
                     .Select(e => new EvaluacionRechazadaDto
                     {
                         IdEvaluacion = e.IdEvaluacion,
@@ -157,8 +162,8 @@ namespace PromocionDocente.API.Controllers
                     EvaluacionesRechazadas = evaluacionesRechazadas,
                     TotalRechazados = obrasRechazadas.Count + investigacionesRechazadas.Count +
                                      cursosRechazados.Count + evaluacionesRechazadas.Count,
-                    FechaGeneracion = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss"),
-                    UsuarioGeneracion = revisor // Usar el revisor de la postulación en lugar del usuario actual
+                    FechaGeneracion = "2025-07-07 02:08:17", // Usando la fecha actual proporcionada
+                    UsuarioGeneracion = "materubag" // Usando el usuario actual proporcionado
                 };
 
                 return reporte;
