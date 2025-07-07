@@ -1,0 +1,157 @@
+@* ToastAlerta.razor *@
+@if (Mostrar)
+{
+    <div class="toast-alert @(Tipo == "success" ? "toast-success" : Tipo == "error" ? "toast-error" : "toast-info")">
+        <div class="toast-icon">
+            @if (Tipo == "success")
+            {
+                <i class="fas fa-check-circle"></i>
+            }
+            else if (Tipo == "error")
+            {
+                <i class="fas fa-exclamation-triangle"></i>
+            }
+            else
+            {
+                <i class="fas fa-info-circle"></i>
+            }
+        </div>
+        <div class="toast-content">
+            <h6 class="toast-title">@Titulo</h6>
+            <p class="toast-message">@Mensaje</p>
+        </div>
+        <button class="toast-close" @onclick="Cerrar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+}
+<style>
+    /* Estilos para la alerta tipo toast */
+    .toast-alert {
+        position: fixed;
+        top: 24px;
+        right: 24px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+        min-width: 350px;
+        max-width: 400px;
+        z-index: 9999;
+        display: flex;
+        align-items: flex-start;
+        padding: 1rem;
+        gap: 0.75rem;
+        animation: slideInRight 0.4s ease-out;
+        border-left: 4px solid;
+    }
+
+    .toast-success {
+        border-left-color: #581517;
+        background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+    }
+
+    .toast-error {
+        border-left-color: #581517;
+        background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%);
+    }
+
+    .toast-info {
+        border-left-color: #581517;
+        background: linear-gradient(135deg, #ffffff 0%, #f0fcff 100%);
+    }
+
+    .toast-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1rem;
+        color: white;
+        flex-shrink: 0;
+        margin-top: 0.2rem;
+    }
+
+    .toast-success .toast-icon {
+        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    }
+
+    .toast-error .toast-icon {
+        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+    }
+
+    .toast-info .toast-icon {
+        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+    }
+
+    .toast-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .toast-title {
+        margin: 0 0 0.25rem 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #212529;
+        line-height: 1.3;
+    }
+
+    .toast-message {
+        margin: 0;
+        font-size: 0.85rem;
+        color: #6c757d;
+        line-height: 1.4;
+    }
+
+    .toast-close {
+        background: none;
+        border: none;
+        color: #adb5bd;
+        cursor: pointer;
+        padding: 0.25rem;
+        border-radius: 4px;
+        transition: all 0.2s ease;
+        flex-shrink: 0;
+        font-size: 0.9rem;
+        width: 24px;
+        height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .toast-close:hover {
+            color: #6c757d;
+            background: #f8f9fa;
+        }
+
+    @@keyframes slideInRight {
+        from {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+</style>
+
+
+
+@code {
+    [Parameter] public bool Mostrar { get; set; }
+    [Parameter] public string Tipo { get; set; } = "";
+    [Parameter] public string Titulo { get; set; } = "";
+    [Parameter] public string Mensaje { get; set; } = "";
+    [Parameter] public EventCallback OnCerrar { get; set; }
+
+    private async Task Cerrar()
+    {
+        if (OnCerrar.HasDelegate)
+            await OnCerrar.InvokeAsync();
+    }
+}

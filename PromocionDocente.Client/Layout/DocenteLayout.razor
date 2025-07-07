@@ -1,7 +1,9 @@
-﻿﻿@* Components/Layout/DocenteLayout.razor *@
+﻿@using PromocionDocente.Client.Services
+@* Components/Layout/DocenteLayout.razor *@
 @inherits LayoutComponentBase
 @inject NavigationManager Navigation
 @inject HttpClient Http
+@inject UserSessionService UserSession
 @inject IJSRuntime JSRuntime
 
 <div class="fullscreen-layout">
@@ -12,8 +14,44 @@
                 <span class="back-icon">←</span>
             </button>
             <h1>Panel Docente</h1>
-            
-        </div>    
+
+
+            <ul class="nav-tabs">
+                <li class="nav-tab">
+                    <a href="/docente/obras" class="nav-tab-link @GetActiveClass("/docente/obras")">
+                        <i class="fas fa-book"></i>
+                        <span>Obras</span>
+                    </a>
+                </li>
+                <li class="nav-tab">
+                    <a href="/docente/evaluaciones" class="nav-tab-link @GetActiveClass("/docente/evaluaciones")">
+                        <i class="fas fa-clipboard-check"></i>
+                        <span>Evaluaciones</span>
+                    </a>
+                </li>
+                <li class="nav-tab">
+                    <a href="/docente/capacitaciones" class="nav-tab-link @GetActiveClass("/docente/capacitaciones")">
+                        <i class="fas fa-graduation-cap"></i>
+                        <span>Cursos</span>
+                      
+                    </a>
+                </li>
+                <li class="nav-tab">
+                    <a href="/docente/investigaciones" class="nav-tab-link @GetActiveClass("/docente/investigaciones")">
+                        <i class="fas fa-flask"></i>
+                        <span>Investigaciones</span>
+                    </a>
+                </li>
+            </ul>
+
+            <div class="user-menu"></div>
+            <div class="user-avatar">
+                <i class="fas fa-user"></i>
+            </div>
+            <span class="user-name">@UserSession.Usuario.Nombre1 @UserSession.Usuario.Apellido1 </span>
+        </div>
+
+
     </header>
 
     <!-- Contenido principal -->
@@ -25,6 +63,7 @@
 
 
 @code {
+    private string nombreUsuario = "Profesor";
     private bool hayRechazosObras = false;
     private bool hayRechazosEvaluaciones = false;
     private bool hayRechazosCapacitaciones = false;
@@ -33,6 +72,24 @@
     protected override async Task OnInitializedAsync()
     {
         await VerificarRechazos();
+        await ObtenerNombreUsuario();
+    }
+
+    private async Task ObtenerNombreUsuario()
+    {
+        try
+        {
+            var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+            if (string.IsNullOrEmpty(usuarioJson))
+                return;
+
+            var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+            nombreUsuario = usuario?.Nombre ?? "Profesor";
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error al obtener nombre de usuario: {ex.Message}");
+        }
     }
 
     private async Task VerificarRechazos()
@@ -80,6 +137,7 @@
     private class LoginResponse
     {
         public string Cedula { get; set; }
+        public string Nombre { get; set; }
     }
 
     private class RechazosInfo
@@ -90,4 +148,6 @@
         public List<object> CursosRechazados { get; set; } = new();
         public List<object> InvestigacionesRechazadas { get; set; } = new();
     }
+
+
 }

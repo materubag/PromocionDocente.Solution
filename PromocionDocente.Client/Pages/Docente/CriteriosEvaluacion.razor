@@ -73,9 +73,122 @@
     </div>
 </div>
 
+            @if (solicitudesRechazadas.ObrasRechazadas.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Obras Rechazadas (@solicitudesRechazadas.ObrasRechazadas.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var obra in solicitudesRechazadas.ObrasRechazadas)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@obra.Titulo</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Tipo: @obra.TipoObra</span>
+                                    <span>Fecha: @obra.FechaPublicacion.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@obra.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (solicitudesRechazadas.InvestigacionesRechazadas.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Investigaciones Rechazadas (@solicitudesRechazadas.InvestigacionesRechazadas.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var inv in solicitudesRechazadas.InvestigacionesRechazadas)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@inv.TituloInvestigacion</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Periodo: @inv.FechaInicio.ToString("dd/MM/yyyy") - @inv.FechaFin.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@inv.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (solicitudesRechazadas.CursosRechazados.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Cursos Rechazados (@solicitudesRechazadas.CursosRechazados.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var curso in solicitudesRechazadas.CursosRechazados)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@curso.NombreCurso</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Fecha: @curso.FechaCurso.ToString("dd/MM/yyyy")</span>
+                                    <span>Horas: @curso.Horas</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@curso.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            @if (solicitudesRechazadas.EvaluacionesRechazadas.Any())
+            {
+                <div class="seccion-rechazados">
+                    <h4>Evaluaciones Rechazadas (@solicitudesRechazadas.EvaluacionesRechazadas.Count)</h4>
+                    <ul class="lista-rechazados">
+                        @foreach (var eval in solicitudesRechazadas.EvaluacionesRechazadas)
+                        {
+                            <li class="item-rechazado">
+                                <div class="item-rechazado-titulo">@eval.TipoEvaluacion</div>
+                                <div class="item-rechazado-detalle">
+                                    <span>Periodo: @eval.PeriodoEvaluado</span>
+                                    <span>Resultado: @eval.Resultado.ToString("F2")</span>
+                                </div>
+                                <div class="observacion-container">
+                                    <div class="observacion-titulo">Observación:</div>
+                                    <div class="observacion-texto">@eval.Observacion</div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="boton-regresar">
+                <button class="btn-regresar" @onclick="VerCriterios">
+                    Regresar a Criterios
+                </button>
+            </div>
+
+}
+
 <style>
     /* Estilos para el header */
-   
+    .header-container {
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        padding: 1rem 2rem;
+        background: linear-gradient(135deg, #d3d3d3 0%, #b0b0b0 100%);
+    }
+
+    .header-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
 
     .titulo-principal {
         color: white;
@@ -176,14 +289,100 @@
         }
     }
 
+        .btn-regresar:hover {
+            background-color: #0a3d8f;
+        }
 </style>
+
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
 
 @code {
     private DatosEvaluacion datosEvaluacion;
+    private int progresoGeneral = 0;
+    private string nivelObjetivo = "DT2";
+    private DocenteInfo docenteInfo;
+    private SolicitudesRechazadas solicitudesRechazadas;
+    private bool tienePostulacionRechazada = false;
+    private bool hayRechazosDisponibles = false;
+
+    private static class RequisitosP1
+    {
+        public static int NumeroObras = 1;
+        public static int MesesInvestigacion = 0;
+        public static decimal PromedioEvaluacion = 100.0m;
+        public static int HorasCapacitacion = 96;
+        public static decimal AniosDocencia = 4.0m;
+    }
+
+    // Variables para el sistema de alertas/toast
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+    private bool mostrarConfirmacion = false;
+    private string tituloConfirmar = "";
+    private string mensajeConfirmar = "";
+    private TaskCompletionSource<bool> tcsConfirmar;
+
+    private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+    {
+        tituloConfirmar = titulo;
+        mensajeConfirmar = mensaje;
+        mostrarConfirmacion = true;
+        StateHasChanged();
+        tcsConfirmar = new TaskCompletionSource<bool>();
+        return tcsConfirmar.Task;
+    }
+
+    private Task OnConfirmarToast(bool respuesta)
+    {
+        mostrarConfirmacion = false;
+        StateHasChanged();
+        tcsConfirmar?.SetResult(respuesta);
+        return Task.CompletedTask;
+    }
+
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+        StateHasChanged();
+
+        // Auto-cerrar después de 4 segundos
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
 
     protected override async Task OnInitializedAsync()
     {
-        try {
+        docenteInfo = new DocenteInfo
+        {
+            Nombre = "Nombre del Docente",
+            Cargo = "Cargo del Docente"
+        };
+
+        try
+        {
             // Leer cédula desde localStorage
             var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
             string cedulaUsuario = "";
@@ -193,24 +392,107 @@
                 cedulaUsuario = usuario?.Cedula ?? "";
             }
 
-            if (!string.IsNullOrEmpty(cedulaUsuario)) {
-                datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
-            } else {
-                datosEvaluacion = new DatosEvaluacion();
+            if (string.IsNullOrEmpty(cedulaUsuario))
+            {
+                Console.WriteLine("No se encontró la cédula del usuario en localStorage.");
+                datosEvaluacion = new DatosEvaluacion(); // valores vacíos o default
             }
-        } catch (Exception ex) {
+            else
+            {
+                datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacion>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
+
+                // Cargar datos de postulaciones rechazadas
+                try
+                {
+                    solicitudesRechazadas = await Http.GetFromJsonAsync<SolicitudesRechazadas>($"api/DetallePostulacions/rechazados/{cedulaUsuario}");
+
+                    // Verificar si hay postulaciones rechazadas
+                    hayRechazosDisponibles = solicitudesRechazadas != null && solicitudesRechazadas.TotalRechazados > 0;
+
+                    // Por defecto, mostrar la vista de rechazos primero si hay alguno
+                    tienePostulacionRechazada = hayRechazosDisponibles;
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error al cargar postulaciones rechazadas: {ex.Message}");
+                    hayRechazosDisponibles = false;
+                    tienePostulacionRechazada = false;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
             Console.WriteLine("Error al cargar datos: " + ex.Message);
-            datosEvaluacion = new DatosEvaluacion();
+            datosEvaluacion = new DatosEvaluacion(); // valores vacíos
+        }
+        finally
+        {
+            progresoGeneral = CalcularProgresoGeneral();
         }
     }
 
-    public class DatosEvaluacion {
-        [JsonPropertyName("fechaBase")] public string FechaBase { get; set; }
-        [JsonPropertyName("totalObras")] public int NumerodeObras { get; set; }
-        [JsonPropertyName("mesesInvestigacion")] public int HorasdeInvestigacion { get; set; }
-        [JsonPropertyName("promedioEvaluacion")] public decimal PromediodeEvaluacion { get; set; }
-        [JsonPropertyName("horasCursos")] public int CursosdeCapacitacion { get; set; }
-        [JsonPropertyName("aniosServicio")] public decimal AniosdeDocencia { get; set; }
+    private void VerCriterios()
+    {
+        tienePostulacionRechazada = false;
+    }
+
+    private void VerRechazos()
+    {
+        tienePostulacionRechazada = true;
+    }
+
+    private int CalcularProgresoGeneral()
+    {
+        var porcentajes = new List<int>
+        {
+            GetPorcentaje(datosEvaluacion.NumerodeObras, RequisitosP1.NumeroObras),
+            GetPorcentaje(datosEvaluacion.HorasdeInvestigacion, RequisitosP1.MesesInvestigacion),
+            GetPorcentajeDecimal(datosEvaluacion.PromediodeEvaluacion, RequisitosP1.PromedioEvaluacion),
+            GetPorcentaje(datosEvaluacion.CursosdeCapacitacion, RequisitosP1.HorasCapacitacion),
+            GetPorcentajeDecimal(datosEvaluacion.AniosdeDocencia, RequisitosP1.AniosDocencia)
+        };
+
+        return (int)porcentajes.Average();
+    }
+
+    private int GetPorcentaje(int valorActual, int valorRequerido)
+    {
+        if (valorRequerido == 0) return 100;
+        return Math.Min(100, (valorActual * 100) / valorRequerido);
+    }
+
+    private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
+    {
+        if (valorRequerido == 0) return 100;
+        return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
+    }
+
+    public class DatosEvaluacion
+    {
+        [JsonPropertyName("fechaBase")]
+        public string FechaBase { get; set; }
+
+        [JsonPropertyName("totalObras")]
+        public int NumerodeObras { get; set; }
+
+        [JsonPropertyName("mesesInvestigacion")]
+        public int HorasdeInvestigacion { get; set; }
+
+        [JsonPropertyName("promedioEvaluacion")]
+        public decimal PromediodeEvaluacion { get; set; }
+
+        [JsonPropertyName("horasCursos")]
+        public int CursosdeCapacitacion { get; set; }
+
+        [JsonPropertyName("aniosServicio")]
+        public decimal AniosdeDocencia { get; set; }
+    }
+
+    private class DocenteInfo
+    {
+        public string Nombre { get; set; }
+        public string Cargo { get; set; }
     }
 
     public class LoginResponse {
@@ -218,5 +500,57 @@
         public string Nombre1 { get; set; } = "";
         public string Apellido1 { get; set; } = "";
         public string Rol { get; set; } = "";
+    }
+
+    // Clases para las solicitudes rechazadas
+    public class SolicitudesRechazadas
+    {
+        public string CedulaDocente { get; set; }
+        public string NombreDocente { get; set; }
+        public string CategoriaActual { get; set; }
+        public string UltimaFechaHistorial { get; set; }
+        public List<ObraRechazada> ObrasRechazadas { get; set; } = new List<ObraRechazada>();
+        public List<InvestigacionRechazada> InvestigacionesRechazadas { get; set; } = new List<InvestigacionRechazada>();
+        public List<CursoRechazado> CursosRechazados { get; set; } = new List<CursoRechazado>();
+        public List<EvaluacionRechazada> EvaluacionesRechazadas { get; set; } = new List<EvaluacionRechazada>();
+        public int TotalRechazados { get; set; }
+        public string FechaGeneracion { get; set; }
+        public string UsuarioGeneracion { get; set; }
+    }
+
+    public class ObraRechazada
+    {
+        public int IdObra { get; set; }
+        public string Titulo { get; set; }
+        public string TipoObra { get; set; }
+        public DateTime FechaPublicacion { get; set; }
+        public string Observacion { get; set; }
+    }
+
+    public class InvestigacionRechazada
+    {
+        public int IdInvestigacion { get; set; }
+        public string TituloInvestigacion { get; set; }
+        public DateTime FechaInicio { get; set; }
+        public DateTime FechaFin { get; set; }
+        public string Observacion { get; set; }
+    }
+
+    public class CursoRechazado
+    {
+        public int IdCurso { get; set; }
+        public string NombreCurso { get; set; }
+        public DateTime FechaCurso { get; set; }
+        public int Horas { get; set; }
+        public string Observacion { get; set; }
+    }
+
+    public class EvaluacionRechazada
+    {
+        public int IdEvaluacion { get; set; }
+        public string TipoEvaluacion { get; set; }
+        public string PeriodoEvaluado { get; set; }
+        public decimal Resultado { get; set; }
+        public string Observacion { get; set; }
     }
 }

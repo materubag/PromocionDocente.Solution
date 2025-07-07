@@ -42,14 +42,15 @@
 				<table class="obras-table">
 					<thead>
 						<tr>
+							<th class="col-checkbox">
+								<input type="checkbox" @onchange="SeleccionarTodas" />
+							</th>
 							<th class="col-tipo">Tipo Obra</th>
 							<th class="col-titulo">Título</th>
 							<th class="col-fecha">Fecha Publicación</th>
 							<th class="col-area">Área Conocimiento</th>
 							<th class="col-documento">Documento</th>
 							<th class="col-doi">DOI/URL</th>
-							<th class="col-doi">Estado</th>
-							<th class="col-doi">Acciones</th>
 						</tr>
 					</thead>
 					<tbody>
@@ -105,9 +106,6 @@
 										}
 									</td>
 									<td>
-										<span class="area-badge">@(obra.Estado ?? "Sin especificar")</span>
-									</td>
-									<td>
 										<button class="btn btn-secondary" @onclick="() => EditarObra(obra.IdObra)" title="Editar">
 											<span class="btn-icon">✏️</span>
 											Editar
@@ -142,6 +140,7 @@
 
 	</div>
 </div>
+
 
 
 <style>
@@ -535,7 +534,9 @@
         font-size: 0.9rem;
     }
 </style>
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
 
+<ConfirmacionToast Mostrar="@mostrarConfirmacion" Titulo="@tituloConfirmar" Mensaje="@mensajeConfirmar" OnConfirmar="@OnConfirmarToast" />
 @code {
 	private string mensajeError = string.Empty;
 	private DocenteInfo docenteInfo;
@@ -549,6 +550,63 @@
 	private bool isImporting = false;
 	private int metaObras = 15;
 	private string? cedulaUsuario;
+
+	private bool mostrarAlerta = false;
+	private string tipoAlerta = "";
+	private string tituloAlerta = "";
+	private string mensajeAlerta = "";
+	private bool mostrarConfirmacion = false;
+	private string tituloConfirmar = "";
+	private string mensajeConfirmar = "";
+	private TaskCompletionSource<bool> tcsConfirmar;
+
+	private Task<bool> MostrarConfirmacion(string titulo, string mensaje)
+	{
+		tituloConfirmar = titulo;
+		mensajeConfirmar = mensaje;
+		mostrarConfirmacion = true;
+		StateHasChanged();
+		tcsConfirmar = new TaskCompletionSource<bool>();
+		return tcsConfirmar.Task;
+	}
+
+	private Task OnConfirmarToast(bool respuesta)
+	{
+		mostrarConfirmacion = false;
+		StateHasChanged();
+		tcsConfirmar?.SetResult(respuesta);
+		return Task.CompletedTask;
+	}
+
+
+	private void MostrarAlerta(string tipo, string titulo, string mensaje)
+	{
+		tipoAlerta = tipo;
+		tituloAlerta = titulo;
+		mensajeAlerta = mensaje;
+		mostrarAlerta = true;
+		StateHasChanged();
+
+		// Auto-cerrar después de 4 segundos
+		_ = Task.Delay(4000).ContinueWith(_ =>
+		{
+			InvokeAsync(() =>
+			{
+				if (mostrarAlerta)
+				{
+					CerrarAlerta();
+				}
+			});
+		});
+	}
+
+
+	private void CerrarAlerta()
+	{
+		mostrarAlerta = false;
+		StateHasChanged();
+	}
+
 
 	private async Task<string?> ObtenerCedulaUsuarioAsync()
 	{
@@ -592,7 +650,7 @@
 		}
 		else
 		{
-			mensajeError = "No se pudo obtener la cédula del usuario.";
+			MostrarAlerta("error","Error al cargar","No se pudo obtener la cedula del usuario");
 		}
 	}
 
@@ -680,14 +738,13 @@
 		return Math.Min(100, (obras.Count * 100) / metaObras);
 	}
 
-	
+
 
 	private async Task ImportarObras()
 	{
 		if (isImporting) return;
 
-		bool confirmar = await JSRuntime.InvokeAsync<bool>("confirm",
-			"¿Desea importar obras desde DAC?\n\n" +
+		bool confirmar = await MostrarConfirmacion("confirm", "¿Desea importar obras desde DAC?\n\n" +
 			"• Las obras duplicadas serán omitidas\n\n" +
 			"¿Continuar con la importación?");
 
@@ -705,20 +762,21 @@
 				{
 					// Recargar las obras después de importar
 					await ConsultarObras();
-
-					await JSRuntime.InvokeVoidAsync("alert",
-						"¡Importación completada exitosamente!\n\n" +
+					MostrarAlerta("success", "Importación exitosa", "¡Importación completada exitosamente!\n\n" +
 						"• Obras nuevas importadas desde DAC\n" +
 						"• Obras duplicadas omitidas");
+
 				}
 				else
 				{
-					mensajeError = "Error al importar obras: " + response.ReasonPhrase;
+					MostrarAlerta("error", "Error de importacion", "Error al importar obras: " + response.ReasonPhrase);
+
 				}
 			}
 			catch (Exception ex)
 			{
-				mensajeError = "Error al importar obras: " + ex.Message;
+
+				MostrarAlerta("error", "Error de importacion", "Error al importar obras: " + ex.Message);
 			}
 			finally
 			{
@@ -733,19 +791,18 @@
 		var seleccionada = obrasFiltradas.FirstOrDefault(o => o.Seleccionada);
 		if (seleccionada != null)
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				$"Editar Obra Seleccionada\n\n" +
+			MostrarAlerta("info", "Editar obra", $"Editar Obra Seleccionada\n\n" +
 				$"• Título: {seleccionada.Titulo}\n" +
 				$"• Tipo: {seleccionada.TipoObra}\n" +
 				$"• Área: {seleccionada.AreaConocimiento}\n\n" +
 				$"Se abrirá el formulario de edición...");
+
 		}
 		else
 		{
-			await JSRuntime.InvokeVoidAsync("alert",
-				"⚠️ Atención\n\n" +
-				"No hay ninguna obra seleccionada.\n" +
+			MostrarAlerta("alert", "⚠️ Atención", "No hay ninguna obra seleccionada.\n" +
 				"Por favor, seleccione una obra de la lista para editarla.");
+
 		}
 	}
 
@@ -779,7 +836,7 @@
 		public string? AreaConocimiento { get; set; }
 		public string? Observaciones { get; set; }
 		public string? PdfUrl { get; set; }
-        public string Estado { get; set; } 
+
 		public bool Seleccionada { get; set; }
 
 		public bool TienePDF()

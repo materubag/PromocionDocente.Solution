@@ -15,35 +15,38 @@
                     ErrorClass="error-toast"
                     InfoClass="info-toast"
                     WarningClass="warning-toast" />
-                    
-    <!-- Contenido principal -->
-    <main class="main-fullwidth">
-        <!-- Barra superior con logo y usuario -->
-        <div class="top-row d-flex justify-content-between align-items-center px-4">
-            <div class="d-flex align-items-center">
-                <img src="/images/LogoUTA.png" alt="Logo" style="width: 250px; height: 100px;" />
-                <span class="ms-2 fw-bold">Plataforma Docente</span>
+
+    <!-- Contenido principal con clase condicional -->
+    <main class="@GetMainContentClass()">
+        <!-- Barra superior con logo y usuario - Solo visible si NO es administrador -->
+        @if (UserSession.Usuario?.Rol != "Administrador")
+        {
+            <div class="top-row d-flex justify-content-between align-items-center px-4">
+                <div class="d-flex align-items-center">
+                    <img src="https://img.icons8.com/color/48/000000/school.png" alt="Logo" style="width: 36px; height: 36px;" />
+                    <span class="ms-2 fw-bold">Plataforma Docente</span>
+                </div>
+                <div class="d-flex align-items-center">
+                    @if (UserSession.Usuario != null)
+                    {  
+                        <span class="me-3 text-muted">
+                            Usuario: <strong>@UserSession.Usuario.Nombre1 @UserSession.Usuario.Apellido1</strong>
+                            Rol:<strong> @UserSession.Usuario.Rol</strong>
+                        </span>  
+                    }  
+                    else  
+                    {  
+                        <span class="me-3 text-muted">  
+                            Usuario: <strong>No autenticado</strong>  
+                        </span>  
+                    }  
+                    <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">  
+                        Cerrar sesión  
+                    </button>  
+                </div>  
             </div>
-            <div class="d-flex align-items-center">
-                @if (UserSession.Usuario != null)
-                {  
-                    <span class="me-3 text-muted">
-                        Usuario: <strong>@UserSession.Usuario.Nombre1 @UserSession.Usuario.Apellido1</strong>
-                        Rol:<strong> @UserSession.Usuario.Rol</strong>
-                    </span>  
-                }  
-                else  
-                {  
-                    <span class="me-3 text-muted">  
-                        Usuario: <strong>No autenticado</strong>  
-                    </span>  
-                }  
-                <button class="btn btn-outline-danger btn-sm" @onclick="HandleLogout">  
-                    Cerrar sesión  
-                </button>  
-            </div>  
-        </div>
-        
+        }
+
         <!-- Área del contenido de la página -->  
         <article class="content p-4">  
             @Body  
@@ -101,12 +104,12 @@
     {
         mostrarConfirmacion = false;
         StateHasChanged();
-        
+
         try
         {
             await UserSession.EliminarUsuarioAsync();
             ToastService.ShowSuccess("Sesión cerrada exitosamente");
-            
+
             // Pequeño delay para que se vea el toast
             await Task.Delay(1000);
             Navigation.NavigateTo("/");
@@ -116,16 +119,24 @@
             ToastService.ShowError($"Error al cerrar sesión: {ex.Message}");
         }
     }
-    
+
     protected override async Task OnInitializedAsync()
     {
         await UserSession.CargarUsuarioAsync();
-        Console.WriteLine($"[2025-06-26 05:39:38] Usuario: materubag, MainLayout cargado");
-        
-        // Toast de bienvenida (opcional)
+        Console.WriteLine($"[2025-06-26 05:39:38] Usuario: {UserSession.Usuario?.Nombre1}, MainLayout cargado");
+
+        // Toast de bienvenida (opcional, solo para usuarios autenticados)
         if (UserSession.Usuario != null)
         {
             ToastService.ShowSuccess($"¡Bienvenido, {UserSession.Usuario.Nombre1}!");
         }
+    }
+
+    // Puedes usar esto para cambiar el layout dinámicamente si tienes barra lateral/admin
+    private string GetMainContentClass()
+    {
+        // Por defecto, solo devuelve "main-content" pero puedes personalizar para admin
+        // Ejemplo: return UserSession.Usuario?.Rol == "Administrador" ? "main-content admin" : "main-content";
+        return "main-content";
     }
 }

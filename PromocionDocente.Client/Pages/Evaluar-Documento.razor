@@ -120,9 +120,9 @@
                         }
                         else
                         {
-                            <tr>
-                                <td colspan="7" class="no-data">No se encontraron documentos</td>
-                            </tr>
+                                <tr>
+                                    <td colspan="7" class="no-data">No se encontraron documentos</td>
+                                </tr>
                         }
                     </tbody>
                 </table>
@@ -920,8 +920,41 @@
     }
 </style>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
 @code {
     [Parameter] public int DocumentoId { get; set; }
+
+    private bool mostrarAlerta = false;
+    private string tipoAlerta = "";
+    private string tituloAlerta = "";
+    private string mensajeAlerta = "";
+
+    private void MostrarAlerta(string tipo, string titulo, string mensaje)
+    {
+        tipoAlerta = tipo;
+        tituloAlerta = titulo;
+        mensajeAlerta = mensaje;
+        mostrarAlerta = true;
+
+        // Auto-close después de 4s
+        _ = Task.Delay(4000).ContinueWith(_ =>
+        {
+            InvokeAsync(() =>
+            {
+                if (mostrarAlerta)
+                {
+                    CerrarAlerta();
+                }
+            });
+        });
+    }
+
+    private void CerrarAlerta()
+    {
+        mostrarAlerta = false;
+        StateHasChanged();
+    }
 
     private EvaluacionModel evaluacion = new();
     private bool isLoading = false;
@@ -987,6 +1020,7 @@
                         }
                         catch (Exception ex)
                         {
+                            
                             Console.WriteLine($"Error deserializando evaluación: {ex.Message}");
                         }
                     }
@@ -1086,13 +1120,13 @@
 
             if (documentoSeleccionado == null)
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Error: No hay documento seleccionado");
+                MostrarAlerta("error", "Error", "No hay documento seleccionado.");
                 return;
             }
 
             if (evaluacion.Estado == default(EstadoDocumento))
             {
-                await JSRuntime.InvokeVoidAsync("alert", "Por favor seleccione el estado del documento");
+                MostrarAlerta("error", "Error", "Selecciona el estado del documento.");
                 return;
             }
 
@@ -1119,13 +1153,13 @@
             await JSRuntime.InvokeVoidAsync("localStorage.setItem",
                 $"evaluacion_{documentoSeleccionado.Id}", System.Text.Json.JsonSerializer.Serialize(evaluacionData));
 
-            await JSRuntime.InvokeVoidAsync("alert", "✅ Evaluación guardada exitosamente");
+            MostrarAlerta("success", "Éxito", "Evaluacion guardada");
             CerrarModal();
             FiltrarDocumentos();
         }
         catch (Exception ex)
         {
-            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error al guardar la evaluación: {ex.Message}");
+            MostrarAlerta("error", "Error", "No se pudo guardar la evaluacion.");
         }
         finally
         {
@@ -1138,21 +1172,26 @@
     {
         await CargarEstadoDocumentos();
         FiltrarDocumentos();
-        await JSRuntime.InvokeVoidAsync("alert", "Estados actualizados");
+        MostrarAlerta("success", "Éxito", "Esta");
     }
 
     private async Task VerResumen()
     {
         var completados = Documentos.Count(d => d.Estado == "Completo");
         var pendientes = Documentos.Count(d => d.Estado == "Pendiente");
+        var progreso = (completados * 100 / Documentos.Count);
 
-        await JSRuntime.InvokeVoidAsync("alert",
-            $"📊 Resumen de Evaluación\n\n" +
-            $"✅ Documentos Evaluados: {completados}\n" +
-            $"⏳ Documentos Pendientes: {pendientes}\n" +
-            $"📄 Total de Documentos: {Documentos.Count}\n\n" +
-            $"Progreso: {(completados * 100 / Documentos.Count)}%");
+        // Usar tu sistema de toast
+        MostrarAlerta(
+            "info",
+            "Resumen de Evaluación",
+            $"<b>Evaluados:</b> {completados}<br>" +
+            $"<b>Pendientes:</b> {pendientes}<br>" +
+            $"<b>Total:</b> {Documentos.Count}<br>" +
+            $"<b>Progreso:</b> {progreso}%"
+        );
     }
+
 
     private void Volver()
     {

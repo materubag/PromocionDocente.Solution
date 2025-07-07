@@ -3,1130 +3,1238 @@
 @using Microsoft.JSInterop
 
 <style>
-    .hero {
-        background: linear-gradient(135deg, #581517 0%, #581517 100%);
-        color: white;
-        padding: 5rem 2rem;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(88, 21, 23, 0.3);
-        animation: fadeIn 1s ease-out;
-        margin-bottom: 3rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
-            transform: rotate(30deg);
-        }
-
-    .criterios-evaluacion-container {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-        .criterios-evaluacion-container h2 {
-            color: #581517;
-            text-align: center;
-            margin-bottom: 2rem;
-            font-size: 1.8rem;
-            border-bottom: 2px solid #f7f7f8;
-            padding-bottom: 0.5rem;
-        }
-
-    .criterios-list {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .criterio-item {
-        background: white;
-        border-radius: 8px;
-        padding: 1rem;
-        border-left: 4px solid #581517;
-        transition: transform 0.2s, box-shadow 0.2s;
-        display: flex;
-        flex-direction: column;
-        min-height: 120px;
-        box-shadow: 0 2px 8px rgba(88, 21, 23, 0.1);
-    }
-
-        .criterio-item:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 12px rgba(88, 21, 23, 0.2);
-        }
-
-    .criterio-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-
-    .criterio-porcentaje {
-        background: #581517;
-        color: white;
-        padding: 0.3rem 0.8rem;
-        border-radius: 20px;
-        font-weight: bold;
-        margin-right: 1rem;
-        font-size: 0.9rem;
-    }
-
-    .criterio-titulo {
-        margin: 0;
-        color: #581517;
-        font-size: 1.2rem;
-    }
-
-    .criterio-detalle {
-        color: #581517;
-        font-size: 1rem;
-        padding-left: 2.5rem;
-        opacity: 0.8;
-    }
-
-    .progreso-container {
-        background: white;
-        border-radius: 12px;
-        padding: 2rem;
-        margin: 2rem auto;
-        max-width: 1200px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    }
-
-    .progreso-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .progreso-title {
-        color: #581517;
-        font-size: 1.5rem;
-        font-weight: 600;
-        margin: 0;
-    }
-
-    .progreso-nivel {
-        background: #581517;
-        color: white;
-        padding: 0.5rem 1.5rem;
-        border-radius: 20px;
-        font-weight: 600;
-    }
-
-    .slider-container {
-        margin: 2rem 0;
-    }
-
-    .slider {
-        -webkit-appearance: none;
-        width: 100%;
-        height: 15px;
-        border-radius: 7px;
-        background: #e0e0e0;
-        outline: none;
-        margin-bottom: 0.5rem;
-    }
-
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #581517;
-            cursor: pointer;
-        }
-
-    .slider-labels {
-        display: flex;
-        justify-content: space-between;
-        color: #7f8c8d;
-        font-size: 0.9rem;
-    }
-
-    .progreso-texto {
-        text-align: center;
-        margin-top: 1.5rem;
-        font-size: 1.1rem;
-        color: #581517;
-    }
-
-    .btn-postular {
-        background-color: #2e7d32;
-        color: white;
-        border: none;
-        padding: 12px 30px;
-        font-size: 18px;
-        border-radius: 4px;
-        cursor: pointer;
-        margin: 15px auto;
-        display: block;
-        transition: background-color 0.3s;
-    }
-
-        .btn-postular:hover {
-            background-color: #1b5e20;
-        }
-
-    .info-postulacion {
-        color: #666;
-        font-style: italic;
-        text-align: center;
-    }
-
-    .mensaje-nivel-maximo {
-        text-align: center;
-        padding: 20px;
-        background-color: #e8f5e9;
-        border-radius: 8px;
-        margin-top: 20px;
-        color: #2e7d32;
-        font-size: 18px;
-    }
-
-    .criterio-item {
-        position: relative;
-        overflow: hidden;
-    }
-
-    .progress-bar {
-        position: absolute;
-        bottom: 0;
-        left: 0;
-        height: 4px;
-        background: #e0e0e0;
-        width: 100%;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: #581517;
-        width: 0%;
-        transition: width 0.5s ease;
-    }
-
-    /* Mantener los estilos existentes del hero y otros elementos */
-    .hero {
-        background: linear-gradient(135deg, #581517 0%, #581517 100%);
-        color: white;
-        padding: 5rem 2rem;
-        border-radius: 12px;
-        text-align: center;
-        box-shadow: 0 10px 30px rgba(88, 21, 23, 0.3);
-        animation: fadeIn 1s ease-out;
-        margin-bottom: 3rem;
-        position: relative;
-        overflow: hidden;
-    }
-
-
-    /* Responsive */
-    @@media (max-width: 768px) {
-        .criterios-evaluacion-container {
-            padding: 1rem;
-            margin: 1rem;
-        }
-
-        .criterio-item {
-            padding: 1rem;
-        }
-
-        .criterio-titulo {
-            font-size: 1.1rem;
-        }
-
-        .criterios-list {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    @@media (min-width: 1200px) {
-        .criterios-list {
-            grid-template-columns: repeat(5, 1fr);
-        }
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(-20px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    .hero h1 {
-        font-size: 2.8rem;
-        font-weight: 700;
-        margin-bottom: 1.5rem;
-        position: relative;
-        text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
-    }
-
-    .hero p {
-        font-size: 1.3rem;
-        max-width: 800px;
-        margin: 0 auto;
-        line-height: 1.6;
-        position: relative;
-        opacity: 0.9;
-    }
-
-    .feature-card {
-        transition: all 0.3s ease;
-        border: none;
-        border-radius: 10px;
-        overflow: hidden;
-        height: 100%;
-        position: relative;
-        background: white;
-        box-shadow: 0 5px 15px rgba(88, 21, 23, 0.1);
-        border: 1px solid rgba(88, 21, 23, 0.1);
-    }
-
-        .feature-card:hover {
-            transform: translateY(-8px);
-            box-shadow: 0 12px 25px rgba(88, 21, 23, 0.2);
-        }
-
-        .feature-card::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            height: 4px;
-            background: #581517;
-            transition: height 0.3s ease;
-        }
-
-        .feature-card:hover::after {
-            height: 6px;
-        }
-
-    .icon-img {
-        width: 80px;
-        margin: 2rem auto 1.5rem;
-        filter: drop-shadow(0 2px 4px rgba(88, 21, 23, 0.2));
-    }
-
-    .feature-card h4 {
-        color: #581517;
-        font-weight: 600;
-        margin-bottom: 1rem;
-    }
-
-    .feature-card p {
-        color: #581517;
-        padding: 0 1.5rem 2rem;
-        opacity: 0.8;
-    }
-
-    .feature-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        margin: 3rem auto;
-        max-width: 1200px;
-    }
-
-    /* Estilos del dashboard - Modificado para una sola columna */
-    .dashboard-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        gap: 2rem;
-        max-width: 1200px;
-        margin: 3rem auto;
-    }
-
-    .card {
-        background: white;
-        border-radius: 15px;
-        padding: 2rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(88, 21, 23, 0.1);
-    }
-
-        .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-            background: #581517;
-        }
-
-        .card:hover {
-            transform: translateY(-10px);
-            box-shadow: 0 20px 40px rgba(88, 21, 23, 0.2);
-        }
-
-    .card-primary::before {
-        background: #581517;
-    }
-
-    .card-success::before {
-        background: #581517;
-    }
-
-    .card-info::before {
-        background: #581517;
-    }
-
-    .card-warning::before {
-        background: #581517;
-    }
-
-    .card-icon {
-        font-size: 3rem;
-        margin-bottom: 1rem;
-        color: #581517;
-    }
-
-    .card-content h3 {
-        color: #581517;
-        font-size: 1.3rem;
-        margin-bottom: 1rem;
-        font-weight: 600;
-    }
-
-    .card-content p {
-        color: #581517;
-        margin-bottom: 2rem;
-        line-height: 1.6;
-        opacity: 0.8;
-    }
-
-    .card-button {
-        display: inline-block;
-        padding: 0.75rem 2rem;
-        background: #581517;
-        color: white;
-        text-decoration: none;
-        border-radius: 25px;
-        font-weight: 600;
-        transition: all 0.3s ease;
-    }
-
-        .card-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(88, 21, 23, 0.4);
-            background: #6a1b1d;
-        }
-
-    /* Estilos para la notificación de rechazos */
-    .notificacion-rechazos {
-        background: #fff8e1;
-        border-radius: 8px;
-        margin: 1.5rem auto;
-        max-width: 1200px;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        border-left: 4px solid #ffc107;
-    }
-
-    .notificacion-contenido {
-        display: flex;
-        align-items: center;
-        padding: 1rem;
-    }
-
-    .notificacion-icono {
-        font-size: 1.5rem;
-        margin-right: 1rem;
-        color: #ffc107;
-    }
-
-    .notificacion-texto {
-        flex-grow: 1;
-        font-weight: 500;
-        color: #333;
-    }
-
-    .btn-ver-rechazos {
-        background: #ffc107;
-        color: #333;
-        border: none;
-        padding: 0.5rem 1rem;
-        border-radius: 4px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-        .btn-ver-rechazos:hover {
-            background: #ffb300;
-        }
-
-    /* Estilos para el contenedor de rechazados */
-    .rechazados-container {
-        max-width: 1200px;
-        margin: 2rem auto;
-        padding: 2rem;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
-        border-left: 5px solid #e53935;
-    }
-
-    .rechazados-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-bottom: 1px solid #e0e0e0;
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-        .rechazados-header h3 {
-            color: #e53935;
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-    .fecha-rechazado {
-        color: #757575;
-        font-size: 0.9rem;
-    }
-
-    .rechazados-info {
-        background: #ffebee;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1.5rem;
-    }
-
-        .rechazados-info p {
-            margin: 0.5rem 0;
-            color: #333;
-        }
-
-    .seccion-rechazados {
-        margin-bottom: 1.5rem;
-    }
-
-        .seccion-rechazados h4 {
-            color: #333;
-            font-size: 1.2rem;
-            margin-bottom: 1rem;
-            padding-left: 0.5rem;
-            border-left: 3px solid #e53935;
-        }
-
-    .lista-rechazados {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-    }
-
-    .item-rechazado {
-        background: #f5f5f5;
-        border-radius: 8px;
-        padding: 1rem;
-        margin-bottom: 0.8rem;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    }
-
-    .item-rechazado-titulo {
-        font-weight: 600;
-        color: #333;
-        margin-bottom: 0.5rem;
-    }
-
-    .item-rechazado-detalle {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        color: #757575;
-        font-size: 0.9rem;
-        margin-bottom: 0.5rem;
-    }
-
-    /* Estilos mejorados para observaciones */
-    .observacion-container {
-        background: #ffebee;
-        border-radius: 4px;
-        padding: 0.8rem;
-        margin-top: 0.8rem;
-        border-left: 3px solid #e53935;
-    }
-
-    .observacion-titulo {
-        font-weight: 600;
-        color: #e53935;
-        margin-bottom: 0.5rem;
-    }
-
-    .observacion-texto {
-        color: #333;
-    }
-
-    .boton-regresar {
-        display: flex;
-        justify-content: center;
-        margin-top: 2rem;
-    }
-
-    .btn-regresar {
-        background-color: #581517;
-        color: white;
-        border: none;
-        padding: 0.8rem 2rem;
-        border-radius: 4px;
-        font-weight: 500;
-        cursor: pointer;
-        transition: background-color 0.3s;
-    }
-
-        .btn-regresar:hover {
-            background-color: #3a0e0f;
-        }
-
-    @@media (max-width: 768px) {
-        .hero h1 {
-            font-size: 2.2rem;
-        }
-
-        .hero p {
-            font-size: 1.1rem;
-        }
-
-        .feature-grid, .dashboard-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .dashboard-grid {
-            grid-template-columns: 1fr;
-            max-width: 100%;
-            margin: 2rem auto;
-            padding: 0 1rem;
-        }
-    }
+	.hero {
+		background: linear-gradient(135deg, #581517 0%, #581517 100%);
+		color: white;
+		padding: 5rem 2rem;
+		border-radius: 12px;
+		text-align: center;
+		box-shadow: 0 10px 30px rgba(88, 21, 23, 0.3);
+		animation: fadeIn 1s ease-out;
+		margin-bottom: 3rem;
+		position: relative;
+		overflow: hidden;
+	}
+
+		.hero::before {
+			content: '';
+			position: absolute;
+			top: -50%;
+			left: -50%;
+			width: 200%;
+			height: 200%;
+			background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+			transform: rotate(30deg);
+		}
+
+	.criterios-evaluacion-container {
+		max-width: 1200px;
+		margin: 2rem auto;
+		padding: 2rem;
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+	}
+
+		.criterios-evaluacion-container h2 {
+			color: #581517;
+			text-align: center;
+			margin-bottom: 2rem;
+			font-size: 1.8rem;
+			border-bottom: 2px solid #f7f7f8;
+			padding-bottom: 0.5rem;
+		}
+
+	.criterios-list {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+		gap: 1.5rem;
+	}
+
+	.criterio-item {
+		background: white;
+		border-radius: 8px;
+		padding: 1rem;
+		border-left: 4px solid #581517;
+		transition: transform 0.2s, box-shadow 0.2s;
+		display: flex;
+		flex-direction: column;
+		min-height: 120px;
+		box-shadow: 0 2px 8px rgba(88, 21, 23, 0.1);
+	}
+
+		.criterio-item:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 6px 12px rgba(88, 21, 23, 0.2);
+		}
+
+	.criterio-header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 0.5rem;
+	}
+
+	.criterio-porcentaje {
+		background: #581517;
+		color: white;
+		padding: 0.3rem 0.8rem;
+		border-radius: 20px;
+		font-weight: bold;
+		margin-right: 1rem;
+		font-size: 0.9rem;
+	}
+
+	.criterio-titulo {
+		margin: 0;
+		color: #581517;
+		font-size: 1.2rem;
+	}
+
+	.criterio-detalle {
+		color: #581517;
+		font-size: 1rem;
+		padding-left: 2.5rem;
+		opacity: 0.8;
+	}
+
+	.progreso-container {
+		background: white;
+		border-radius: 12px;
+		padding: 2rem;
+		margin: 2rem auto;
+		max-width: 1200px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+	}
+
+	.progreso-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		margin-bottom: 1.5rem;
+	}
+
+	.progreso-title {
+		color: #581517;
+		font-size: 1.5rem;
+		font-weight: 600;
+		margin: 0;
+	}
+
+	.progreso-nivel {
+		background: #581517;
+		color: white;
+		padding: 0.5rem 1.5rem;
+		border-radius: 20px;
+		font-weight: 600;
+	}
+
+	.slider-container {
+		margin: 2rem 0;
+	}
+
+	.slider {
+		-webkit-appearance: none;
+		width: 100%;
+		height: 15px;
+		border-radius: 7px;
+		background: #e0e0e0;
+		outline: none;
+		margin-bottom: 0.5rem;
+	}
+
+		.slider::-webkit-slider-thumb {
+			-webkit-appearance: none;
+			appearance: none;
+			width: 25px;
+			height: 25px;
+			border-radius: 50%;
+			background: #581517;
+			cursor: pointer;
+		}
+
+	.slider-labels {
+		display: flex;
+		justify-content: space-between;
+		color: #7f8c8d;
+		font-size: 0.9rem;
+	}
+
+	.progreso-texto {
+		text-align: center;
+		margin-top: 1.5rem;
+		font-size: 1.1rem;
+		color: #581517;
+	}
+
+	.btn-postular {
+		background-color: #2e7d32;
+		color: white;
+		border: none;
+		padding: 12px 30px;
+		font-size: 18px;
+		border-radius: 4px;
+		cursor: pointer;
+		margin: 15px auto;
+		display: block;
+		transition: background-color 0.3s;
+	}
+
+		.btn-postular:hover {
+			background-color: #1b5e20;
+		}
+
+	.info-postulacion {
+		color: #666;
+		font-style: italic;
+		text-align: center;
+	}
+
+	.mensaje-nivel-maximo {
+		text-align: center;
+		padding: 20px;
+		background-color: #e8f5e9;
+		border-radius: 8px;
+		margin-top: 20px;
+		color: #2e7d32;
+		font-size: 18px;
+	}
+
+	.criterio-item {
+		position: relative;
+		overflow: hidden;
+	}
+
+	.progress-bar {
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		height: 4px;
+		background: #e0e0e0;
+		width: 100%;
+	}
+
+	.progress-fill {
+		height: 100%;
+		background: #581517;
+		width: 0%;
+		transition: width 0.5s ease;
+	}
+
+	/* Mantener los estilos existentes del hero y otros elementos */
+	.hero {
+		background: linear-gradient(135deg, #581517 0%, #581517 100%);
+		color: white;
+		padding: 5rem 2rem;
+		border-radius: 12px;
+		text-align: center;
+		box-shadow: 0 10px 30px rgba(88, 21, 23, 0.3);
+		animation: fadeIn 1s ease-out;
+		margin-bottom: 3rem;
+		position: relative;
+		overflow: hidden;
+	}
+
+
+	/* Responsive */
+	@@media (max-width: 768px) {
+		.criterios-evaluacion-container {
+			padding: 1rem;
+			margin: 1rem;
+		}
+
+		.criterio-item {
+			padding: 1rem;
+		}
+
+		.criterio-titulo {
+			font-size: 1.1rem;
+		}
+
+		.criterios-list {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@@media (min-width: 1200px) {
+		.criterios-list {
+			grid-template-columns: repeat(5, 1fr);
+		}
+	}
+
+	@@keyframes fadeIn {
+		from {
+			opacity: 0;
+			transform: translateY(-20px);
+		}
+
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.hero h1 {
+		font-size: 2.8rem;
+		font-weight: 700;
+		margin-bottom: 1.5rem;
+		position: relative;
+		text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+	}
+
+	.hero p {
+		font-size: 1.3rem;
+		max-width: 800px;
+		margin: 0 auto;
+		line-height: 1.6;
+		position: relative;
+		opacity: 0.9;
+	}
+
+	.feature-card {
+		transition: all 0.3s ease;
+		border: none;
+		border-radius: 10px;
+		overflow: hidden;
+		height: 100%;
+		position: relative;
+		background: white;
+		box-shadow: 0 5px 15px rgba(88, 21, 23, 0.1);
+		border: 1px solid rgba(88, 21, 23, 0.1);
+	}
+
+		.feature-card:hover {
+			transform: translateY(-8px);
+			box-shadow: 0 12px 25px rgba(88, 21, 23, 0.2);
+		}
+
+		.feature-card::after {
+			content: '';
+			position: absolute;
+			bottom: 0;
+			left: 0;
+			width: 100%;
+			height: 4px;
+			background: #581517;
+			transition: height 0.3s ease;
+		}
+
+		.feature-card:hover::after {
+			height: 6px;
+		}
+
+	.icon-img {
+		width: 80px;
+		margin: 2rem auto 1.5rem;
+		filter: drop-shadow(0 2px 4px rgba(88, 21, 23, 0.2));
+	}
+
+	.feature-card h4 {
+		color: #581517;
+		font-weight: 600;
+		margin-bottom: 1rem;
+	}
+
+	.feature-card p {
+		color: #581517;
+		padding: 0 1.5rem 2rem;
+		opacity: 0.8;
+	}
+
+	.feature-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 2rem;
+		margin: 3rem auto;
+		max-width: 1200px;
+	}
+
+	/* Estilos del dashboard - Modificado para una sola columna */
+	.dashboard-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+		gap: 2rem;
+		max-width: 1200px;
+		margin: 3rem auto;
+	}
+
+	.card {
+		background: white;
+		border-radius: 15px;
+		padding: 2rem;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+		transition: all 0.3s ease;
+		text-align: center;
+		position: relative;
+		overflow: hidden;
+		border: 1px solid rgba(88, 21, 23, 0.1);
+	}
+
+		.card::before {
+			content: '';
+			position: absolute;
+			top: 0;
+			left: 0;
+			right: 0;
+			height: 4px;
+			background: #581517;
+		}
+
+		.card:hover {
+			transform: translateY(-10px);
+			box-shadow: 0 20px 40px rgba(88, 21, 23, 0.2);
+		}
+
+	.card-primary::before {
+		background: #581517;
+	}
+
+	.card-success::before {
+		background: #581517;
+	}
+
+	.card-info::before {
+		background: #581517;
+	}
+
+	.card-warning::before {
+		background: #581517;
+	}
+
+	.card-icon {
+		font-size: 3rem;
+		margin-bottom: 1rem;
+		color: #581517;
+	}
+
+	.card-content h3 {
+		color: #581517;
+		font-size: 1.3rem;
+		margin-bottom: 1rem;
+		font-weight: 600;
+	}
+
+	.card-content p {
+		color: #581517;
+		margin-bottom: 2rem;
+		line-height: 1.6;
+		opacity: 0.8;
+	}
+
+	.card-button {
+		display: inline-block;
+		padding: 0.75rem 2rem;
+		background: #581517;
+		color: white;
+		text-decoration: none;
+		border-radius: 25px;
+		font-weight: 600;
+		transition: all 0.3s ease;
+	}
+
+		.card-button:hover {
+			transform: translateY(-2px);
+			box-shadow: 0 8px 20px rgba(88, 21, 23, 0.4);
+			background: #6a1b1d;
+		}
+
+	/* Estilos para la notificación de rechazos */
+	.notificacion-rechazos {
+		background: #fff8e1;
+		border-radius: 8px;
+		margin: 1.5rem auto;
+		max-width: 1200px;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+		border-left: 4px solid #ffc107;
+	}
+
+	.notificacion-contenido {
+		display: flex;
+		align-items: center;
+		padding: 1rem;
+	}
+
+	.notificacion-icono {
+		font-size: 1.5rem;
+		margin-right: 1rem;
+		color: #ffc107;
+	}
+
+	.notificacion-texto {
+		flex-grow: 1;
+		font-weight: 500;
+		color: #333;
+	}
+
+	.btn-ver-rechazos {
+		background: #ffc107;
+		color: #333;
+		border: none;
+		padding: 0.5rem 1rem;
+		border-radius: 4px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background 0.2s;
+	}
+
+		.btn-ver-rechazos:hover {
+			background: #ffb300;
+		}
+
+	/* Estilos para el contenedor de rechazados */
+	.rechazados-container {
+		max-width: 1200px;
+		margin: 2rem auto;
+		padding: 2rem;
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+		border-left: 5px solid #e53935;
+	}
+
+	.rechazados-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		border-bottom: 1px solid #e0e0e0;
+		padding-bottom: 1rem;
+		margin-bottom: 1.5rem;
+	}
+
+		.rechazados-header h3 {
+			color: #e53935;
+			margin: 0;
+			font-size: 1.5rem;
+			font-weight: 600;
+		}
+
+	.fecha-rechazado {
+		color: #757575;
+		font-size: 0.9rem;
+	}
+
+	.rechazados-info {
+		background: #ffebee;
+		padding: 1rem;
+		border-radius: 8px;
+		margin-bottom: 1.5rem;
+	}
+
+		.rechazados-info p {
+			margin: 0.5rem 0;
+			color: #333;
+		}
+
+	.seccion-rechazados {
+		margin-bottom: 1.5rem;
+	}
+
+		.seccion-rechazados h4 {
+			color: #333;
+			font-size: 1.2rem;
+			margin-bottom: 1rem;
+			padding-left: 0.5rem;
+			border-left: 3px solid #e53935;
+		}
+
+	.lista-rechazados {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+	}
+
+	.item-rechazado {
+		background: #f5f5f5;
+		border-radius: 8px;
+		padding: 1rem;
+		margin-bottom: 0.8rem;
+		box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+	}
+
+	.item-rechazado-titulo {
+		font-weight: 600;
+		color: #333;
+		margin-bottom: 0.5rem;
+	}
+
+	.item-rechazado-detalle {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 1.5rem;
+		color: #757575;
+		font-size: 0.9rem;
+		margin-bottom: 0.5rem;
+	}
+
+	/* Estilos mejorados para observaciones */
+	.observacion-container {
+		background: #ffebee;
+		border-radius: 4px;
+		padding: 0.8rem;
+		margin-top: 0.8rem;
+		border-left: 3px solid #e53935;
+	}
+
+	.observacion-titulo {
+		font-weight: 600;
+		color: #e53935;
+		margin-bottom: 0.5rem;
+	}
+
+	.observacion-texto {
+		color: #333;
+	}
+
+	.boton-regresar {
+		display: flex;
+		justify-content: center;
+		margin-top: 2rem;
+	}
+
+	.btn-regresar {
+		background-color: #581517;
+		color: white;
+		border: none;
+		padding: 0.8rem 2rem;
+		border-radius: 4px;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.3s;
+	}
+
+		.btn-regresar:hover {
+			background-color: #3a0e0f;
+		}
+
+	@@media (max-width: 768px) {
+		.hero h1 {
+			font-size: 2.2rem;
+		}
+
+		.hero p {
+			font-size: 1.1rem;
+		}
+
+		.feature-grid, .dashboard-grid {
+			grid-template-columns: 1fr;
+		}
+
+		.dashboard-grid {
+			grid-template-columns: 1fr;
+			max-width: 100%;
+			margin: 2rem auto;
+			padding: 0 1rem;
+		}
+	}
 </style>
 <div class="container">
-    <!-- Sección principal (Hero) -->
-    <div class="hero">
-        <h1>Bienvenido al Sistema de Promoción Docente</h1>
-        <p>Gestione sus criterios de evaluación, cursos, capacitaciones, obras y mucho más con facilidad y transparencia.</p>
-    </div>
-    @if (hayRechazosDisponibles)
-    {
-        <div class="rechazados-container">
-            <div class="rechazados-header">
-                <h3>Postulación Rechazada</h3>
-                <span class="fecha-rechazado">@solicitudesRechazadas.FechaGeneracion</span>
-            </div>
-            <div class="rechazados-contenido">
-                <div class="rechazados-info">
-                    <p><strong>Docente:</strong> @solicitudesRechazadas.NombreDocente</p>
-                    <p><strong>Categoría actual:</strong> @(solicitudesRechazadas.CategoriaActual ?? "No disponible")</p>
-                    <p><strong>Revisado por:</strong> @solicitudesRechazadas.UsuarioGeneracion</p>
-                    <p><strong>Fecha de revisión:</strong> @solicitudesRechazadas.FechaGeneracion</p>
-                    <p><strong>Total de elementos rechazados:</strong> @solicitudesRechazadas.TotalRechazados</p>
-                </div>
+	<!-- Sección principal (Hero) -->
+	<div class="hero">
+		<h1>Bienvenido al Sistema de Promoción Docente</h1>
+		<p>Gestione sus criterios de evaluación, cursos, capacitaciones, obras y mucho más con facilidad y transparencia.</p>
+	</div>
+	@if (hayRechazosDisponibles)
+	{
+		<div class="rechazados-container">
+			<div class="rechazados-header">
+				<h3>Postulación Rechazada</h3>
+				<span class="fecha-rechazado">@solicitudesRechazadas.FechaGeneracion</span>
+			</div>
+			<div class="rechazados-contenido">
+				<div class="rechazados-info">
+					<p><strong>Docente:</strong> @solicitudesRechazadas.NombreDocente</p>
+					<p><strong>Revisado por:</strong> @solicitudesRechazadas.UsuarioGeneracion</p>
+					<p><strong>Fecha de revisión:</strong> @solicitudesRechazadas.FechaGeneracion</p>
+					<p><strong>Total de elementos rechazados:</strong> @solicitudesRechazadas.TotalRechazados</p>
+				</div>
 
-                @if (solicitudesRechazadas.ObrasRechazadas?.Any() == true)
-                {
-                    <div class="seccion-rechazados">
-                        <h4>Obras Rechazadas (@solicitudesRechazadas.ObrasRechazadas.Count)</h4>
-                        <ul class="lista-rechazados">
-                            @foreach (var obra in solicitudesRechazadas.ObrasRechazadas)
-                            {
-                                <li class="item-rechazado">
-                                    <div class="item-rechazado-titulo">@obra.Titulo</div>
-                                    <div class="item-rechazado-detalle">
-                                        <span><strong>Tipo:</strong> @obra.TipoObra</span>
-                                        <span><strong>Fecha publicación:</strong> @obra.FechaPublicacion.ToString("yyyy-MM-dd")</span>
-                                    </div>
-                                    <div class="observacion-container">
-                                        <div class="observacion-titulo">Observación:</div>
-                                        <div class="observacion-texto">@obra.Observacion</div>
-                                    </div>
-                                </li>
-                            }
-                        </ul>
-                    </div>
-                }
-                @* Puedes dejar los otros bloques de investigaciones, cursos y evaluaciones igual *@
-            </div>
-        </div>
-    }
-    <!-- Sección de progreso general -->
-    <div class="progreso-container">
-        <div class="progreso-header">
-            <h2 class="progreso-title">Mi Progreso de Ascenso</h2>
-            <div class="progreso-nivel">@(datosEvaluacion?.Nivel ?? "Nivel actual")</div>
-        </div>
+				@if (solicitudesRechazadas.ObrasRechazadas?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Obras Rechazadas (@solicitudesRechazadas.ObrasRechazadas.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var obra in solicitudesRechazadas.ObrasRechazadas)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@obra.Titulo</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Tipo:</strong> @obra.TipoObra</span>
+										<span><strong>Fecha publicación:</strong> @obra.FechaPublicacion.ToString("yyyy-MM-dd")</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@obra.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
 
-        @if (string.IsNullOrEmpty(datosEvaluacion?.CategoriaSiguiente))
-        {
-            <div class="mensaje-nivel-maximo">
-                Felicitaciones por tu logro profesional. Has alcanzado el nivel máximo dentro del escalafón docente.
-            </div>
-        }
-        else if (progresoGeneral >= 95)
-        {
-            @if (hayRechazosDisponibles)
-            {
-                <div class="mensaje-nivel-maximo" style="background-color: #ffebee; color: #e53935;">
-                    No puedes postular mientras existan elementos rechazados.<br />
-                    Revisa y corrige tus observaciones para poder enviar tu postulación.
-                </div>
-            }
-            else
-            {
-                <div>
-                    <h3 style="text-align: center; color: #2e7d32;">¡Felicidades! Cumples con los requisitos para ascender a @(datosEvaluacion?.CategoriaSiguiente ?? "siguiente nivel")</h3>
-                    <button class="btn-postular" @onclick="EnviarPostulacion">
-                        Enviar Postulación
-                    </button>
-                    <p class="info-postulacion">Tu postulación será revisada por el comité de promoción docente.</p>
-                </div>
-            }
-        }
-        else
-        {
-            <div class="slider-container">
-                <h3 style="text-align: center; color: #581517;">Progreso hacia @(datosEvaluacion?.CategoriaSiguiente ?? "siguiente nivel")</h3>
-                <input type="range" min="0" max="100" value="@progresoGeneral" class="slider" id="progresoSlider" disabled />
-                <div class="slider-labels">
-                    <span>0%</span>
-                    <span>50%</span>
-                    <span>100%</span>
-                </div>
-                <div class="progreso-texto">
-                    <span>Te faltan @(100 - progresoGeneral)% para cumplir con los requisitos de @(datosEvaluacion?.CategoriaSiguiente ?? "siguiente nivel")</span>
-                </div>
-            </div>
-        }
-    </div>
+				@if (solicitudesRechazadas.InvestigacionesRechazadas?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Investigaciones Rechazadas (@solicitudesRechazadas.InvestigacionesRechazadas.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var investigacion in solicitudesRechazadas.InvestigacionesRechazadas)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@investigacion.TituloInvestigacion</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Fecha inicio:</strong> @investigacion.FechaInicio.ToString("yyyy-MM-dd")</span>
+										<span><strong>Fecha fin:</strong> @investigacion.FechaFin.ToString("yyyy-MM-dd")</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@investigacion.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
 
-    <!-- Sección de criterios de evaluación -->
-    <div class="criterios-evaluacion-container">
-        <h2>Mis Criterios de Evaluación</h2>
+				@if (solicitudesRechazadas.CursosRechazados?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Cursos Rechazados (@solicitudesRechazadas.CursosRechazados.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var curso in solicitudesRechazadas.CursosRechazados)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@curso.NombreCurso</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Fecha:</strong> @curso.FechaCurso.ToString("yyyy-MM-dd")</span>
+										<span><strong>Horas:</strong> @curso.Horas</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@curso.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
 
-        <div class="criterios-list">
-            <!-- Años de Docencia -->
-            <div class="criterio-item">
-                <div class="criterio-header">
-                    <span class="criterio-porcentaje">@GetPorcentajeDecimal(datosEvaluacion?.AniosServicio ?? 0, requisitosNivelSiguiente.AniosDocencia)%</span>
-                    <h3 class="criterio-titulo">Años Docencia</h3>
-                </div>
-                <div class="criterio-detalle">
-                    <span>@((datosEvaluacion?.AniosServicio ?? 0).ToString("0.0"))/@requisitosNivelSiguiente.AniosDocencia años</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.AniosServicio ?? 0, requisitosNivelSiguiente.AniosDocencia))%"></div>
-                </div>
-            </div>
+				@if (solicitudesRechazadas.EvaluacionesRechazadas?.Any() == true)
+				{
+					<div class="seccion-rechazados">
+						<h4>Evaluaciones Rechazadas (@solicitudesRechazadas.EvaluacionesRechazadas.Count)</h4>
+						<ul class="lista-rechazados">
+							@foreach (var evaluacion in solicitudesRechazadas.EvaluacionesRechazadas)
+							{
+								<li class="item-rechazado">
+									<div class="item-rechazado-titulo">@evaluacion.TipoEvaluacion - @evaluacion.PeriodoEvaluado</div>
+									<div class="item-rechazado-detalle">
+										<span><strong>Resultado:</strong> @evaluacion.Resultado.ToString("0.00")</span>
+									</div>
+									<div class="observacion-container">
+										<div class="observacion-titulo">Observación:</div>
+										<div class="observacion-texto">@evaluacion.Observacion</div>
+									</div>
+								</li>
+							}
+						</ul>
+					</div>
+				}
+			</div>
+		</div>
+	}
+	<!-- Sección de progreso general -->
+	<div class="progreso-container">
+		<div class="progreso-header">
+			<h2 class="progreso-title">Mi Progreso de Ascenso</h2>
+			<div class="progreso-nivel">@(datosEvaluacion?.Nivel ?? "Nivel actual")</div>
+		</div>
 
-            <!-- Cursos -->
-            <div class="criterio-item">
-                <div class="criterio-header">
-                    <span class="criterio-porcentaje">@GetPorcentaje(datosEvaluacion?.HorasCursos ?? 0, requisitosNivelSiguiente.HorasCapacitacion)%</span>
-                    <h3 class="criterio-titulo">Cursos</h3>
-                </div>
-                <div class="criterio-detalle">
-                    <span>@(datosEvaluacion?.HorasCursos ?? 0)/@requisitosNivelSiguiente.HorasCapacitacion horas</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.HorasCursos ?? 0, requisitosNivelSiguiente.HorasCapacitacion))%"></div>
-                </div>
-            </div>
+		@if (string.IsNullOrEmpty(datosEvaluacion?.CategoriaSiguiente))
+		{
+			<div class="mensaje-nivel-maximo">
+				Felicitaciones por tu logro profesional. Has alcanzado el nivel máximo dentro del escalafón docente.
+			</div>
+		}
+		else if (progresoGeneral >= 95)
+		{
+			@if (hayRechazosDisponibles)
+			{
+				<div class="mensaje-nivel-maximo" style="background-color: #ffebee; color: #e53935;">
+					No puedes postular mientras existan elementos rechazados.<br />
+					Revisa y corrige tus observaciones para poder enviar tu postulación.
+				</div>
+			}
+			else
+			{
+				<div>
+					<h3 style="text-align: center; color: #2e7d32;">¡Felicidades! Cumples con los requisitos para ascender a @(datosEvaluacion?.CategoriaSiguiente ?? "siguiente nivel")</h3>
+					<button class="btn-postular" @onclick="EnviarPostulacion">
+						Enviar Postulación
+					</button>
+					<p class="info-postulacion">Tu postulación será revisada por el comité de promoción docente.</p>
+				</div>
+			}
+		}
+		else
+		{
+			<div class="slider-container">
+				<h3 style="text-align: center; color: #581517;">Progreso hacia @(datosEvaluacion?.CategoriaSiguiente ?? "siguiente nivel")</h3>
+				<input type="range" min="0" max="100" value="@progresoGeneral" class="slider" id="progresoSlider" disabled />
+				<div class="slider-labels">
+					<span>0%</span>
+					<span>50%</span>
+					<span>100%</span>
+				</div>
+				<div class="progreso-texto">
+					<span>Te faltan @(100 - progresoGeneral)% para cumplir con los requisitos de @(datosEvaluacion?.CategoriaSiguiente ?? "siguiente nivel")</span>
+				</div>
+			</div>
+		}
+	</div>
 
-            <!-- Obras -->
-            <div class="criterio-item">
-                <div class="criterio-header">
-                    <span class="criterio-porcentaje">@GetPorcentaje(datosEvaluacion?.TotalObras ?? 0, requisitosNivelSiguiente.NumeroObras)%</span>
-                    <h3 class="criterio-titulo">Obras</h3>
-                </div>
-                <div class="criterio-detalle">
-                    <span>@(datosEvaluacion?.TotalObras ?? 0)/@requisitosNivelSiguiente.NumeroObras obras</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.TotalObras ?? 0, requisitosNivelSiguiente.NumeroObras))%"></div>
-                </div>
-            </div>
+	<!-- Sección de criterios de evaluación -->
+	<div class="criterios-evaluacion-container">
+		<h2>Mis Criterios de Evaluación</h2>
 
-            <!-- Evaluaciones -->
-            <div class="criterio-item">
-                <div class="criterio-header">
-                    <span class="criterio-porcentaje">@GetPorcentajeDecimal(datosEvaluacion?.PromedioEvaluacion ?? 0, requisitosNivelSiguiente.PromedioEvaluacion)%</span>
-                    <h3 class="criterio-titulo">Evaluaciones</h3>
-                </div>
-                <div class="criterio-detalle">
-                    <span>Promedio: @((datosEvaluacion?.PromedioEvaluacion ?? 0).ToString("0.0"))/@requisitosNivelSiguiente.PromedioEvaluacion%</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.PromedioEvaluacion ?? 0, requisitosNivelSiguiente.PromedioEvaluacion))%"></div>
-                </div>
-            </div>
+		<div class="criterios-list">
+			<!-- Años de Docencia -->
+			<div class="criterio-item">
+				<div class="criterio-header">
+					<span class="criterio-porcentaje">@GetPorcentajeDecimal(datosEvaluacion?.AniosServicio ?? 0, requisitosNivelSiguiente.AniosDocencia)%</span>
+					<h3 class="criterio-titulo">Años Docencia</h3>
+				</div>
+				<div class="criterio-detalle">
+					<span>@((datosEvaluacion?.AniosServicio ?? 0).ToString("0.0"))/@requisitosNivelSiguiente.AniosDocencia años</span>
+				</div>
+				<div class="progress-bar">
+					<div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.AniosServicio ?? 0, requisitosNivelSiguiente.AniosDocencia))%"></div>
+				</div>
+			</div>
 
-            <!-- Investigaciones -->
-            <div class="criterio-item">
-                <div class="criterio-header">
-                    <span class="criterio-porcentaje">@GetPorcentaje(datosEvaluacion?.MesesInvestigacion ?? 0, requisitosNivelSiguiente.MesesInvestigacion)%</span>
-                    <h3 class="criterio-titulo">Investigaciones</h3>
-                </div>
-                <div class="criterio-detalle">
-                    <span>@(datosEvaluacion?.MesesInvestigacion ?? 0)/@requisitosNivelSiguiente.MesesInvestigacion meses</span>
-                </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.MesesInvestigacion ?? 0, requisitosNivelSiguiente.MesesInvestigacion))%"></div>
-                </div>
-            </div>
-        </div>
-    </div>
+			<!-- Cursos -->
+			<div class="criterio-item">
+				<div class="criterio-header">
+					<span class="criterio-porcentaje">@GetPorcentaje(datosEvaluacion?.HorasCursos ?? 0, requisitosNivelSiguiente.HorasCapacitacion)%</span>
+					<h3 class="criterio-titulo">Cursos</h3>
+				</div>
+				<div class="criterio-detalle">
+					<span>@(datosEvaluacion?.HorasCursos ?? 0)/@requisitosNivelSiguiente.HorasCapacitacion horas</span>
+				</div>
+				<div class="progress-bar">
+					<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.HorasCursos ?? 0, requisitosNivelSiguiente.HorasCapacitacion))%"></div>
+				</div>
+			</div>
 
-    <!-- Sección de botones del dashboard -->
-    <div class="dashboard-grid">
-        <div class="card card-success">
-            <div class="card-icon">📄</div>
-            <div class="card-content">
-                <h3>Obras</h3>
-                <p>Revisa tus obras publicadas y recientes</p>
-                <a href="/docente/obras" class="card-button">Ver Obras</a>
-            </div>
-        </div>
+			<!-- Obras -->
+			<div class="criterio-item">
+				<div class="criterio-header">
+					<span class="criterio-porcentaje">@GetPorcentaje(datosEvaluacion?.TotalObras ?? 0, requisitosNivelSiguiente.NumeroObras)%</span>
+					<h3 class="criterio-titulo">Obras</h3>
+				</div>
+				<div class="criterio-detalle">
+					<span>@(datosEvaluacion?.TotalObras ?? 0)/@requisitosNivelSiguiente.NumeroObras obras</span>
+				</div>
+				<div class="progress-bar">
+					<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.TotalObras ?? 0, requisitosNivelSiguiente.NumeroObras))%"></div>
+				</div>
+			</div>
 
-        <div class="card card-info">
-            <div class="card-icon">📋</div>
-            <div class="card-content">
-                <h3>Evaluaciones</h3>
-                <p>Consulta tus evaluaciones y calificaciones académicas</p>
-                <a href="/docente/evaluaciones" class="card-button">Ver Evaluaciones</a>
-            </div>
-        </div>
+			<!-- Evaluaciones -->
+			<div class="criterio-item">
+				<div class="criterio-header">
+					<span class="criterio-porcentaje">@GetPorcentajeDecimal(datosEvaluacion?.PromedioEvaluacion ?? 0, requisitosNivelSiguiente.PromedioEvaluacion)%</span>
+					<h3 class="criterio-titulo">Evaluaciones</h3>
+				</div>
+				<div class="criterio-detalle">
+					<span>Promedio: @((datosEvaluacion?.PromedioEvaluacion ?? 0).ToString("0.0"))/@requisitosNivelSiguiente.PromedioEvaluacion%</span>
+				</div>
+				<div class="progress-bar">
+					<div class="progress-fill" style="width: @(GetPorcentajeDecimal(datosEvaluacion?.PromedioEvaluacion ?? 0, requisitosNivelSiguiente.PromedioEvaluacion))%"></div>
+				</div>
+			</div>
 
-        <div class="card card-warning">
-            <div class="card-icon">🎓</div>
-            <div class="card-content">
-                <h3>Cursos</h3>
-                <p>Administra tus cursos y capacitaciones profesionales</p>
-                <a href="/docente/capacitaciones" class="card-button">Ver Cursos</a>
-            </div>
-        </div>
+			<!-- Investigaciones -->
+			<div class="criterio-item">
+				<div class="criterio-header">
+					<span class="criterio-porcentaje">@GetPorcentaje(datosEvaluacion?.MesesInvestigacion ?? 0, requisitosNivelSiguiente.MesesInvestigacion)%</span>
+					<h3 class="criterio-titulo">Investigaciones</h3>
+				</div>
+				<div class="criterio-detalle">
+					<span>@(datosEvaluacion?.MesesInvestigacion ?? 0)/@requisitosNivelSiguiente.MesesInvestigacion meses</span>
+				</div>
+				<div class="progress-bar">
+					<div class="progress-fill" style="width: @(GetPorcentaje(datosEvaluacion?.MesesInvestigacion ?? 0, requisitosNivelSiguiente.MesesInvestigacion))%"></div>
+				</div>
+			</div>
+		</div>
+	</div>
 
-        <div class="card card-warning">
-            <div class="card-icon">🔬</div>
-            <div class="card-content">
-                <h3>Investigaciones</h3>
-                <p>Gestiona tus proyectos de investigación y desarrollo</p>
-                <a href="/docente/investigaciones" class="card-button">Ver Investigaciones</a>
-            </div>
-        </div>
-    </div>
+	<!-- Sección de botones del dashboard -->
+	<div class="dashboard-grid">
+		<div class="card card-success">
+			<div class="card-icon">📄</div>
+			<div class="card-content">
+				<h3>Obras</h3>
+				<p>Revisa tus obras publicadas y recientes</p>
+				<a href="/docente/obras" class="card-button">Ver Obras</a>
+			</div>
+		</div>
 
-    
+		<div class="card card-info">
+			<div class="card-icon">📋</div>
+			<div class="card-content">
+				<h3>Evaluaciones</h3>
+				<p>Consulta tus evaluaciones y calificaciones académicas</p>
+				<a href="/docente/evaluaciones" class="card-button">Ver Evaluaciones</a>
+			</div>
+		</div>
+
+		<div class="card card-warning">
+			<div class="card-icon">🎓</div>
+			<div class="card-content">
+				<h3>Cursos</h3>
+				<p>Administra tus cursos y capacitaciones profesionales</p>
+				<a href="/docente/capacitaciones" class="card-button">Ver Cursos</a>
+			</div>
+		</div>
+
+		<div class="card card-warning">
+			<div class="card-icon">🔬</div>
+			<div class="card-content">
+				<h4>Investigaciones</h4>
+				<p>Gestiona tus proyectos de investigación y desarrollo</p>
+				<a href="/docente/investigaciones" class="card-button">Ver Investigaciones</a>
+			</div>
+		</div>
+		<div class="card card-warning">
+			<div class="card-icon">🔬</div>
+			<div class="card-content">
+				<h3>Historia Docente</h3>
+				<p>Revisa tu historial en el escalafón</p>
+				<a href="/docente/historial" class="card-button">Ver Investigaciones</a>
+			</div>
+		</div>
+	</div>
+
+
 
 
 </div>
 
+<ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
+
 @code {
-    private DatosEvaluacionCompleta datosEvaluacion = new DatosEvaluacionCompleta();
-    private int progresoGeneral = 0;
-    private RequisitoNivel requisitosNivelSiguiente = new RequisitoNivel();
+	private DatosEvaluacionCompleta datosEvaluacion = new DatosEvaluacionCompleta();
+	private int progresoGeneral = 0;
+	private RequisitoNivel requisitosNivelSiguiente = new RequisitoNivel();
 
-    // Definición de requisitos por nivel
-    private Dictionary<string, RequisitoNivel> requisitosNiveles = new Dictionary<string, RequisitoNivel>
-    {
-        ["DT2"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 1, PromedioEvaluacion = 75, HorasCapacitacion = 96, MesesInvestigacion = 0 },
-        ["DT3"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 2, PromedioEvaluacion = 75, HorasCapacitacion = 96, MesesInvestigacion = 12 },
-        ["DT4"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 3, PromedioEvaluacion = 75, HorasCapacitacion = 128, MesesInvestigacion = 24 },
-        ["DT5"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 5, PromedioEvaluacion = 75, HorasCapacitacion = 160, MesesInvestigacion = 24 }
-    };
+	// Definición de requisitos por nivel
+	private Dictionary<string, RequisitoNivel> requisitosNiveles = new Dictionary<string, RequisitoNivel>
+		{
+			["DT2"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 1, PromedioEvaluacion = 75, HorasCapacitacion = 96, MesesInvestigacion = 0 },
+			["DT3"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 2, PromedioEvaluacion = 75, HorasCapacitacion = 96, MesesInvestigacion = 12 },
+			["DT4"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 3, PromedioEvaluacion = 75, HorasCapacitacion = 128, MesesInvestigacion = 24 },
+			["DT5"] = new RequisitoNivel { AniosDocencia = 4, NumeroObras = 5, PromedioEvaluacion = 75, HorasCapacitacion = 160, MesesInvestigacion = 24 }
+		};
 
 
-    // Agregar estas variables junto con las demás declaraciones
-    private SolicitudesRechazadas solicitudesRechazadas = new SolicitudesRechazadas();
-    private bool tienePostulacionRechazada = false;
-    private bool hayRechazosDisponibles = false;
+	private bool mostrarAlerta = false;
+	private string tipoAlerta = "";
+	private string tituloAlerta = "";
+	private string mensajeAlerta = "";
 
-    // Agregar estos métodos
-    private void VerCriterios()
-    {
-        tienePostulacionRechazada = false;
-    }
+	private void MostrarAlerta(string tipo, string titulo, string mensaje)
+	{
+		tipoAlerta = tipo;
+		tituloAlerta = titulo;
+		mensajeAlerta = mensaje;
+		mostrarAlerta = true;
 
-    private void VerRechazos()
-    {
-        tienePostulacionRechazada = true;
-    }
+		// Auto-close después de 4s
+		_ = Task.Delay(4000).ContinueWith(_ =>
+		{
+			InvokeAsync(() =>
+			{
+				if (mostrarAlerta)
+				{
+					CerrarAlerta();
+				}
+			});
+		});
+	}
 
-    // Agregar estas clases al final del bloque @code
-    public class SolicitudesRechazadas
-    {
-        public string CedulaDocente { get; set; } = "";
-        public string NombreDocente { get; set; } = "";
-        public string CategoriaActual { get; set; } = "";
-        public string UltimaFechaHistorial { get; set; } = "";
-        public List<ObraRechazada> ObrasRechazadas { get; set; } = new List<ObraRechazada>();
-        public List<InvestigacionRechazada> InvestigacionesRechazadas { get; set; } = new List<InvestigacionRechazada>();
-        public List<CursoRechazado> CursosRechazados { get; set; } = new List<CursoRechazado>();
-        public List<EvaluacionRechazada> EvaluacionesRechazadas { get; set; } = new List<EvaluacionRechazada>();
-        public int TotalRechazados { get; set; } = 0;
-        public string FechaGeneracion { get; set; } = "";
-        public string UsuarioGeneracion { get; set; } = "";
-    }
+	private void CerrarAlerta()
+	{
+		mostrarAlerta = false;
+		StateHasChanged();
+	}
 
-    public class ObraRechazada
-    {
-        public int IdObra { get; set; }
-        public string Titulo { get; set; } = "";
-        public string TipoObra { get; set; } = "";
-        public DateTime FechaPublicacion { get; set; }
-        public string Observacion { get; set; } = "";
-    }
 
-    public class InvestigacionRechazada
-    {
-        public int IdInvestigacion { get; set; }
-        public string TituloInvestigacion { get; set; } = "";
-        public DateTime FechaInicio { get; set; }
-        public DateTime FechaFin { get; set; }
-        public string Observacion { get; set; } = "";
-    }
 
-    public class CursoRechazado
-    {
-        public int IdCurso { get; set; }
-        public string NombreCurso { get; set; } = "";
-        public DateTime FechaCurso { get; set; }
-        public int Horas { get; set; }
-        public string Observacion { get; set; } = "";
-    }
+	// Agregar estas variables junto con las demás declaraciones
+	private SolicitudesRechazadas solicitudesRechazadas = new SolicitudesRechazadas();
+	private bool tienePostulacionRechazada = false;
+	private bool hayRechazosDisponibles = false;
 
-    public class EvaluacionRechazada
-    {
-        public int IdEvaluacion { get; set; }
-        public string TipoEvaluacion { get; set; } = "";
-        public string PeriodoEvaluado { get; set; } = "";
-        public decimal Resultado { get; set; }
-        public string Observacion { get; set; } = "";
-    }
-    [Inject]
-    private IJSRuntime JSRuntime { get; set; }
+	// Agregar estos métodos
+	private void VerCriterios()
+	{
+		tienePostulacionRechazada = false;
+	}
 
-    [Inject]
-    private HttpClient Http { get; set; }
+	private void VerRechazos()
+	{
+		tienePostulacionRechazada = true;
+	}
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            // Leer cédula desde localStorage
-            var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
-            string cedulaUsuario = "";
+	// Agregar estas clases al final del bloque @code
+	public class SolicitudesRechazadas
+	{
+		public string CedulaDocente { get; set; } = "";
+		public string NombreDocente { get; set; } = "";
+		public string UltimaFechaHistorial { get; set; } = "";
+		public List<ObraRechazada> ObrasRechazadas { get; set; } = new List<ObraRechazada>();
+		public List<InvestigacionRechazada> InvestigacionesRechazadas { get; set; } = new List<InvestigacionRechazada>();
+		public List<CursoRechazado> CursosRechazados { get; set; } = new List<CursoRechazado>();
+		public List<EvaluacionRechazada> EvaluacionesRechazadas { get; set; } = new List<EvaluacionRechazada>();
+		public int TotalRechazados { get; set; } = 0;
+		public string FechaGeneracion { get; set; } = "";
+		public string UsuarioGeneracion { get; set; } = "";
+	}
 
-            if (!string.IsNullOrEmpty(usuarioJson))
-            {
-                var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
-                cedulaUsuario = usuario?.Cedula ?? "";
-            }
+	public class ObraRechazada
+	{
+		public int IdObra { get; set; }
+		public string Titulo { get; set; } = "";
+		public string TipoObra { get; set; } = "";
+		public DateTime FechaPublicacion { get; set; }
+		public string Observacion { get; set; } = "";
+	}
 
-            if (!string.IsNullOrEmpty(cedulaUsuario))
-            {
-                datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacionCompleta>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
+	public class InvestigacionRechazada
+	{
+		public int IdInvestigacion { get; set; }
+		public string TituloInvestigacion { get; set; } = "";
+		public DateTime FechaInicio { get; set; }
+		public DateTime FechaFin { get; set; }
+		public string Observacion { get; set; } = "";
+	}
 
-                // Cargar los requisitos para el siguiente nivel
-                if (!string.IsNullOrEmpty(datosEvaluacion?.Cat2) && requisitosNiveles.ContainsKey(datosEvaluacion.Cat2))
-                {
-                    requisitosNivelSiguiente = requisitosNiveles[datosEvaluacion.Cat2];
-                }
+	public class CursoRechazado
+	{
+		public int IdCurso { get; set; }
+		public string NombreCurso { get; set; } = "";
+		public DateTime FechaCurso { get; set; }
+		public int Horas { get; set; }
+		public string Observacion { get; set; } = "";
+	}
 
-                // Cargar datos de postulaciones rechazadas
-                try
-                {
-                    var respuestaRechazos = await Http.GetFromJsonAsync<SolicitudesRechazadas>($"api/DetallePostulacions/rechazados/{cedulaUsuario}");
+	public class EvaluacionRechazada
+	{
+		public int IdEvaluacion { get; set; }
+		public string TipoEvaluacion { get; set; } = "";
+		public string PeriodoEvaluado { get; set; } = "";
+		public decimal Resultado { get; set; }
+		public string Observacion { get; set; } = "";
+	}
+	[Inject]
+	private IJSRuntime JSRuntime { get; set; }
 
-                    if (respuestaRechazos != null)
-                    {
-                        solicitudesRechazadas = respuestaRechazos;
-                        hayRechazosDisponibles = solicitudesRechazadas.TotalRechazados > 0;
-                        tienePostulacionRechazada = hayRechazosDisponibles;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine($"Error al cargar postulaciones rechazadas: {ex.Message}");
-                    hayRechazosDisponibles = false;
-                    tienePostulacionRechazada = false;
-                }
-            }
-            else
-            {
-                datosEvaluacion = new DatosEvaluacionCompleta();
-            }
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine("Error al cargar datos: " + ex.Message);
-            datosEvaluacion = new DatosEvaluacionCompleta();
-        }
-        finally
-        {
-            progresoGeneral = CalcularProgresoGeneral();
-        }
-    }
+	[Inject]
+	private HttpClient Http { get; set; }
 
-    private async Task EnviarPostulacion()
-    {
-        var confirmacion = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de enviar tu postulación para ascenso de nivel?");
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			// Leer cédula desde localStorage
+			var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+			string cedulaUsuario = "";
 
-        if (confirmacion)
-        {
-            try
-            {
-                // Obtener la cédula del usuario
-                var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
-                string cedula = "";
+			if (!string.IsNullOrEmpty(usuarioJson))
+			{
+				var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+				cedulaUsuario = usuario?.Cedula ?? "";
+			}
 
-                if (!string.IsNullOrEmpty(usuarioJson))
-                {
-                    var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
-                    cedula = usuario?.Cedula ?? "";
-                }
+			if (!string.IsNullOrEmpty(cedulaUsuario))
+			{
+				datosEvaluacion = await Http.GetFromJsonAsync<DatosEvaluacionCompleta>($"api/HistorialDocentes/estadisticas/{cedulaUsuario}");
 
-                if (string.IsNullOrEmpty(cedula))
-                {
-                    await JSRuntime.InvokeVoidAsync("alert", "No se pudo determinar la cédula del usuario.");
-                    return;
-                }
+				// Cargar los requisitos para el siguiente nivel
+				if (!string.IsNullOrEmpty(datosEvaluacion?.Cat2) && requisitosNiveles.ContainsKey(datosEvaluacion.Cat2))
+				{
+					requisitosNivelSiguiente = requisitosNiveles[datosEvaluacion.Cat2];
+				}
 
-                var content = new StringContent(
-                    System.Text.Json.JsonSerializer.Serialize(cedula),
-                    System.Text.Encoding.UTF8,
-                    "application/json");
+				// Cargar datos de postulaciones rechazadas
+				try
+				{
+					var respuestaRechazos = await Http.GetFromJsonAsync<SolicitudesRechazadas>($"api/DetallePostulacions/rechazados/{cedulaUsuario}");
 
-                var respuesta = await Http.PostAsync("api/Postulaciones", content);
+					if (respuestaRechazos != null)
+					{
+						solicitudesRechazadas = respuestaRechazos;
+						hayRechazosDisponibles = solicitudesRechazadas.TotalRechazados > 0;
+						tienePostulacionRechazada = hayRechazosDisponibles;
+					}
+				}
+				catch (Exception ex)
+				{
+					Console.WriteLine($"Error al cargar postulaciones rechazadas: {ex.Message}");
+					hayRechazosDisponibles = false;
+					tienePostulacionRechazada = false;
+				}
+			}
+			else
+			{
+				datosEvaluacion = new DatosEvaluacionCompleta();
+			}
+		}
+		catch (Exception ex)
+		{
+			Console.WriteLine("Error al cargar datos: " + ex.Message);
+			datosEvaluacion = new DatosEvaluacionCompleta();
+		}
+		finally
+		{
+			progresoGeneral = CalcularProgresoGeneral();
+		}
+	}
 
-                if (respuesta.IsSuccessStatusCode)
-                {
-                    await JSRuntime.InvokeVoidAsync("alert", "Postulación enviada con éxito. Serás notificado cuando sea revisada.");
-                    Console.WriteLine("Postulación enviada exitosamente");
-                }
-                else
-                {
-                    string errorMessage = await respuesta.Content.ReadAsStringAsync();
-                    await JSRuntime.InvokeVoidAsync("alert", $"Error al enviar la postulación: {errorMessage}");
-                    Console.WriteLine($"Error en la respuesta: {errorMessage}");
-                }
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error al enviar postulación: {ex.Message}");
-                await JSRuntime.InvokeVoidAsync("alert", "Error al procesar la solicitud. Contacta al administrador.");
-            }
-        }
-    }
+	private async Task EnviarPostulacion()
+	{
+		var confirmacion = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de enviar tu postulación para ascenso de nivel?");
 
-    private int CalcularProgresoGeneral()
-    {
-        if (datosEvaluacion == null || string.IsNullOrEmpty(datosEvaluacion.CategoriaSiguiente))
-        {
-            return 100; // Nivel máximo alcanzado o datos no disponibles
-        }
+		if (confirmacion)
+		{
+			try
+			{
+				// Obtener la cédula del usuario
+				var usuarioJson = await JSRuntime.InvokeAsync<string>("localStorage.getItem", "usuario");
+				string cedula = "";
 
-        var porcentajes = new List<int>
-        {
-            GetPorcentaje(datosEvaluacion.TotalObras, requisitosNivelSiguiente.NumeroObras),
-            GetPorcentaje(datosEvaluacion.MesesInvestigacion, requisitosNivelSiguiente.MesesInvestigacion),
-            GetPorcentajeDecimal(datosEvaluacion.PromedioEvaluacion, requisitosNivelSiguiente.PromedioEvaluacion),
-            GetPorcentaje(datosEvaluacion.HorasCursos, requisitosNivelSiguiente.HorasCapacitacion),
-            GetPorcentajeDecimal(datosEvaluacion.AniosServicio, requisitosNivelSiguiente.AniosDocencia)
-        };
+				if (!string.IsNullOrEmpty(usuarioJson))
+				{
+					var usuario = System.Text.Json.JsonSerializer.Deserialize<LoginResponse>(usuarioJson);
+					cedula = usuario?.Cedula ?? "";
+				}
 
-        return (int)porcentajes.Average();
-    }
+				if (string.IsNullOrEmpty(cedula))
+				{
+					await JSRuntime.InvokeVoidAsync("alert", "No se pudo determinar la cédula del usuario.");
+					return;
+				}
 
-    private int GetPorcentaje(int valorActual, int valorRequerido)
-    {
-        if (valorRequerido == 0) return 100;
-        return Math.Min(100, (valorActual * 100) / valorRequerido);
-    }
+				var content = new StringContent(
+					System.Text.Json.JsonSerializer.Serialize(cedula),
+					System.Text.Encoding.UTF8,
+					"application/json");
 
-    private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
-    {
-        if (valorRequerido == 0) return 100;
-        return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
-    }
+				var respuesta = await Http.PostAsync("api/Postulaciones", content);
 
-    // Clase para los requisitos de cada nivel
-    public class RequisitoNivel
-    {
-        public decimal AniosDocencia { get; set; } = 0;
-        public int NumeroObras { get; set; } = 0;
-        public decimal PromedioEvaluacion { get; set; } = 0;
-        public int HorasCapacitacion { get; set; } = 0;
-        public int MesesInvestigacion { get; set; } = 0;
-    }
+				if (respuesta.IsSuccessStatusCode)
+				{
+					await JSRuntime.InvokeVoidAsync("alert", "Postulación enviada con éxito. Serás notificado cuando sea revisada.");
+					Console.WriteLine("Postulación enviada exitosamente");
+				}
+				else
+				{
+					string errorMessage = await respuesta.Content.ReadAsStringAsync();
+					await JSRuntime.InvokeVoidAsync("alert", $"Error al enviar la postulación: {errorMessage}");
+					Console.WriteLine($"Error en la respuesta: {errorMessage}");
+				}
+			}
+			catch (Exception ex)
+			{
+				Console.WriteLine($"Error al enviar postulación: {ex.Message}");
+				await JSRuntime.InvokeVoidAsync("alert", "Error al procesar la solicitud. Contacta al administrador.");
+			}
+		}
+	}
 
-    // Clase para los datos de evaluación
-    public class DatosEvaluacionCompleta
-    {
-        [JsonPropertyName("fechaBase")]
-        public string FechaBase { get; set; } = "";
+	private int CalcularProgresoGeneral()
+	{
+		if (datosEvaluacion == null || string.IsNullOrEmpty(datosEvaluacion.CategoriaSiguiente))
+		{
+			return 100; // Nivel máximo alcanzado o datos no disponibles
+		}
 
-        [JsonPropertyName("totalObras")]
-        public int TotalObras { get; set; } = 0;
+		var porcentajes = new List<int>
+		{
+			GetPorcentaje(datosEvaluacion.TotalObras, requisitosNivelSiguiente.NumeroObras),
+			GetPorcentaje(datosEvaluacion.MesesInvestigacion, requisitosNivelSiguiente.MesesInvestigacion),
+			GetPorcentajeDecimal(datosEvaluacion.PromedioEvaluacion, requisitosNivelSiguiente.PromedioEvaluacion),
+			GetPorcentaje(datosEvaluacion.HorasCursos, requisitosNivelSiguiente.HorasCapacitacion),
+			GetPorcentajeDecimal(datosEvaluacion.AniosServicio, requisitosNivelSiguiente.AniosDocencia)
+		};
 
-        [JsonPropertyName("totalCursos")]
-        public int TotalCursos { get; set; } = 0;
+		return (int)porcentajes.Average();
+	}
 
-        [JsonPropertyName("horasCursos")]
-        public int HorasCursos { get; set; } = 0;
+	private int GetPorcentaje(int valorActual, int valorRequerido)
+	{
+		if (valorRequerido == 0) return 100;
+		return Math.Min(100, (valorActual * 100) / valorRequerido);
+	}
 
-        [JsonPropertyName("mesesInvestigacion")]
-        public int MesesInvestigacion { get; set; } = 0;
+	private int GetPorcentajeDecimal(decimal valorActual, decimal valorRequerido)
+	{
+		if (valorRequerido == 0) return 100;
+		return (int)Math.Min(100, (valorActual * 100 / valorRequerido));
+	}
 
-        [JsonPropertyName("promedioEvaluacion")]
-        public decimal PromedioEvaluacion { get; set; } = 0;
+	// Clase para los requisitos de cada nivel
+	public class RequisitoNivel
+	{
+		public decimal AniosDocencia { get; set; } = 0;
+		public int NumeroObras { get; set; } = 0;
+		public decimal PromedioEvaluacion { get; set; } = 0;
+		public int HorasCapacitacion { get; set; } = 0;
+		public int MesesInvestigacion { get; set; } = 0;
+	}
 
-        [JsonPropertyName("aniosServicio")]
-        public decimal AniosServicio { get; set; } = 0;
+	// Clase para los datos de evaluación
+	public class DatosEvaluacionCompleta
+	{
+		[JsonPropertyName("fechaBase")]
+		public string FechaBase { get; set; } = "";
 
-        [JsonPropertyName("nivel")]
-        public string Nivel { get; set; } = "";
+		[JsonPropertyName("totalObras")]
+		public int TotalObras { get; set; } = 0;
 
-        [JsonPropertyName("categoriaSiguiente")]
-        public string CategoriaSiguiente { get; set; } = "";
+		[JsonPropertyName("totalCursos")]
+		public int TotalCursos { get; set; } = 0;
 
-        [JsonPropertyName("cat1")]
-        public string Cat1 { get; set; } = "";
+		[JsonPropertyName("horasCursos")]
+		public int HorasCursos { get; set; } = 0;
 
-        [JsonPropertyName("cat2")]
-        public string Cat2 { get; set; } = "";
-    }
+		[JsonPropertyName("mesesInvestigacion")]
+		public int MesesInvestigacion { get; set; } = 0;
 
-    // Clase para deserializar localStorage.usuario
-    public class LoginResponse
-    {
-        public string Cedula { get; set; } = "";
-        public string Nombre1 { get; set; } = "";
-        public string Apellido1 { get; set; } = "";
-        public string Rol { get; set; } = "";
-    }
+		[JsonPropertyName("promedioEvaluacion")]
+		public decimal PromedioEvaluacion { get; set; } = 0;
+
+		[JsonPropertyName("aniosServicio")]
+		public decimal AniosServicio { get; set; } = 0;
+
+		[JsonPropertyName("nivel")]
+		public string Nivel { get; set; } = "";
+
+		[JsonPropertyName("categoriaSiguiente")]
+		public string CategoriaSiguiente { get; set; } = "";
+
+		[JsonPropertyName("cat1")]
+		public string Cat1 { get; set; } = "";
+
+		[JsonPropertyName("cat2")]
+		public string Cat2 { get; set; } = "";
+	}
+
+	// Clase para deserializar localStorage.usuario
+	public class LoginResponse
+	{
+		public string Cedula { get; set; } = "";
+		public string Nombre1 { get; set; } = "";
+		public string Apellido1 { get; set; } = "";
+		public string Rol { get; set; } = "";
+	}
 }
