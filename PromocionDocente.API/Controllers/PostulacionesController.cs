@@ -186,7 +186,7 @@ namespace PromocionDocente.API.Controllers
         public async Task<IActionResult> AprobarRechazarPostulacionPorCedula(PostulacionAprobacionDto dto)
         {
             // Fecha actual para el registro (usando el formato proporcionado)
-            var fechaActual = DateOnly.FromDateTime(DateTime.UtcNow); 
+            var fechaActual = DateOnly.FromDateTime(DateTime.UtcNow);
 
             // Usar el usuario que viene en el JSON
             var usuarioActual = dto.Usuario;
@@ -260,7 +260,7 @@ namespace PromocionDocente.API.Controllers
                 bool existenDocumentosMinimos = cantidadObras >= 1 &&
                                                cantidadInvestigaciones >= 1 &&
                                                cantidadCursos >= 1 &&
-                                               cantidadEvaluaciones >= 1;
+                                               cantidadEvaluaciones >= 6;
 
                 if (!existenDocumentosMinimos)
                 {
@@ -398,6 +398,7 @@ namespace PromocionDocente.API.Controllers
 
                             // 1. Actualizar el registro actual en el historial estableciendo la fecha fin
                             ultimoHistorial.FecFin = fechaActual;
+                            _context.HistorialDocentes.Update(ultimoHistorial);
 
                             // 2. Generar PDF de certificado de promoción
                             byte[] pdfBytes = PdfHelper.GenerarPdfPostulacion(
@@ -420,6 +421,7 @@ namespace PromocionDocente.API.Controllers
                             };
 
                             _context.HistorialDocentes.Add(nuevoHistorial);
+
                         }
 
                         await _context.SaveChangesAsync();
@@ -527,52 +529,52 @@ namespace PromocionDocente.API.Controllers
             }
         }
         [HttpGet("rechazadas")]
-public async Task<ActionResult<List<SolicitudDocenteDto>>> GetSolicitudesRechazadas()
-{
-    try
-    {
-        var solicitudes = new List<SolicitudDocenteDto>();
-
-        var postulacionesRechazadas = await _context.Postulaciones
-            .Where(p => p.EstPos == "RECHAZADO")
-            .Include(p => p.CedDocNavigation)
-            .ToListAsync();
-
-        var categorias = await _context.Categorias.ToListAsync();
-
-        foreach (var postulacion in postulacionesRechazadas)
+        public async Task<ActionResult<List<SolicitudDocenteDto>>> GetSolicitudesRechazadas()
         {
-            var categoriaActual = categorias.FirstOrDefault(c => c.IdCat == postulacion.IdCat);
-
-            if (categoriaActual != null)
+            try
             {
-                var siguienteCategoria = categorias
-                    .Where(c => c.NivCat > categoriaActual.NivCat)
-                    .OrderBy(c => c.NivCat)
-                    .FirstOrDefault() ?? categoriaActual;
+                var solicitudes = new List<SolicitudDocenteDto>();
 
-                solicitudes.Add(new SolicitudDocenteDto
+                var postulacionesRechazadas = await _context.Postulaciones
+                    .Where(p => p.EstPos == "RECHAZADO")
+                    .Include(p => p.CedDocNavigation)
+                    .ToListAsync();
+
+                var categorias = await _context.Categorias.ToListAsync();
+
+                foreach (var postulacion in postulacionesRechazadas)
                 {
-                    Id = postulacion.IdPos,
-                    Codigo = postulacion.CedDoc,
-                    NombreDocente = $"{postulacion.CedDocNavigation.Nom1Doc} {postulacion.CedDocNavigation.Ape1Doc}",
-                    Nivel = $"{categoriaActual.NomCat} a {siguienteCategoria.NomCat}",
-                    Fecha = postulacion.FecPos,
-                    TiempoEspera = CalcularTiempoEspera(postulacion.FecPos),
-                    Estado = postulacion.EstPos
-                });
+                    var categoriaActual = categorias.FirstOrDefault(c => c.IdCat == postulacion.IdCat);
+
+                    if (categoriaActual != null)
+                    {
+                        var siguienteCategoria = categorias
+                            .Where(c => c.NivCat > categoriaActual.NivCat)
+                            .OrderBy(c => c.NivCat)
+                            .FirstOrDefault() ?? categoriaActual;
+
+                        solicitudes.Add(new SolicitudDocenteDto
+                        {
+                            Id = postulacion.IdPos,
+                            Codigo = postulacion.CedDoc,
+                            NombreDocente = $"{postulacion.CedDocNavigation.Nom1Doc} {postulacion.CedDocNavigation.Ape1Doc}",
+                            Nivel = $"{categoriaActual.NomCat} a {siguienteCategoria.NomCat}",
+                            Fecha = postulacion.FecPos,
+                            TiempoEspera = CalcularTiempoEspera(postulacion.FecPos),
+                            Estado = postulacion.EstPos
+                        });
+                    }
+                }
+
+                solicitudes = solicitudes.OrderByDescending(s => s.Fecha).ToList();
+
+                return Ok(solicitudes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al obtener solicitudes rechazadas: {ex.Message}");
             }
         }
-
-        solicitudes = solicitudes.OrderByDescending(s => s.Fecha).ToList();
-
-        return Ok(solicitudes);
-    }
-    catch (Exception ex)
-    {
-        return StatusCode(500, $"Error al obtener solicitudes rechazadas: {ex.Message}");
-    }
-}
         // POST: api/Postulaciones/ValidarSolicitud/5
         [HttpPost("ValidarSolicitud/{id}")]
         public async Task<IActionResult> ValidarSolicitud(int id, [FromBody] ValidacionDto validacion)

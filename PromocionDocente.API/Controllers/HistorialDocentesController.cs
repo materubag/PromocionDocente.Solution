@@ -42,6 +42,36 @@ namespace PromocionDocente.API.Controllers
             return historialDocente;
         }
 
+        // GET: api/HistorialDocentes/cedula/{cedDoc}
+        [HttpGet("cedula/{cedDoc}")]
+        public async Task<ActionResult<List<object>>> GetHistorialDocentePorCedula(string cedDoc)
+        {
+            // Obtener todos los registros de historial para la cédula especificada
+            // incluyendo datos de categoría y docente mediante joins
+            var historiales = await (from h in _context.HistorialDocentes
+                                     join c in _context.Categorias on h.IdCat equals c.IdCat
+                                     join d in _context.Docentes on h.CedDoc equals d.CedDoc
+                                     where h.CedDoc == cedDoc
+                                     select new
+                                     {
+                                         h.IdHis,
+                                         h.CedDoc,
+                                         NombreDocente = $"{d.Nom1Doc} {d.Ape1Doc}",
+                                         h.IdCat,
+                                         NombreCategoria = c.NomCat, // Asumiendo que el campo de nombre en la tabla Categorias es "Nombre"
+                                         h.FecIni,
+                                         h.FecFin,
+                                         DocumentoPdf = h.DocumentoPdf != null
+                                             ? PdfHelper.GuardarBinarioComoPdf(h.DocumentoPdf, h.CedDoc, $"Historial_{h.IdHis}", "Historiales")
+                                             : ""
+                                     }).ToListAsync();
+
+            if (historiales == null || historiales.Count == 0)
+                return NotFound("No se encontró historial para la cédula especificada.");
+
+            return Ok(historiales);
+        }
+
         // PUT: api/HistorialDocentes/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

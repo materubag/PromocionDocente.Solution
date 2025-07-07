@@ -10,800 +10,800 @@
 @layout AdminLayout
 
 <div class="container-fluid">
-    <!-- Sistema de notificaciones toast -->
+	<!-- Sistema de notificaciones toast -->
+	@if (!string.IsNullOrEmpty(errorMensaje))
+	{
+		<div class="alert alert-danger">@errorMensaje</div>
+	}
+	else if (cargando)
+	{
+		<div class="text-center p-4">
+			<div class="row align-items-center mb-4 border-bottom pb-3">
+				<div class="col-auto">
+					<div class="spinner-border text-primary" role="status">
+						<span class="visually-hidden">Cargando...</span>
+					</div>
+					<p class="mt-2">Cargando información del docente...</p>
+				</div>
+			</div>
+		</div>
+	}
+	else
+	{
+		<!-- Header Principal -->
+		<header class="bg-white py-2 mb-4 rounded-4 border-0 shadow-lg position-relative overflow-hidden">
+			<!-- Overlay decorativo -->
+			<div class="position-absolute top-0 start-0 w-100 h-100"
+				 style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); opacity: 0.03;"></div>
 
+			<div class="container-fluid position-relative">
+				<div class="row align-items-center">
+					<div class="col-auto">
+						<button class="btn p-2 rounded-pill shadow-sm border-0 fw-semibold position-relative overflow-hidden"
+								style="background-color: #581517; color: white; transition: all 0.4s ease; min-width: 110px; z-index: 1; font-size: 0.85rem;"
+								@onclick="Volver"
+								onmouseover="this.style.backgroundColor='#4a1214'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(88, 21, 23, 0.3)'"
+								onmouseout="this.style.backgroundColor='#581517'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
+							<i class="fas fa-arrow-left me-2"></i>Volver al Panel
+						</button>
+					</div>
+					<div class="col">
+						<div>
+							<h1 class="mb-2 h4 text-dark fw-bold" style="letter-spacing: -0.3px;">
+								Evaluación de Promoción Docente
+							</h1>
+							<div class="d-flex align-items-center flex-wrap">
+								<div class="d-flex align-items-center me-4 mb-1">
+									<i class="fas fa-user me-2" style="color: #581517; font-size: 0.9rem;"></i>
+									<span class="text-dark fw-semibold fs-6">@infoDocente.NombreCompleto</span>
+								</div>
+								<div class="d-flex align-items-center mb-1">
+									<i class="fas fa-id-card me-2 text-muted" style="font-size: 0.9rem;"></i>
+									<span class="badge bg-light text-dark border px-2 py-1 rounded-pill" style="font-size: 0.8rem;">@infoDocente.Codigo</span>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</header>
 
-    @if (!string.IsNullOrEmpty(errorMensaje))
-    {
-        <div class="alert alert-danger">@errorMensaje</div>
-    }
-    else if (cargando)
-    {
-        <div class="text-center p-4">
-            <div class="row align-items-center mb-4 border-bottom pb-3">
-                <div class="col-auto">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Cargando...</span>
-                    </div>
-                    <p class="mt-2">Cargando información del docente...</p>
-                </div>
-            </div>
-        </div>
-    }
-    else
-    {
-        <!-- Header Principal -->
-        <header class="bg-white py-2 mb-4 rounded-4 border-0 shadow-lg position-relative overflow-hidden">
-            <!-- Overlay decorativo -->
-            <div class="position-absolute top-0 start-0 w-100 h-100" 
-                 style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); opacity: 0.03;"></div>
-            
-            <div class="container-fluid position-relative">
-                <div class="row align-items-center">
-                    <div class="col-auto">
-                        <button class="btn p-2 rounded-pill shadow-sm border-0 fw-semibold position-relative overflow-hidden" 
-                                style="background-color: #581517; color: white; transition: all 0.4s ease; min-width: 110px; z-index: 1; font-size: 0.85rem;"
-                                @onclick="Volver"
-                                onmouseover="this.style.backgroundColor='#4a1214'; this.style.transform='translateY(-3px)'; this.style.boxShadow='0 8px 25px rgba(88, 21, 23, 0.3)'"
-                                onmouseout="this.style.backgroundColor='#581517'; this.style.transform='translateY(0)'; this.style.boxShadow='0 2px 10px rgba(0,0,0,0.1)'">
-                            <i class="fas fa-arrow-left me-2"></i>Volver al Panel
-                        </button>
-                    </div>
-                    <div class="col">
-                        <div>
-                            <h1 class="mb-2 h4 text-dark fw-bold" style="letter-spacing: -0.3px;">
-                                Evaluación de Promoción Docente
-                            </h1>
-                            <div class="d-flex align-items-center flex-wrap">
-                                <div class="d-flex align-items-center me-4 mb-1">
-                                    <i class="fas fa-user me-2" style="color: #581517; font-size: 0.9rem;"></i>
-                                    <span class="text-dark fw-semibold fs-6">@infoDocente.NombreCompleto</span>
-                                </div>
-                                <div class="d-flex align-items-center mb-1">
-                                    <i class="fas fa-id-card me-2 text-muted" style="font-size: 0.9rem;"></i>
-                                    <span class="badge bg-light text-dark border px-2 py-1 rounded-pill" style="font-size: 0.8rem;">@infoDocente.Codigo</span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
+		<!-- Tarjeta de Información General -->
+		<div class="card mb-4 rounded-4 shadow-sm border-0" style="transition: all 0.3s ease;">
+			<div class="card-header rounded-top-4 border-0 position-relative" style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); color: white;">
+				<h6 class="mb-0 d-flex align-items-center">
+					<div class="me-3 p-2 rounded-circle" style="background-color: rgba(255,255,255,0.2);">
+						<i class="fas fa-user"></i>
+					</div>
+					<span class="fw-semibold">Información General</span>
+				</h6>
+			</div>
+			<div class="card-body p-4" style="background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);">
+				<div class="row g-4">
+					<div class="col-md-6">
+						<div class="info-item mb-4">
+							<div class="d-flex align-items-center mb-2">
+								<i class="fas fa-briefcase me-2" style="color: #581517;"></i>
+								<label class="form-label text-muted fw-semibold mb-0">Cargo Actual</label>
+							</div>
+							<p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.CargoActual</p>
+						</div>
+						<div class="info-item mb-4">
+							<div class="d-flex align-items-center mb-2">
+								<i class="fas fa-calendar-alt me-2" style="color: #581517;"></i>
+								<label class="form-label text-muted fw-semibold mb-0">Fecha de Solicitud</label>
+							</div>
+							<p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.FechaSolicitud.ToString("dd/MM/yyyy")</p>
+						</div>
+						<div class="info-item mb-4">
+							<div class="d-flex align-items-center mb-2">
+								<i class="fas fa-info-circle me-2" style="color: #581517;"></i>
+								<label class="form-label text-muted fw-semibold mb-0">Estado</label>
+							</div>
+							<div class="ps-3">
+								<span class="badge px-2 py-1 rounded-pill @GetClaseBadgeEstadoSolicitud(infoDocente.Estado)" style="border: 2px solid rgba(88, 21, 23, 0.1); font-size: 0.8rem;">
+									@infoDocente.Estado
+								</span>
+							</div>
+						</div>
+					</div>
+					<div class="col-md-6">
+						<div class="info-item mb-4">
+							<div class="d-flex align-items-center mb-2">
+								<i class="fas fa-user-tie me-2" style="color: #581517;"></i>
+								<label class="form-label text-muted fw-semibold mb-0">Cargo Solicitado</label>
+							</div>
+							<p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.CargoSolicitado</p>
+						</div>
+						<div class="info-item mb-4">
+							<div class="d-flex align-items-center mb-2">
+								<i class="fas fa-clock me-2" style="color: #581517;"></i>
+								<label class="form-label text-muted fw-semibold mb-0">Tiempo en Proceso</label>
+							</div>
+							<p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.TiempoEnProceso</p>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <!-- Tarjeta de Información General -->
-        <div class="card mb-4 rounded-4 shadow-sm border-0" style="transition: all 0.3s ease;">
-            <div class="card-header rounded-top-4 border-0 position-relative" style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); color: white;">
-                <h6 class="mb-0 d-flex align-items-center">
-                    <div class="me-3 p-2 rounded-circle" style="background-color: rgba(255,255,255,0.2);">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <span class="fw-semibold">Información General</span>
-                </h6>
-            </div>
-            <div class="card-body p-4" style="background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="info-item mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-briefcase me-2" style="color: #581517;"></i>
-                                <label class="form-label text-muted fw-semibold mb-0">Cargo Actual</label>
-                            </div>
-                            <p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.CargoActual</p>
-                        </div>
-                        <div class="info-item mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-calendar-alt me-2" style="color: #581517;"></i>
-                                <label class="form-label text-muted fw-semibold mb-0">Fecha de Solicitud</label>
-                            </div>
-                            <p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.FechaSolicitud.ToString("dd/MM/yyyy")</p>
-                        </div>
-                        <div class="info-item mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-info-circle me-2" style="color: #581517;"></i>
-                                <label class="form-label text-muted fw-semibold mb-0">Estado</label>
-                            </div>
-                            <div class="ps-3">
-                                <span class="badge px-2 py-1 rounded-pill @GetClaseBadgeEstadoSolicitud(infoDocente.Estado)" style="border: 2px solid rgba(88, 21, 23, 0.1); font-size: 0.8rem;">
-                                    @infoDocente.Estado
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="info-item mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-user-tie me-2" style="color: #581517;"></i>
-                                <label class="form-label text-muted fw-semibold mb-0">Cargo Solicitado</label>
-                            </div>
-                            <p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.CargoSolicitado</p>
-                        </div>
-                        <div class="info-item mb-4">
-                            <div class="d-flex align-items-center mb-2">
-                                <i class="fas fa-clock me-2" style="color: #581517;"></i>
-                                <label class="form-label text-muted fw-semibold mb-0">Tiempo en Proceso</label>
-                            </div>
-                            <p class="mb-0 fs-6 text-dark fw-medium ps-3">@infoDocente.TiempoEnProceso</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+		<!-- Tabla de Criterios de Evaluación -->
+		<div class="card mb-4 rounded-4 shadow-sm border-0" style="transition: all 0.3s ease;">
+			<div class="card-header rounded-top-4 border-0 position-relative" style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); color: white;">
+				<h6 class="mb-0 d-flex align-items-center">
+					<div class="me-3 p-2 rounded-circle" style="background-color: rgba(255,255,255,0.2);">
+						<i class="fas fa-tasks"></i>
+					</div>
+					<span class="fw-semibold">Criterios de evaluación</span>
+				</h6>
+			</div>
+			<div class="card-body p-0" style="background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);">
+				<div class="table-responsive">
+					<table class="table table-hover align-middle mb-0" style="border-collapse: separate; border-spacing: 0;">
+						<thead style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+							<tr>
+								<th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">#</th>
+								<th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">Criterio</th>
+								<th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">Estado</th>
+								<th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">Acción</th>
+							</tr>
+						</thead>
+						<tbody>
+							@foreach (var criterio in Criterios)
+							{
+								<tr class="table-row-hover" style="transition: all 0.2s ease;"
+									onmouseover="this.style.backgroundColor='rgba(88, 21, 23, 0.03)'"
+									onmouseout="this.style.backgroundColor='transparent'">
+									<td class="px-4 py-3 border-0 fw-medium text-muted" style="font-size: 0.9rem;">@criterio.Id</td>
+									<td class="px-4 py-3 border-0 text-dark fw-medium" style="font-size: 0.9rem;">@criterio.Nombre</td>
+									<td class="px-4 py-3 border-0">
+										<span class="badge px-3 py-2 rounded-pill @GetClaseBadgeEstado(criterio.Estado)" style="border: 2px solid rgba(88, 21, 23, 0.1); font-size: 0.85rem;">
+											@criterio.Estado
+										</span>
+									</td>
+									<td class="px-4 py-3 border-0">
+										<div class="d-flex gap-2">
+											<button class="btn btn-sm rounded-pill px-3 py-2 fw-medium @GetClaseBotonCriterio(criterio.Estado)"
+													style="transition: all 0.3s ease; min-width: 100px; font-size: 0.85rem;"
+													@onclick="() => IrAEvaluacion(criterio.Id, criterio.Nombre)">
+												@GetTextoBotonCriterio(criterio.Estado)
+											</button>
+										</div>
+									</td>
+								</tr>
+							}
+						</tbody>
+					</table>
+				</div>
+				<!-- Información de debug debajo de la tabla -->
+				<div class="mt-4 mx-4 mb-4 p-4 rounded-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
+					<div class="d-flex align-items-center mb-2">
+						<i class="fas fa-info-circle me-2" style="color: #581517;"></i>
+						<h6 class="mb-0 fw-semibold text-dark">Estado de evaluación</h6>
+					</div>
+					<div class="row g-3">
+						<div class="col-md-4">
+							<div class="d-flex align-items-center">
+								<span class="badge bg-primary me-2">@Criterios.Count(c => c.Estado == "Evaluado" || c.Estado == "Rechazado")</span>
+								<small class="text-muted">de @Criterios.Count criterios evaluados</small>
+							</div>
+						</div>
+						<div class="col-md-4">
+							<div class="d-flex align-items-center">
+								<span class="badge @(TodosEvaluados() ? "bg-success" : "bg-warning") me-2">
+									@(TodosEvaluados() ? "Completo" : "Pendiente")
+								</span>
 
-        <!-- Tabla de Criterios de Evaluación -->
-        <div class="card mb-4 rounded-4 shadow-sm border-0" style="transition: all 0.3s ease;">
-            <div class="card-header rounded-top-4 border-0 position-relative" style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); color: white;">
-                <h6 class="mb-0 d-flex align-items-center">
-                    <div class="me-3 p-2 rounded-circle" style="background-color: rgba(255,255,255,0.2);">
-                        <i class="fas fa-tasks"></i>
-                    </div>
-                    <span class="fw-semibold">Criterios de evaluación</span>
-                </h6>
-            </div>
-            <div class="card-body p-0" style="background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0" style="border-collapse: separate; border-spacing: 0;">
-                        <thead style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                            <tr>
-                                <th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">#</th>
-                                <th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">Criterio</th>
-                                <th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">Estado</th>
-                                <th class="px-4 py-3 border-0 fw-semibold text-dark" style="font-size: 0.9rem;">Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var criterio in Criterios)
-                            {
-                                <tr class="table-row-hover" style="transition: all 0.2s ease;" 
-                                    onmouseover="this.style.backgroundColor='rgba(88, 21, 23, 0.03)'"
-                                    onmouseout="this.style.backgroundColor='transparent'">
-                                    <td class="px-4 py-3 border-0 fw-medium text-muted" style="font-size: 0.9rem;">@criterio.Id</td>
-                                    <td class="px-4 py-3 border-0 text-dark fw-medium" style="font-size: 0.9rem;">@criterio.Nombre</td>
-                                    <td class="px-4 py-3 border-0">
-                                        <span class="badge px-3 py-2 rounded-pill @GetClaseBadgeEstado(criterio.Estado)" style="border: 2px solid rgba(88, 21, 23, 0.1); font-size: 0.85rem;">
-                                            @criterio.Estado
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3 border-0">
-                                        <div class="d-flex gap-2">
-                                            <button class="btn btn-sm rounded-pill px-3 py-2 fw-medium @GetClaseBotonCriterio(criterio.Estado)"
-                                                    style="transition: all 0.3s ease; min-width: 100px; font-size: 0.85rem;"
-                                                    @onclick="() => IrAEvaluacion(criterio.Id, criterio.Nombre)">
-                                                @GetTextoBotonCriterio(criterio.Estado)
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <!-- Información de debug debajo de la tabla -->
-                <div class="mt-4 mx-4 mb-4 p-4 rounded-4 border-0 shadow-sm" style="background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);">
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="fas fa-info-circle me-2" style="color: #581517;"></i>
-                        <h6 class="mb-0 fw-semibold text-dark">Estado de evaluación</h6>
-                    </div>
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center">
-                                <span class="badge bg-primary me-2">@Criterios.Count(c => c.Estado == "Aprobado" || c.Estado == "Rechazado")</span>
-                                <small class="text-muted">de @Criterios.Count criterios evaluados</small>
-                            </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="d-flex align-items-center">
-                                <span class="badge @(TodosEvaluados() ? "bg-success" : "bg-warning") me-2">
-                                    @(TodosEvaluados() ? "Completo" : "Pendiente")
-                                </span>
-                               
-                                <small class="text-muted">Estado general</small>
+								<small class="text-muted">Estado general</small>
 
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <!-- Sección de decisión final SIEMPRE visible -->
-        <div class="card rounded-4">
-            <div class="card-header rounded-top-4 border-0 position-relative" style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); color: white;">
-                <h6 class="mb-0 d-flex align-items-center">
-                    <div class="me-3 p-2 rounded-circle" style="background-color: rgba(255,255,255,0.2);">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <span class="fw-semibold">Decisión Final</span>
-                </h6>
-                @if (!TodosEvaluados())
-                {
-                    <small class="text-light ms-5 ps-2">⚠ Primero debe evaluar todos los criterios</small>
-                }
-            </div>
-            <div class="card-body p-3" style="background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);">
-                <EditForm Model="@decision" OnValidSubmit="@GuardarDecision">
-                    <div class="mb-4">
-                        <label class="form-label">Decisión</label>
-                        <div class="decision-container">
-                            <!-- Opción Aprobar -->
-                            <div class="decision-option @(decision.DecisionSeleccionada == "Aprobar" ? "selected" : "")" style="border: 2px solid #581517; border-radius: 10px; padding: 15px; margin-bottom: 15px; background-color: @(decision.DecisionSeleccionada == "Aprobar" ? "#581517" : "white"); color: @(decision.DecisionSeleccionada == "Aprobar" ? "white" : "#581517");">
-                                <input type="radio"
-                                       name="decision-final"
-                                       id="aprobar-final"
-                                       value="Aprobar"
-                                       @onchange="@((args) => CambiarDecisionFinal(args))"
-                                       checked="@(decision.DecisionSeleccionada == "Aprobar")"
-                                       style="display: none;" />
-                                <label class="decision-label w-100 m-0" for="aprobar-final" style="cursor: pointer;">
-                                    <div class="decision-content d-flex align-items-center">
-                                        <i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
-                                        <div class="decision-text">
-                                            <h6 class="mb-1">Aprobar Promoción</h6>
-                                            <small style="opacity: 0.8;">El docente cumple con todos los requisitos</small>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
+		<!-- Sección de decisión final SIEMPRE visible -->
+		<div class="card rounded-4">
+			<div class="card-header rounded-top-4 border-0 position-relative" style="background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%); color: white;">
+				<h6 class="mb-0 d-flex align-items-center">
+					<div class="me-3 p-2 rounded-circle" style="background-color: rgba(255,255,255,0.2);">
+						<i class="fas fa-gavel"></i>
+					</div>
+					<span class="fw-semibold">Decisión Final</span>
+				</h6>
+				@if (!TodosEvaluados())
+				{
+					<small class="text-light ms-5 ps-2">⚠ Primero debe evaluar todos los criterios</small>
+				}
+			</div>
+			<div class="card-body p-3" style="background: linear-gradient(135deg, #fefefe 0%, #f8f9fa 100%);">
+				<EditForm Model="@decision" OnValidSubmit="@GuardarDecision">
+					<div class="mb-4">
+						<label class="form-label">Decisión</label>
+						<div class="decision-container">
+							<!-- Opción Aprobar -->
+							<div class="decision-option @(decision.DecisionSeleccionada == "Aprobar" ? "selected" : "")" style="border: 2px solid #581517; border-radius: 10px; padding: 15px; margin-bottom: 15px; background-color: @(decision.DecisionSeleccionada == "Aprobar" ? "#581517" : "white"); color: @(decision.DecisionSeleccionada == "Aprobar" ? "white" : "#581517");">
+								<input type="radio"
+									   name="decision-final"
+									   id="aprobar-final"
+									   value="Aprobar"
+									   @onchange="@((args) => CambiarDecisionFinal(args))"
+									   checked="@(decision.DecisionSeleccionada == "Aprobar")"
+									   style="display: none;" />
+								<label class="decision-label w-100 m-0" for="aprobar-final" style="cursor: pointer;">
+									<div class="decision-content d-flex align-items-center">
+										<i class="fas fa-check-circle me-3" style="font-size: 1.5rem;"></i>
+										<div class="decision-text">
+											<h6 class="mb-1">Aprobar Promoción</h6>
+											<small style="opacity: 0.8;">El docente cumple con todos los requisitos</small>
+										</div>
+									</div>
+								</label>
+							</div>
 
-                            <!-- Opción Rechazar -->
-                            <div class="decision-option @(decision.DecisionSeleccionada == "Rechazar" ? "selected" : "")" style="border: 2px solid #581517; border-radius: 10px; padding: 15px; background-color: @(decision.DecisionSeleccionada == "Rechazar" ? "#581517" : "white"); color: @(decision.DecisionSeleccionada == "Rechazar" ? "white" : "#581517");">
-                                <input type="radio"
-                                       name="decision-final"
-                                       id="rechazar-final"
-                                       value="Rechazar"
-                                       @onchange="@((args) => CambiarDecisionFinal(args))"
-                                       checked="@(decision.DecisionSeleccionada == "Rechazar")"
-                                       style="display: none;" />
-                                <label class="decision-label w-100 m-0" for="rechazar-final" style="cursor: pointer;">
-                                    <div class="decision-content d-flex align-items-center">
-                                        <i class="fas fa-times-circle me-3" style="font-size: 1.5rem;"></i>
-                                        <div class="decision-text">
-                                            <h6 class="mb-1">Rechazar Promoción</h6>
-                                            <small style="opacity: 0.8;">El docente no cumple con los requisitos</small>
-                                        </div>
-                                    </div>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label for="observaciones" class="form-label">Observaciones</label>
-                        <InputTextArea @bind-Value="decision.Observaciones"
-                                       class="form-control"
-                                       id="observaciones"
-                                       rows="6"
-                                       placeholder="Ingrese sus observaciones sobre la evaluación..." />
-                    </div>
-                    <div class="d-grid">
-                        <button type="submit" class="btn btn-lg rounded-3" style="background-color: #581517; color: white; border: none;" disabled="@isLoading">
-                            @if (isLoading)
-                            {
-                                <span class="loading-dots me-2">●●●</span>
-                                <text>Guardando...</text>
-                            }
-                            else
-                            {
-                                <text>Guardar Decisión</text>
-                            }
-                        </button>
-                    </div>
-                </EditForm>
-            </div>
-        </div>
-    }
+							<!-- Opción Rechazar -->
+							<div class="decision-option @(decision.DecisionSeleccionada == "Rechazar" ? "selected" : "")" style="border: 2px solid #581517; border-radius: 10px; padding: 15px; background-color: @(decision.DecisionSeleccionada == "Rechazar" ? "#581517" : "white"); color: @(decision.DecisionSeleccionada == "Rechazar" ? "white" : "#581517");">
+								<input type="radio"
+									   name="decision-final"
+									   id="rechazar-final"
+									   value="Rechazar"
+									   @onchange="@((args) => CambiarDecisionFinal(args))"
+									   checked="@(decision.DecisionSeleccionada == "Rechazar")"
+									   style="display: none;" />
+								<label class="decision-label w-100 m-0" for="rechazar-final" style="cursor: pointer;">
+									<div class="decision-content d-flex align-items-center">
+										<i class="fas fa-times-circle me-3" style="font-size: 1.5rem;"></i>
+										<div class="decision-text">
+											<h6 class="mb-1">Rechazar Promoción</h6>
+											<small style="opacity: 0.8;">El docente no cumple con los requisitos</small>
+										</div>
+									</div>
+								</label>
+							</div>
+						</div>
+					</div>
+					<div class="mb-4">
+						<label for="observaciones" class="form-label">Observaciones</label>
+						<InputTextArea @bind-Value="decision.Observaciones"
+									   class="form-control"
+									   id="observaciones"
+									   rows="6"
+									   placeholder="Ingrese sus observaciones sobre la evaluación..." />
+					</div>
+					<div class="d-grid">
+						<button type="submit" class="btn btn-lg rounded-3" style="background-color: #581517; color: white; border: none;" disabled="@isLoading">
+							@if (isLoading)
+							{
+								<span class="loading-dots me-2">●●●</span>
+								<text>Guardando...</text>
+							}
+							else
+							{
+								<text>Guardar Decisión</text>
+							}
+						</button>
+					</div>
+				</EditForm>
+			</div>
+		</div>
+	}
 </div>
 
 <ToastAlerta Mostrar="@mostrarAlerta" Tipo="@tipoAlerta" Titulo="@tituloAlerta" Mensaje="@mensajeAlerta" OnCerrar="CerrarAlerta" />
 
 @code {
-    private DecisionModel decision = new();
-    private bool isLoading = false;
-    private bool cargando = true;
-    private string cedulaDocente = "";
-    private string? errorMensaje = null;
+	private DecisionModel decision = new();
+	private bool isLoading = false;
+	private bool cargando = true;
+	private string cedulaDocente = "";
+	private string? errorMensaje = null;
 
-    // Variables para el sistema de alertas/toast
-    private bool mostrarAlerta = false;
-    private string tipoAlerta = "";
-    private string tituloAlerta = "";
-    private string mensajeAlerta = "";
+	// Variables para el sistema de alertas/toast
+	private bool mostrarAlerta = false;
+	private string tipoAlerta = "";
+	private string tituloAlerta = "";
+	private string mensajeAlerta = "";
 
-    private DocenteInfoModel infoDocente = new DocenteInfoModel();
+	private DocenteInfoModel infoDocente = new DocenteInfoModel();
 
-    private List<CriterioModel> Criterios = new()
-    {
-        new CriterioModel { Id = 1, Nombre = "Investigación", Estado = "Pendiente" },
-        new CriterioModel { Id = 2, Nombre = "Evaluación", Estado = "Pendiente" },
-        new CriterioModel { Id = 3, Nombre = "Cursos/Capacitaciones", Estado = "Pendiente" },
-        new CriterioModel { Id = 4, Nombre = "Obras/Papers", Estado = "Pendiente" }
-    };
+	private List<CriterioModel> Criterios = new()
+	{
+		new CriterioModel { Id = 1, Nombre = "Investigación", Estado = "Pendiente" },
+		new CriterioModel { Id = 2, Nombre = "Evaluación", Estado = "Pendiente" },
+		new CriterioModel { Id = 3, Nombre = "Cursos/Capacitaciones", Estado = "Pendiente" },
+		new CriterioModel { Id = 4, Nombre = "Obras/Papers", Estado = "Pendiente" }
+	};
 
-    private async Task GuardarCriteriosEnLocalStorage()
-    {
-        await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"criterios_{cedulaDocente}", System.Text.Json.JsonSerializer.Serialize(Criterios));
-    }
+	private async Task GuardarCriteriosEnLocalStorage()
+	{
+		await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"criterios_{cedulaDocente}", System.Text.Json.JsonSerializer.Serialize(Criterios));
+	}
 
-    private async Task LeerCriteriosDeLocalStorage()
-    {
-        var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"criterios_{cedulaDocente}");
-        if (!string.IsNullOrEmpty(json))
-        {
-            var criterios = System.Text.Json.JsonSerializer.Deserialize<List<CriterioModel>>(json);
-            if (criterios != null)
-                Criterios = criterios;
-        }
-    }
+	private async Task LeerCriteriosDeLocalStorage()
+	{
+		var json = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"criterios_{cedulaDocente}");
+		if (!string.IsNullOrEmpty(json))
+		{
+			var criterios = System.Text.Json.JsonSerializer.Deserialize<List<CriterioModel>>(json);
+			if (criterios != null)
+				Criterios = criterios;
+		}
+	}
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            cargando = true;
-            errorMensaje = null;
-            StateHasChanged();
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			cargando = true;
+			errorMensaje = null;
+			StateHasChanged();
 
-            var uri = new Uri(Navigation.Uri);
-            var query = HttpUtility.ParseQueryString(uri.Query);
+			var uri = new Uri(Navigation.Uri);
+			var query = HttpUtility.ParseQueryString(uri.Query);
 
-            var codigoDocente = query["codigo"];
-            if (!string.IsNullOrEmpty(codigoDocente))
-            {
-                await CargarDatosPorCodigo(codigoDocente);
-                cedulaDocente = codigoDocente;
-            }
-            else
-            {
-                infoDocente = new DocenteInfoModel
-                {
-                    NombreCompleto = "Docente de Ejemplo",
-                    Codigo = "0000000000",
-                    CargoActual = "Docente Titular 1",
-                    CargoSolicitado = "Docente Titular 2",
-                    FechaSolicitud = new DateTime(2025, 6, 26),
-                    TiempoEnProceso = "0 días"
-                };
-                cedulaDocente = "0000000000";
-            }
+			var codigoDocente = query["codigo"];
+			if (!string.IsNullOrEmpty(codigoDocente))
+			{
+				await CargarDatosPorCodigo(codigoDocente);
+				cedulaDocente = codigoDocente;
+			}
+			else
+			{
+				infoDocente = new DocenteInfoModel
+					{
+						NombreCompleto = "Docente de Ejemplo",
+						Codigo = "0000000000",
+						CargoActual = "Docente Titular 1",
+						CargoSolicitado = "Docente Titular 2",
+						FechaSolicitud = new DateTime(2025, 6, 26),
+						TiempoEnProceso = "0 días"
+					};
+				cedulaDocente = "0000000000";
+			}
 
-            await LeerCriteriosDeLocalStorage();
-            // Ya no se carga desde API ni localStorage
-        }
-        catch (Exception ex)
-        {
-            MostrarAlerta("error", "Error de inicialización", ex.Message);
-        }
-        finally
-        {
-            cargando = false;
-            StateHasChanged();
-        }
-    }
+			await LeerCriteriosDeLocalStorage();
+			// Ya no se carga desde API ni localStorage
+		}
+		catch (Exception ex)
+		{
+			MostrarAlerta("error", "Error de inicialización", ex.Message);
+		}
+		finally
+		{
+			cargando = false;
+			StateHasChanged();
+		}
+	}
 
-    private async Task CargarDatosPorCodigo(string codigo)
-    {
-        try
-        {
-            var response = await Http.GetAsync("api/Postulaciones/dashboard");
-            if (response.IsSuccessStatusCode)
-            {
-                var dashboardData = await response.Content.ReadFromJsonAsync<DashboardDataDto>();
-                var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Codigo == codigo);
-                if (solicitud != null)
-                {
-                    var niveles = ExtraerNiveles(solicitud.Nivel);
-                    infoDocente = new DocenteInfoModel
-                    {
-                        NombreCompleto = solicitud.NombreDocente,
-                        Codigo = solicitud.Codigo,
-                        CargoActual = niveles.NivelActual,
-                        CargoSolicitado = niveles.NivelSolicitado,
-                        FechaSolicitud = solicitud.Fecha is DateOnly d ? d.ToDateTime(TimeOnly.MinValue) : DateTime.Now,
-                        TiempoEnProceso = solicitud.TiempoEspera,
-                        Estado = solicitud.Estado
-                    };
-                }
-                else
-                {
-                    errorMensaje = $"No se encontró información para el código: {codigo}";
-                }
-            }
-            else
-            {
-                errorMensaje = $"Error al cargar dashboard: {await response.Content.ReadAsStringAsync()}";
-            }
-        }
-        catch (Exception ex)
-        {
-            errorMensaje = $"Error al cargar datos por código: {ex.Message}";
-        }
-    }
+	private async Task CargarDatosPorCodigo(string codigo)
+	{
+		try
+		{
+			var response = await Http.GetAsync("api/Postulaciones/dashboard");
+			if (response.IsSuccessStatusCode)
+			{
+				var dashboardData = await response.Content.ReadFromJsonAsync<DashboardDataDto>();
+				var solicitud = dashboardData?.Solicitudes.FirstOrDefault(s => s.Codigo == codigo);
+				if (solicitud != null)
+				{
+					var niveles = ExtraerNiveles(solicitud.Nivel);
+					infoDocente = new DocenteInfoModel
+						{
+							NombreCompleto = solicitud.NombreDocente,
+							Codigo = solicitud.Codigo,
+							CargoActual = niveles.NivelActual,
+							CargoSolicitado = niveles.NivelSolicitado,
+							FechaSolicitud = solicitud.Fecha is DateOnly d ? d.ToDateTime(TimeOnly.MinValue) : DateTime.Now,
+							TiempoEnProceso = solicitud.TiempoEspera,
+							Estado = solicitud.Estado
+						};
+				}
+				else
+				{
+					errorMensaje = $"No se encontró información para el código: {codigo}";
+				}
+			}
+			else
+			{
+				errorMensaje = $"Error al cargar dashboard: {await response.Content.ReadAsStringAsync()}";
+			}
+		}
+		catch (Exception ex)
+		{
+			errorMensaje = $"Error al cargar datos por código: {ex.Message}";
+		}
+	}
 
-    private (string NivelActual, string NivelSolicitado) ExtraerNiveles(string nivelTexto)
-    {
-        if (string.IsNullOrEmpty(nivelTexto))
-            return ("No especificado", "No especificado");
-        if (nivelTexto.Contains(" a "))
-        {
-            var partes = nivelTexto.Split(new[] { " a " }, StringSplitOptions.None);
-            return (partes[0].Trim(), partes[1].Trim());
-        }
-        return (nivelTexto, ObtenerNivelSiguiente(nivelTexto));
-    }
+	private (string NivelActual, string NivelSolicitado) ExtraerNiveles(string nivelTexto)
+	{
+		if (string.IsNullOrEmpty(nivelTexto))
+			return ("No especificado", "No especificado");
+		if (nivelTexto.Contains(" a "))
+		{
+			var partes = nivelTexto.Split(new[] { " a " }, StringSplitOptions.None);
+			return (partes[0].Trim(), partes[1].Trim());
+		}
+		return (nivelTexto, ObtenerNivelSiguiente(nivelTexto));
+	}
 
-    private string ObtenerNivelSiguiente(string nivelActual)
-    {
-        return nivelActual switch
-        {
-            "Docente Titular 1" => "Docente Titular 2",
-            "Docente Titular 2" => "Docente Titular 3",
-            "Docente Titular 3" => "Docente Titular 4",
-            "Docente Titular 4" => "Docente Titular 5",
-            "Profesor Auxiliar" => "Profesor Agregado",
-            "Profesor Agregado" => "Profesor Principal",
-            _ => "Nivel Superior"
-        };
-    }
+	private string ObtenerNivelSiguiente(string nivelActual)
+	{
+		return nivelActual switch
+		{
+			"Docente Titular 1" => "Docente Titular 2",
+			"Docente Titular 2" => "Docente Titular 3",
+			"Docente Titular 3" => "Docente Titular 4",
+			"Docente Titular 4" => "Docente Titular 5",
+			"Profesor Auxiliar" => "Profesor Agregado",
+			"Profesor Agregado" => "Profesor Principal",
+			_ => "Nivel Superior"
+		};
+	}
 
-    private bool TodosEvaluados()
-    {
-        return Criterios.All(c => c.Estado == "Evaluado" || c.Estado == "Rechazado");
-    }
+	private bool TodosEvaluados()
+	{
+		return Criterios.All(c => c.Estado == "Evaluado" || c.Estado == "Rechazado");
+	}
 
-    private void CambiarDecisionFinal(ChangeEventArgs e)
-    {
-        decision.DecisionSeleccionada = e.Value?.ToString() ?? "";
-        StateHasChanged();
-    }
+	private void CambiarDecisionFinal(ChangeEventArgs e)
+	{
+		decision.DecisionSeleccionada = e.Value?.ToString() ?? "";
+		StateHasChanged();
+	}
 
-    private string GetClaseBadgeEstado(string estado)
-    {
-        return estado switch
-        {
-            "Evaluado" => "bg-success-subtle text-success",
-            "Rechazado" => "bg-danger-subtle text-danger",
-            "En Proceso" => "bg-info-subtle text-info",
-            "En Evaluación" => "bg-info-subtle text-info",
-            _ => "bg-warning-subtle text-warning"
-        };
-    }
+	private string GetClaseBadgeEstado(string estado)
+	{
+		return estado switch
+		{
+			"Evaluado" => "bg-success-subtle text-success",
+			"Rechazado" => "bg-danger-subtle text-danger",
+			"En Proceso" => "bg-info-subtle text-info",
+			"En Evaluación" => "bg-info-subtle text-info",
+			_ => "bg-warning-subtle text-warning"
+		};
+	}
 
-    private string GetClaseBotonCriterio(string estado)
-    {
-        return estado switch
-        {
-            "Evaluado" => "btn-outline-success",
-            "Rechazado" => "btn-outline-danger",
-            "En Proceso" => "btn-outline-info",
-            "En Evaluación" => "btn-outline-info",
-            _ => "btn-primary"
-        };
-    }
+	private string GetClaseBotonCriterio(string estado)
+	{
+		return estado switch
+		{
+			"Evaluado" => "btn-outline-success",
+			"Rechazado" => "btn-outline-danger",
+			"En Proceso" => "btn-outline-info",
+			"En Evaluación" => "btn-outline-info",
+			_ => "btn-primary"
+		};
+	}
 
-    private string GetTextoBotonCriterio(string estado)
-    {
-        return estado switch
-        {
-            "Evaluado" => "Ver Evaluación",
-            "Rechazado" => "Ver Evaluación",
-            "En Proceso" => "Ver Evaluación",
-            "En Evaluación" => "Continuar Evaluación",
-            _ => "Ir a Evaluar"
-        };
-    }
+	private string GetTextoBotonCriterio(string estado)
+	{
+		return estado switch
+		{
+			"Evaluado" => "Ver Evaluación",
+			"Rechazado" => "Ver Evaluación",
+			"En Proceso" => "Ver Evaluación",
+			"En Evaluación" => "Continuar Evaluación",
+			_ => "Ir a Evaluar"
+		};
+	}
 
-    private async Task IrAEvaluacion(int criterioId, string nombreCriterio)
-    {
-        var criterio = Criterios.FirstOrDefault(c => c.Id == criterioId);
-        if (criterio != null && criterio.Estado == "Pendiente")
-        {
-            criterio.Estado = "Evaluado";
-            criterio.Evaluado = true;
-            await GuardarCriteriosEnLocalStorage();
-        }
-        string ruta = criterioId switch
-        {
-            1 => $"/evaluar-investigacion?cedula={cedulaDocente}",
-            2 => $"/evaluar-evaluacion?cedula={cedulaDocente}",
-            3 => $"/evaluar-cursos?cedula={cedulaDocente}",
-            4 => $"/evaluar-obras?cedula={cedulaDocente}",
-            5 => $"/evaluar-docencia?cedula={cedulaDocente}",
-            _ => $"/evaluar-criterio/1?cedula={cedulaDocente}"
-        };
-        Navigation.NavigateTo(ruta);
-    }
+	private async Task IrAEvaluacion(int criterioId, string nombreCriterio)
+	{
+		var criterio = Criterios.FirstOrDefault(c => c.Id == criterioId);
+		if (criterio != null && criterio.Estado == "Pendiente")
+		{
+			criterio.Estado = "Evaluado";
+			criterio.Evaluado = true;
+			await GuardarCriteriosEnLocalStorage();
+		}
+		string ruta = criterioId switch
+		{
+			1 => $"/evaluar-investigacion?cedula={cedulaDocente}",
+			2 => $"/evaluar-evaluacion?cedula={cedulaDocente}",
+			3 => $"/evaluar-cursos?cedula={cedulaDocente}",
+			4 => $"/evaluar-obras?cedula={cedulaDocente}",
+			5 => $"/evaluar-docencia?cedula={cedulaDocente}",
+			_ => $"/evaluar-criterio/1?cedula={cedulaDocente}"
+		};
+		Navigation.NavigateTo(ruta);
+	}
 
-    private void Volver()
-    {
-        Navigation.NavigateTo("/admin");
-    }
+	private void Volver()
+	{
+		Navigation.NavigateTo("/admin");
+	}
 
-    private async Task GuardarDecision()
-    {
-        try
-        {
-            isLoading = true;
-            StateHasChanged();
+	private async Task GuardarDecision()
+	{
+		try
+		{
+			isLoading = true;
+			StateHasChanged();
 
-            if (string.IsNullOrEmpty(decision.DecisionSeleccionada))
-            {
-                MostrarAlerta("error", "Selección requerida", "Por favor seleccione una decisión");
-                return;
-            }
+			if (string.IsNullOrEmpty(decision.DecisionSeleccionada))
+			{
+				MostrarAlerta("error", "Selección requerida", "Por favor seleccione una decisión");
+				return;
+			}
 
-            var postulacionDto = new PostulacionAprobacionDto
-            {
-                CedulaDocente = infoDocente.Codigo,
-                Estado = decision.DecisionSeleccionada == "Aprobar" ? "APROBADO" : "RECHAZADO",
-                Observacion = decision.Observaciones,
-                Usuario = @GetUseCED()
-            };
+			var postulacionDto = new PostulacionAprobacionDto
+				{
+					CedulaDocente = infoDocente.Codigo,
+					Estado = decision.DecisionSeleccionada == "Aprobar" ? "APROBADO" : "RECHAZADO",
+					Observacion = decision.Observaciones,
+					Usuario = @GetUse()
+				};
 
-            var response = await Http.PutAsJsonAsync("api/Postulaciones/evaluar", postulacionDto);
+			var response = await Http.PutAsJsonAsync("api/Postulaciones/evaluar", postulacionDto);
 
-            if (response.IsSuccessStatusCode)
-            {
-                var mensajeExito = await response.Content.ReadAsStringAsync();
-                MostrarAlerta("success", "¡Decisión guardada!", 
-                    $"La evaluación ha sido {(decision.DecisionSeleccionada == "Aprobar" ? "aprobada" : "rechazada")} exitosamente");
+			if (response.IsSuccessStatusCode)
+			{
+				var mensajeExito = await response.Content.ReadAsStringAsync();
+				MostrarAlerta("success", "¡Decisión guardada!",
+					$"La evaluación ha sido {(decision.DecisionSeleccionada == "Aprobar" ? "aprobada" : "rechazada")} exitosamente");
 
-                // Esperar un poco antes de navegar para que el usuario vea la notificación
-                await Task.Delay(2000);
-                Navigation.NavigateTo("/admin");
-            }
-            else
-            {
-                var errorMessage = await response.Content.ReadAsStringAsync();
-                MostrarAlerta("error", "Error al guardar", $"Error: {errorMessage}");
-            }
-        }
-        catch (Exception ex)
-        {
-            MostrarAlerta("error", "Error de conexión", $"Error al procesar la solicitud: {ex.Message}");
-        }
-        finally
-        {
-            isLoading = false;
-            StateHasChanged();
-        }
-    }
+				// Esperar un poco antes de navegar para que el usuario vea la notificación
+				await Task.Delay(2000);
+				Navigation.NavigateTo("/admin");
+			}
+			else
+			{
+				var errorMessage = await response.Content.ReadAsStringAsync();
+				MostrarAlerta("error", "Error al guardar", $"Error: {errorMessage}");
+			}
+		}
+		catch (Exception ex)
+		{
+			MostrarAlerta("error", "Error de conexión", $"Error al procesar la solicitud: {ex.Message}");
+		}
+		finally
+		{
+			isLoading = false;
+			StateHasChanged();
+		}
+	}
 
-    private void MostrarAlerta(string tipo, string titulo, string mensaje)
-    {
-        tipoAlerta = tipo;
-        tituloAlerta = titulo;
-        mensajeAlerta = mensaje;
-        mostrarAlerta = true;
-        StateHasChanged();
+	private void MostrarAlerta(string tipo, string titulo, string mensaje)
+	{
+		tipoAlerta = tipo;
+		tituloAlerta = titulo;
+		mensajeAlerta = mensaje;
+		mostrarAlerta = true;
+		StateHasChanged();
 
-        // Auto-cerrar después de 4 segundos
-        _ = Task.Delay(4000).ContinueWith(_ => 
-        {
-            InvokeAsync(() =>
-            {
-                if (mostrarAlerta)
-                {
-                    CerrarAlerta();
-                }
-            });
-        });
-    }
+		// Auto-cerrar después de 4 segundos
+		_ = Task.Delay(4000).ContinueWith(_ =>
+		{
+			InvokeAsync(() =>
+			{
+				if (mostrarAlerta)
+				{
+					CerrarAlerta();
+				}
+			});
+		});
+	}
 
-    private void CerrarAlerta()
-    {
-        mostrarAlerta = false;
-        StateHasChanged();
-    }
+	private void CerrarAlerta()
+	{
+		mostrarAlerta = false;
+		StateHasChanged();
+	}
 
-    // --- Clases modelo ---
-    public class DocenteInfoModel
-    {
-        public string NombreCompleto { get; set; } = "";
-        public string Codigo { get; set; } = "";
-        public string CargoActual { get; set; } = "";
-        public string CargoSolicitado { get; set; } = "";
-        public DateTime FechaSolicitud { get; set; } = DateTime.Now;
-        public string TiempoEnProceso { get; set; } = "";
-        public string Estado { get; set; } = "REVISION";
-    }
+	// --- Clases modelo ---
+	public class DocenteInfoModel
+	{
+		public string NombreCompleto { get; set; } = "";
+		public string Codigo { get; set; } = "";
+		public string CargoActual { get; set; } = "";
+		public string CargoSolicitado { get; set; } = "";
+		public DateTime FechaSolicitud { get; set; } = DateTime.Now;
+		public string TiempoEnProceso { get; set; } = "";
+		public string Estado { get; set; } = "REVISION";
+	}
 
-    public class CriterioModel
-    {
-        public int Id { get; set; }
-        public string Nombre { get; set; } = "";
-        public string Estado { get; set; } = "Pendiente";
-        public bool Evaluado { get; set; } = false;
-    }
+	public class CriterioModel
+	{
+		public int Id { get; set; }
+		public string Nombre { get; set; } = "";
+		public string Estado { get; set; } = "Pendiente";
+		public bool Evaluado { get; set; } = false;
+	}
 
-    public class DecisionModel
-    {
-        public string DecisionSeleccionada { get; set; } = "";
-        public string Observaciones { get; set; } = "";
-    }
+	public class DecisionModel
+	{
+		public string DecisionSeleccionada { get; set; } = "";
+		public string Observaciones { get; set; } = "";
+	}
 
-    public class DashboardDataDto
-    {
-        public DashboardEstadisticasDto Estadisticas { get; set; }
-        public List<SolicitudDocenteDto> Solicitudes { get; set; } = new List<SolicitudDocenteDto>();
-    }
+	public class DashboardDataDto
+	{
+		public DashboardEstadisticasDto Estadisticas { get; set; }
+		public List<SolicitudDocenteDto> Solicitudes { get; set; } = new List<SolicitudDocenteDto>();
+	}
 
-    public class DashboardEstadisticasDto
-    {
-        public int TotalDocentes { get; set; }
-        public int EvaluacionesPendientes { get; set; }
-        public int SolicitudesFinalizadas { get; set; }
-        public int SolicitudesRechazadas { get; set; }
-    }
+	public class DashboardEstadisticasDto
+	{
+		public int TotalDocentes { get; set; }
+		public int EvaluacionesPendientes { get; set; }
+		public int SolicitudesFinalizadas { get; set; }
+		public int SolicitudesRechazadas { get; set; }
+	}
 
-    public class SolicitudDocenteDto
-    {
-        public int Id { get; set; }
-        public string Codigo { get; set; }
-        public string NombreDocente { get; set; }
-        public string Nivel { get; set; }
-        public DateOnly Fecha { get; set; }
-        public string TiempoEspera { get; set; }
-        public string Estado { get; set; }
-    }
+	public class SolicitudDocenteDto
+	{
+		public int Id { get; set; }
+		public string Codigo { get; set; }
+		public string NombreDocente { get; set; }
+		public string Nivel { get; set; }
+		public DateOnly Fecha { get; set; }
+		public string TiempoEspera { get; set; }
+		public string Estado { get; set; }
+	}
 
-    public class PostulacionAprobacionDto
-    {
-        public string CedulaDocente { get; set; }
-        public string Estado { get; set; }
-        public string Observacion { get; set; }
-        public string Usuario { get; set; }
-    }
-    private string GetUseCED()
-    {
-       
-        return UserSession.Usuario.Cedula;
+	public class PostulacionAprobacionDto
+	{
+		public string CedulaDocente { get; set; }
+		public string Estado { get; set; }
+		public string Observacion { get; set; }
+		public string Usuario { get; set; }
+	}
+	private string GetUse()
+	{
 
-    }
+		return (UserSession.Usuario.Nombre1 + " " + UserSession.Usuario.Apellido1 + " con Cedula: " + UserSession.Usuario.Cedula);
 
-    private string GetClaseBadgeEstadoSolicitud(string estado)
-    {
-        if (string.IsNullOrEmpty(estado)) return "bg-warning-subtle text-warning";
-        if (estado.Contains("PENDIENTE", StringComparison.OrdinalIgnoreCase))
-            return "bg-warning-subtle text-warning";
-        else if (estado.Contains("REVISION", StringComparison.OrdinalIgnoreCase))
-            return "bg-info-subtle text-info";
-        else if (estado.Contains("RECHAZADO", StringComparison.OrdinalIgnoreCase))
-            return "bg-danger-subtle text-danger";
-        else if (estado.Contains("EVALUADO", StringComparison.OrdinalIgnoreCase))
-            return "bg-success-subtle text-success";
-        else
-            return "bg-secondary-subtle text-secondary";
-    }
+	}
+
+	private string GetClaseBadgeEstadoSolicitud(string estado)
+	{
+		if (string.IsNullOrEmpty(estado)) return "bg-warning-subtle text-warning";
+		if (estado.Contains("PENDIENTE", StringComparison.OrdinalIgnoreCase))
+			return "bg-warning-subtle text-warning";
+		else if (estado.Contains("REVISION", StringComparison.OrdinalIgnoreCase))
+			return "bg-info-subtle text-info";
+		else if (estado.Contains("RECHAZADO", StringComparison.OrdinalIgnoreCase))
+			return "bg-danger-subtle text-danger";
+		else if (estado.Contains("EVALUADO", StringComparison.OrdinalIgnoreCase))
+			return "bg-success-subtle text-success";
+		else
+			return "bg-secondary-subtle text-secondary";
+	}
 }
 
 <style>
-    /* Estilos para la alerta tipo toast */
-    .toast-alert {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: white;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-        min-width: 350px;
-        max-width: 400px;
-        z-index: 9999;
-        display: flex;
-        align-items: flex-start;
-        padding: 1rem;
-        gap: 0.75rem;
-        animation: slideInRight 0.4s ease-out;
-        border-left: 4px solid;
-    }
+	/* Estilos para la alerta tipo toast */
+	.toast-alert {
+		position: fixed;
+		top: 20px;
+		right: 20px;
+		background: white;
+		border-radius: 12px;
+		box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+		min-width: 350px;
+		max-width: 400px;
+		z-index: 9999;
+		display: flex;
+		align-items: flex-start;
+		padding: 1rem;
+		gap: 0.75rem;
+		animation: slideInRight 0.4s ease-out;
+		border-left: 4px solid;
+	}
 
-    .toast-success {
-        border-left-color: #28a745;
-        background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
-    }
+	.toast-success {
+		border-left-color: #28a745;
+		background: linear-gradient(135deg, #ffffff 0%, #f8fff9 100%);
+	}
 
-    .toast-error {
-        border-left-color: #581517;
-        background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%);
-    }
+	.toast-error {
+		border-left-color: #581517;
+		background: linear-gradient(135deg, #ffffff 0%, #fff8f8 100%);
+	}
 
-    .toast-info {
-        border-left-color: #17a2b8;
-        background: linear-gradient(135deg, #ffffff 0%, #f0fcff 100%);
-    }
+	.toast-info {
+		border-left-color: #17a2b8;
+		background: linear-gradient(135deg, #ffffff 0%, #f0fcff 100%);
+	}
 
-    .toast-icon {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        color: white;
-        flex-shrink: 0;
-        margin-top: 0.2rem;
-    }
+	.toast-icon {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 1rem;
+		color: white;
+		flex-shrink: 0;
+		margin-top: 0.2rem;
+	}
 
-    .toast-success .toast-icon {
-        background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
-    }
+	.toast-success .toast-icon {
+		background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+	}
 
-    .toast-error .toast-icon {
-        background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
-    }
+	.toast-error .toast-icon {
+		background: linear-gradient(135deg, #581517 0%, #6d1b1e 100%);
+	}
 
-    .toast-info .toast-icon {
-        background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
-    }
+	.toast-info .toast-icon {
+		background: linear-gradient(135deg, #17a2b8 0%, #20c997 100%);
+	}
 
-    .toast-content {
-        flex: 1;
-        min-width: 0;
-    }
+	.toast-content {
+		flex: 1;
+		min-width: 0;
+	}
 
-    .toast-title {
-        margin: 0 0 0.25rem 0;
-        font-size: 0.95rem;
-        font-weight: 600;
-        color: #212529;
-        line-height: 1.3;
-    }
+	.toast-title {
+		margin: 0 0 0.25rem 0;
+		font-size: 0.95rem;
+		font-weight: 600;
+		color: #212529;
+		line-height: 1.3;
+	}
 
-    .toast-message {
-        margin: 0;
-        font-size: 0.85rem;
-        color: #6c757d;
-        line-height: 1.4;
-    }
+	.toast-message {
+		margin: 0;
+		font-size: 0.85rem;
+		color: #6c757d;
+		line-height: 1.4;
+	}
 
-    .toast-close {
-        background: none;
-        border: none;
-        color: #adb5bd;
-        cursor: pointer;
-        padding: 0.25rem;
-        border-radius: 4px;
-        transition: all 0.2s ease;
-        flex-shrink: 0;
-        font-size: 0.9rem;
-        width: 24px;
-        height: 24px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
+	.toast-close {
+		background: none;
+		border: none;
+		color: #adb5bd;
+		cursor: pointer;
+		padding: 0.25rem;
+		border-radius: 4px;
+		transition: all 0.2s ease;
+		flex-shrink: 0;
+		font-size: 0.9rem;
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
 
-        .toast-close:hover {
-            color: #6c757d;
-            background: #f8f9fa;
-        }
+		.toast-close:hover {
+			color: #6c757d;
+			background: #f8f9fa;
+		}
 
-    @@keyframes slideInRight {
-        from {
-            transform: translateX(100%);
-            opacity: 0;
-        }
+	@@keyframes slideInRight {
+		from {
+			transform: translateX(100%);
+			opacity: 0;
+		}
 
-        to {
-            transform: translateX(0);
-            opacity: 1;
-        }
-    }
+		to {
+			transform: translateX(0);
+			opacity: 1;
+		}
+	}
 
-    /* Mejorar el estilo de carga */
-    .loading-dots {
-        display: inline-block;
-        position: relative;
-        animation: loading-dots 1.4s infinite;
-    }
+	/* Mejorar el estilo de carga */
+	.loading-dots {
+		display: inline-block;
+		position: relative;
+		animation: loading-dots 1.4s infinite;
+	}
 
-    @@keyframes loading-dots {
-        0%, 20% {
-            opacity: 1;
-        }
-        50% {
-            opacity: 0.5;
-        }
-        100% {
-            opacity: 1;
-        }
-    }
+	@@keyframes loading-dots {
+		0%, 20% {
+			opacity: 1;
+		}
+
+		50% {
+			opacity: 0.5;
+		}
+
+		100% {
+			opacity: 1;
+		}
+	}
 </style>
